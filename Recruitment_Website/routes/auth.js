@@ -38,14 +38,15 @@ router.post('/user', [
             if (user) {
                 return Promise.reject('Email đã tồn tại');
             }
+            return true;
         });
     })
         .normalizeEmail(),
     (0, express_validator_1.body)('phone').trim()
         .custom((value, { req }) => {
-        // Định dạng số điện thoại của Việt Nam: 0xxx, +84xxx, 84xxx
-        const phoneNumberRegex = /^(0|\+?84)(3[2-9]|5[2689]|7[0|6-9]|8[1-9]|9[0-9])[0-9]{7}$/;
-        if (!phoneNumberRegex.test(value)) {
+        // Định dạng số điện thoại của Việt Nam
+        const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
+        if (!phonePattern.test(value)) {
             throw new Error('Số điện thoại không hợp lệ');
         }
         return user_1.User.findOne({ phone: value }).then(user => {
@@ -76,4 +77,19 @@ router.post('/auth/verifyOTP', [
     (0, express_validator_1.body)('otp').trim()
         .isLength({ min: 6, max: 6 }).withMessage('Mã OTP chỉ gồm 6 ký tự')
 ], authController.verifyOTP);
+router.post('/user/authorize', [
+    (0, express_validator_1.body)('credentialId').trim()
+        .custom((value, { req }) => {
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
+        if (!emailPattern.test(value) && !phonePattern.test(value)) {
+            throw new Error('Email hoặc số điện thoại không hợp lệ');
+        }
+        return true;
+    }),
+    (0, express_validator_1.body)('password').trim()
+        .isLength({ min: 8 }).withMessage('Mật khẩu có độ dài tối thiểu là 8'),
+], authController.loggin);
+router.post('/user/profile', authController.isAuth);
+router.post('/refresh', authController.refreshAccessToken);
 exports.default = router;

@@ -32,11 +32,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyOTP = exports.sendOTP = exports.signup = void 0;
+exports.refreshAccessToken = exports.isAuth = exports.loggin = exports.verifyOTP = exports.sendOTP = exports.signup = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const role_1 = require("../models/role");
 const bcrypt = __importStar(require("bcryptjs"));
+const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -47,6 +48,8 @@ const transporter = nodemailer.createTransport({
         pass: 'rtasipfgjrhvcwdj'
     }
 });
+const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
+const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const fullName = req.body.fullName;
     const email = req.body.email;
@@ -153,3 +156,96 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.verifyOTP = verifyOTP;
+const loggin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const credentialId = req.body.credentialId;
+    const password = req.body.password;
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    const errors = (0, express_validator_1.validationResult)(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error('Validation failed');
+            error.statusCode = 422;
+            error.data = errors.array();
+            throw error;
+        }
+        let user;
+        if (emailPattern.test(credentialId)) {
+            user = yield user_1.User.findOne({ email: credentialId });
+            if (!user) {
+                const error = new Error('Email không chính xác');
+                error.statusCode = 422;
+                throw error;
+            }
+            if (!user.isVerifiedEmail) {
+                const error = new Error('Vui lòng xác nhận email');
+                error.statusCode = 422;
+                throw error;
+            }
+        }
+        user = yield user_1.User.findOne({ phone: credentialId });
+        if (!user) {
+            const error = new Error('Số điện thoại không chính xác');
+            error.statusCode = 422;
+            throw error;
+        }
+        if (!user.isVerifiedEmail) {
+            const error = new Error('Vui lòng xác nhận email');
+            error.statusCode = 422;
+            throw error;
+        }
+        const isEqual = yield bcrypt.compare(password, user.password);
+        if (!isEqual) {
+            const error = new Error('Mật khẩu không chính xác');
+            error.statusCode = 422;
+            throw error;
+        }
+        const payload = {
+            userId: user._id,
+            email: user.email,
+            phone: user.phone,
+            roleId: user.roleId
+        };
+        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+        const refreshToken = jwt.sign(payload, refreshKey, { expiresIn: '7d' });
+        res.status(200).json({ accesstoken: accessToken, refreshToken: refreshToken });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+});
+exports.loggin = loggin;
+const isAuth = (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    jwt.verify(accessToken, secretKey, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid access token' });
+        }
+        res.status(200).json({
+            userId: decoded._id,
+            email: decoded.email,
+            phone: decoded.phone,
+            roleId: decoded.roleId
+        });
+    });
+};
+exports.isAuth = isAuth;
+const refreshAccessToken = (req, res, next) => {
+    const refreshToken = req.body.refreshToken;
+    jwt.verify(refreshToken, refreshKey, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+        const newAccessToken = jwt.sign({
+            userId: decoded.userId,
+            email: decoded.email,
+            phone: decoded.phone,
+            roleId: decoded.roleId
+        }, secretKey, { expiresIn: '1h' });
+        res.status(200).json({ accesstoken: newAccessToken });
+    });
+};
+exports.refreshAccessToken = refreshAccessToken;
