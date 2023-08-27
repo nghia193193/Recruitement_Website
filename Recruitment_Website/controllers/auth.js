@@ -55,13 +55,12 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
     const email = req.body.email;
     const phone = req.body.phone;
     const password = req.body.password;
-    const confirmedPassword = req.body.confirmedPassword;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
-            const error = new Error('Validation failed');
+            const error = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         const hashedPw = yield bcrypt.hash(password, 12);
@@ -92,7 +91,14 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             `
         };
         transporter.sendMail(mailDetails, err => console.log(err));
-        res.status(200).json({ message: 'Đã gửi otp tới email' });
+        const payload = {
+            userId: user._id,
+            email: user.email,
+            phone: user.phone,
+            roleId: user.roleId
+        };
+        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+        res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -108,9 +114,9 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
-            const error = new Error('Validation failed');
+            const error = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         const user = yield user_1.User.findOne({ email: email });
@@ -143,9 +149,9 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
-            const error = new Error('Validation failed');
+            const error = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         let user;
@@ -154,11 +160,13 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             if (!user) {
                 const error = new Error('Email không chính xác');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
         }
@@ -167,11 +175,13 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             if (!user) {
                 const error = new Error('Số điện thoại không chính xác');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
         }
@@ -179,6 +189,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');
             error.statusCode = 422;
+            error.result = null;
             throw error;
         }
         const payload = {

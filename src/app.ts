@@ -28,8 +28,8 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     console.log(error);
     const status = error.statusCode || 500;
     const message = error.message;
-    const errorData = error.data;
-    res.status(status).json({ message: message, errorData: errorData });
+    const result = error.result;
+    res.status(status).json({ success: false, message: message, result: result });
 });
 
 mongoose.connect(MONGO_URI)

@@ -30,7 +30,7 @@ const user_1 = require("../models/user");
 const router = (0, express_1.Router)();
 router.post('/api/v1/auth/register', [
     (0, express_validator_1.body)('fullName').trim()
-        .isLength({ min: 5 }).withMessage('Độ dài tối thiểu của họ và tên là 5'),
+        .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     (0, express_validator_1.body)('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .custom((value, { req }) => {
@@ -56,7 +56,7 @@ router.post('/api/v1/auth/register', [
         });
     }),
     (0, express_validator_1.body)('password').trim()
-        .isLength({ min: 8 }).withMessage('Mật khẩu có độ dài tối thiểu là 8'),
+        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
     (0, express_validator_1.body)('confirmedPassword').trim()
         .custom((value, { req }) => {
         if (value !== req.body.password) {
@@ -83,7 +83,7 @@ router.post('/api/v1/auth/login', [
         return true;
     }),
     (0, express_validator_1.body)('password').trim()
-        .isLength({ min: 8 }).withMessage('Mật khẩu có độ dài tối thiểu là 8'),
+        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
 ], authController.login);
 router.post('/user/profile', authController.isAuth);
 router.post('/api/v1/auth/refresh-access-token', authController.refreshAccessToken);

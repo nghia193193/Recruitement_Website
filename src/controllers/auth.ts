@@ -24,13 +24,12 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     const email: string = req.body.email;
     const phone: string = req.body.phone;
     const password: string = req.body.password;
-    const confirmedPassword: string = req.body.confirmedPassword;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number, data?: any} = new Error('Validation failed');
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         const hashedPw = await bcrypt.hash(password, 12);
@@ -61,7 +60,14 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             `
         };
         transporter.sendMail(mailDetails, err => console.log(err));
-        res.status(200).json({message: 'Đã gửi otp tới email'})
+        const payload = {
+            userId: user._id,
+            email: user.email,
+            phone: user.phone,
+            roleId: user.roleId
+        }
+        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+        res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -76,9 +82,9 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number, data?: any} = new Error('Validation failed');
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         const user = await User.findOne({email: email});
@@ -110,41 +116,46 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number, data?: any} = new Error('Validation failed');
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
-            error.data = errors.array();
+            error.result = null;
             throw error;
         }
         let user;
         if (emailPattern.test(credentialId)) {
             user = await User.findOne({email: credentialId});
             if (!user) {
-                const error: Error & {statusCode?: number} = new Error('Email không chính xác');
+                const error: Error & {statusCode?: number, result?: any} = new Error('Email không chính xác');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
-                const error: Error & {statusCode?: number} = new Error('Vui lòng xác nhận email');
+                const error: Error & {statusCode?: number, result?: any} = new Error('Vui lòng xác nhận email');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
         } else {
             user = await User.findOne({phone: credentialId});
             if (!user) {
-                const error: Error & {statusCode?: number} = new Error('Số điện thoại không chính xác');
+                const error: Error & {statusCode?: number, result?: any} = new Error('Số điện thoại không chính xác');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
-                const error: Error & {statusCode?: number} = new Error('Vui lòng xác nhận email');
+                const error: Error & {statusCode?: number, result?: any} = new Error('Vui lòng xác nhận email');
                 error.statusCode = 422;
+                error.result = null;
                 throw error;
             }
         }
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
-            const error: Error & {statusCode?: number} = new Error('Mật khẩu không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu không chính xác');
             error.statusCode = 422;
+            error.result = null;
             throw error;
         }
         const payload = {
