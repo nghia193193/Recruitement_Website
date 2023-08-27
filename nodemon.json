@@ -1,3 +1,10 @@
 {
-    "ext": "ts json"
+    "ext": "ts json",
+    "env": {
+        "MONGO_USER": "nghia193",
+        "MONGO_PW": "Aa123456",
+        "MONGO_DB": "Recruiment_Website",
+        "MAIL_USER": "nguyennghia193913@gmail.com",
+        "MAIL_PASS": "rtasipfgjrhvcwdj"
+    }
 }

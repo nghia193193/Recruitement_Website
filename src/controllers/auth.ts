@@ -53,9 +53,9 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             subject: 'Register Account',
             html: ` 
                 Mã xác nhận đăng ký của bạn là <b>${otp}</b>
-                
+                <br>
                 Vui lòng xác nhận ở đường link sau:
-                http://localhost:8050/otp?email=${email}
+                http://localhost:5173/otp?email=${email}
             `
         };
         transporter.sendMail(mailDetails, err => console.log(err));
@@ -126,17 +126,18 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 error.statusCode = 422;
                 throw error;
             }
-        }
-        user = await User.findOne({phone: credentialId});
-        if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Số điện thoại không chính xác');
-            error.statusCode = 422;
-            throw error;
-        }
-        if (!user.isVerifiedEmail) {
-            const error: Error & {statusCode?: number} = new Error('Vui lòng xác nhận email');
-            error.statusCode = 422;
-            throw error;
+        } else {
+            user = await User.findOne({phone: credentialId});
+            if (!user) {
+                const error: Error & {statusCode?: number} = new Error('Số điện thoại không chính xác');
+                error.statusCode = 422;
+                throw error;
+            }
+            if (!user.isVerifiedEmail) {
+                const error: Error & {statusCode?: number} = new Error('Vui lòng xác nhận email');
+                error.statusCode = 422;
+                throw error;
+            }
         }
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
