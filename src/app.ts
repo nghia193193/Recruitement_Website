@@ -6,6 +6,8 @@ import authRoutes from './routes/auth';
 import helmet from 'helmet';
 import cors from 'cors'
 
+const MONGO_URI: string = 
+`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
 const app: Application = express();
 
@@ -31,8 +33,8 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     res.status(status).json({ message: message, errorData: errorData });
 });
 
-mongoose.connect('mongodb+srv://nghia193:Aa123456@cluster0.nizvwnm.mongodb.net/Recruiment_Website?retryWrites=true&w=majority')
+mongoose.connect(MONGO_URI)
     .then(result => {
-        app.listen(8050);
+        app.listen(process.env.PORT || 8050);
     })
     .catch(err => console.log(err));
