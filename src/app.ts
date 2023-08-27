@@ -1,11 +1,16 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import path from 'path';
 import authRoutes from './routes/auth';
+import helmet from 'helmet';
+import cors from 'cors'
 
-const app = express();
 
+const app: Application = express();
+
+app.use(cors());
+app.use(helmet());
 app.use(bodyParser.json());
 // app.use('/images', express.static(path.join(__dirname, 'public/images')));
 

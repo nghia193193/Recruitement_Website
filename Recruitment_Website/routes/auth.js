@@ -28,7 +28,7 @@ const express_validator_1 = require("express-validator");
 const authController = __importStar(require("../controllers/auth"));
 const user_1 = require("../models/user");
 const router = (0, express_1.Router)();
-router.post('/user', [
+router.post('/api/v1/auth/register', [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5 }).withMessage('Độ dài tối thiểu của họ và tên là 5'),
     (0, express_validator_1.body)('email').trim()
@@ -65,19 +65,14 @@ router.post('/user', [
         return true;
     })
 ], authController.signup);
-router.post('/auth/sendOTP', [
-    (0, express_validator_1.body)('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
-], authController.sendOTP);
-router.post('/auth/verifyOTP', [
+router.post('/api/v1/auth/verifyOTP', [
     (0, express_validator_1.body)('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
     (0, express_validator_1.body)('otp').trim()
         .isLength({ min: 6, max: 6 }).withMessage('Mã OTP chỉ gồm 6 ký tự')
 ], authController.verifyOTP);
-router.post('/user/authorize', [
+router.post('/api/v1/auth/login', [
     (0, express_validator_1.body)('credentialId').trim()
         .custom((value, { req }) => {
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -89,7 +84,7 @@ router.post('/user/authorize', [
     }),
     (0, express_validator_1.body)('password').trim()
         .isLength({ min: 8 }).withMessage('Mật khẩu có độ dài tối thiểu là 8'),
-], authController.loggin);
+], authController.login);
 router.post('/user/profile', authController.isAuth);
-router.post('/refresh', authController.refreshAccessToken);
+router.post('/api/v1/auth/refresh-access-token', authController.refreshAccessToken);
 exports.default = router;

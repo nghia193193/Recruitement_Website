@@ -35,6 +35,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
         }
         const hashedPw = await bcrypt.hash(password, 12);
         const role = await Role.findOne({roleName: 'Candidate', isActive: true});
+        const otp = Math.floor(Math.random() * 1000000).toString();
         const user = new User ({
             fullName: fullName,
             email: email,
@@ -42,42 +43,20 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             phone: phone,
             isVerifiedEmail: false,
             isActive: false,
-            roleId: role ? role._id : null
+            roleId: role ? role._id : null,
+            otp: otp
         })
         await user.save();
-        res.status(200).json({email: email});
-    } catch (err) {
-        if (!(err as any).statusCode) {
-            (err as any).statusCode = 500;
-        }
-        next(err);
-    }
-};
-
-export const sendOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const email: string = req.body.email;
-    const errors = validationResult(req);
-    try {
-        if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number, data?: any} = new Error('Validation failed');
-            error.statusCode = 422;
-            error.data = errors.array();
-            throw error;
-        }
-        const otp = Math.floor(Math.random() * 1000000).toString();
-        const user = await User.findOne({email: email});
-        if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Email không chính xác');
-            error.statusCode = 422;
-            throw error;
-        }
-        user.otp = otp;
-        await user.save()
         let mailDetails = {
             from: 'nguyennghia193913@gmail.com',
             to: email,
             subject: 'Register Account',
-            html: ` Mã xác nhận đăng ký của bạn là <b>${otp}</b> `
+            html: ` 
+                Mã xác nhận đăng ký của bạn là <b>${otp}</b>
+                
+                Vui lòng xác nhận ở đường link sau:
+                http://localhost:8050/otp?email=${email}
+            `
         };
         transporter.sendMail(mailDetails, err => console.log(err));
         res.status(200).json({message: 'Đã gửi otp tới email'})
@@ -87,7 +66,7 @@ export const sendOTP = async (req: Request, res: Response, next: NextFunction): 
         }
         next(err);
     }
-}
+};
 
 export const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const email: string = req.body.email;
@@ -122,7 +101,7 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
-export const loggin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const credentialId: string = req.body.credentialId;
     const password: string = req.body.password;
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;

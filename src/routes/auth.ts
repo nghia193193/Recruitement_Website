@@ -5,7 +5,7 @@ import { User } from '../models/user';
 
 const router = Router();
 
-router.post('/user',[
+router.post('/api/v1/auth/register',[
     body('fullName').trim()
         .isLength({min: 5}).withMessage('Độ dài tối thiểu của họ và tên là 5'),
     body('email').trim()
@@ -43,13 +43,7 @@ router.post('/user',[
         })
 ], authController.signup);
 
-router.post('/auth/sendOTP',[
-    body('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
-], authController.sendOTP);
-
-router.post('/auth/verifyOTP',[
+router.post('/api/v1/auth/verifyOTP',[
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
@@ -57,7 +51,7 @@ router.post('/auth/verifyOTP',[
         .isLength({min: 6, max: 6}).withMessage('Mã OTP chỉ gồm 6 ký tự')
 ], authController.verifyOTP);
 
-router.post('/user/authorize',[
+router.post('/api/v1/auth/login',[
     body('credentialId').trim()
         .custom((value: string, {req}) => {
             const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -69,10 +63,10 @@ router.post('/user/authorize',[
         }),
     body('password').trim()
         .isLength({min: 8}).withMessage('Mật khẩu có độ dài tối thiểu là 8'),
-], authController.loggin);
+], authController.login);
 
 router.post('/user/profile', authController.isAuth);
 
-router.post('/refresh', authController.refreshAccessToken);
+router.post('/api/v1/auth/refresh-access-token', authController.refreshAccessToken);
 
 export default router;
