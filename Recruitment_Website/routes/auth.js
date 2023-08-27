@@ -26,21 +26,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const authController = __importStar(require("../controllers/auth"));
-const user_1 = require("../models/user");
 const router = (0, express_1.Router)();
 router.post('/api/v1/auth/register', [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     (0, express_validator_1.body)('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
-        .custom((value, { req }) => {
-        return user_1.User.findOne({ email: value }).then(user => {
-            if (user) {
-                return Promise.reject('Email đã tồn tại');
-            }
-            return true;
-        });
-    })
         .normalizeEmail(),
     (0, express_validator_1.body)('phone').trim()
         .custom((value, { req }) => {
@@ -49,21 +40,12 @@ router.post('/api/v1/auth/register', [
         if (!phonePattern.test(value)) {
             throw new Error('Số điện thoại không hợp lệ');
         }
-        return user_1.User.findOne({ phone: value }).then(user => {
-            if (user) {
-                return Promise.reject('Số điện thoại đã tồn tại');
-            }
-        });
+        return true;
     }),
     (0, express_validator_1.body)('password').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
     (0, express_validator_1.body)('confirmedPassword').trim()
-        .custom((value, { req }) => {
-        if (value !== req.body.password) {
-            throw new Error('Mật khẩu xác nhận không chính xác');
-        }
-        return true;
-    })
+        .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
 router.post('/api/v1/auth/verifyOTP', [
     (0, express_validator_1.body)('email').trim()
@@ -83,7 +65,7 @@ router.post('/api/v1/auth/login', [
         return true;
     }),
     (0, express_validator_1.body)('password').trim()
-        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+        .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
 ], authController.login);
 router.post('/user/profile', authController.isAuth);
 router.post('/api/v1/auth/refresh-access-token', authController.refreshAccessToken);

@@ -28,7 +28,7 @@ app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
     const message = error.message;
     const result = error.result;
-    res.status(status).json({ success: false, message: message, result: result });
+    res.status(status).json({ success: false, message: message, result: result, statusCode: status });
 });
 mongoose_1.default.connect(MONGO_URI)
     .then(result => {

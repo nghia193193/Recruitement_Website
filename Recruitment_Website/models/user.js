@@ -36,6 +36,7 @@ const userSchema = new Schema({
     isActive: Boolean,
     information: String,
     otp: String,
+    otpExpired: Date
 }, {
     timestamps: true
 });

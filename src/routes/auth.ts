@@ -10,14 +10,6 @@ router.post('/api/v1/auth/register',[
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
-        .custom((value: string, {req}) => {
-            return User.findOne({email: value}).then(user => {
-                if (user) {
-                    return Promise.reject('Email đã tồn tại')
-                }
-                return true;
-            })
-        })
         .normalizeEmail(),
     body('phone').trim()
         .custom((value: string, {req}) => {
@@ -26,21 +18,12 @@ router.post('/api/v1/auth/register',[
             if (!phonePattern.test(value)) {
                 throw new Error('Số điện thoại không hợp lệ');
             }
-            return User.findOne({phone: value}).then(user => {
-                if (user) {
-                    return Promise.reject('Số điện thoại đã tồn tại');
-                }
-            })
+            return true;
         }),
     body('password').trim()
         .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
     body('confirmedPassword').trim()
-        .custom((value: string, {req}) => {
-            if (value !== req.body.password) {
-                throw new Error('Mật khẩu xác nhận không chính xác');
-            }
-            return true
-        })
+        .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
 
 router.post('/api/v1/auth/verifyOTP',[
@@ -62,7 +45,7 @@ router.post('/api/v1/auth/login',[
             return true;
         }),
     body('password').trim()
-        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+        .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
 ], authController.login);
 
 router.post('/user/profile', authController.isAuth);

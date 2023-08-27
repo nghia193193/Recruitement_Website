@@ -55,6 +55,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
     const email = req.body.email;
     const phone = req.body.phone;
     const password = req.body.password;
+    const confirmedPassword = req.body.confirmedPassword;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -63,9 +64,27 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             error.result = null;
             throw error;
         }
+        if (confirmedPassword !== password) {
+            const error = new Error('Mật khẩu xác nhận không chính xác');
+            error.statusCode = 401;
+            throw error;
+        }
+        const emailUser = yield user_1.User.findOne({ email: email });
+        if (emailUser) {
+            const error = new Error('Email đã tồn tại');
+            error.statusCode = 409;
+            throw error;
+        }
+        const phoneUser = yield user_1.User.findOne({ phone: phone });
+        if (phoneUser) {
+            const error = new Error('Số điện thoại đã tồn tại');
+            error.statusCode = 409;
+            throw error;
+        }
         const hashedPw = yield bcrypt.hash(password, 12);
         const role = yield role_1.Role.findOne({ roleName: 'Candidate', isActive: true });
         const otp = Math.floor(Math.random() * 1000000).toString();
+        const otpExpired = new Date(Date.now() + 10 * 60 * 1000);
         const user = new user_1.User({
             fullName: fullName,
             email: email,
@@ -74,7 +93,8 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             isVerifiedEmail: false,
             isActive: false,
             roleId: role ? role._id : null,
-            otp: otp
+            otp: otp,
+            otpExpired: otpExpired
         });
         yield user.save();
         let mailDetails = {
@@ -84,7 +104,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             html: ` 
                 Mã xác nhận đăng ký của bạn là <b>${otp}</b>
                 <br>
-                <h1 style="color: red">Hello</h1>
+                <h3 style="color: red">Vui lòng xác nhận trong vòng 10 phút</h3>
                 <br>
                 Vui lòng xác nhận ở đường link sau:
                 http://localhost:5173/otp?email=${email}
@@ -98,7 +118,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             roleId: user.roleId
         };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-        res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken });
+        res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -122,17 +142,18 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         const user = yield user_1.User.findOne({ email: email });
         if (!user) {
             const error = new Error('Email không chính xác');
-            error.statusCode = 422;
+            error.statusCode = 401;
             throw error;
         }
         if (user.otp !== otp) {
             const error = new Error('Mã xác nhận không chính xác');
-            error.statusCode = 422;
+            error.statusCode = 401;
             throw error;
         }
         user.isVerifiedEmail = true;
+        user.otpExpired = undefined;
         yield user.save();
-        res.status(200).json({ message: 'Xác thực thành công' });
+        res.status(200).json({ message: 'Xác thực thành công', statusCode: 200 });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -159,13 +180,13 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             user = yield user_1.User.findOne({ email: credentialId });
             if (!user) {
                 const error = new Error('Email không chính xác');
-                error.statusCode = 422;
+                error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
-                error.statusCode = 422;
+                error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
@@ -174,13 +195,13 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             user = yield user_1.User.findOne({ phone: credentialId });
             if (!user) {
                 const error = new Error('Số điện thoại không chính xác');
-                error.statusCode = 422;
+                error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
-                error.statusCode = 422;
+                error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
@@ -188,7 +209,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         const isEqual = yield bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');
-            error.statusCode = 422;
+            error.statusCode = 401;
             error.result = null;
             throw error;
         }
@@ -200,7 +221,15 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, refreshKey, { expiresIn: '7d' });
-        res.status(200).json({ accesstoken: accessToken, refreshToken: refreshToken });
+        res.status(200).json({
+            success: true,
+            message: "Login successful!",
+            result: {
+                accesstoken: accessToken,
+                refreshToken: refreshToken
+            },
+            statusCode: 200
+        });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -215,13 +244,14 @@ const isAuth = (req, res, next) => {
     const accessToken = authHeader.split(' ')[1];
     jwt.verify(accessToken, secretKey, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: 'Invalid access token' });
+            return res.status(401).json({ message: 'Invalid access token', statusCode: 401 });
         }
         res.status(200).json({
             userId: decoded._id,
             email: decoded.email,
             phone: decoded.phone,
-            roleId: decoded.roleId
+            roleId: decoded.roleId,
+            statusCode: 200
         });
     });
 };
@@ -230,7 +260,7 @@ const refreshAccessToken = (req, res, next) => {
     const refreshToken = req.body.refreshToken;
     jwt.verify(refreshToken, refreshKey, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: 'Invalid refresh token' });
+            return res.status(401).json({ message: 'Invalid refresh token', statusCode: 401 });
         }
         const newAccessToken = jwt.sign({
             userId: decoded.userId,
@@ -238,7 +268,7 @@ const refreshAccessToken = (req, res, next) => {
             phone: decoded.phone,
             roleId: decoded.roleId
         }, secretKey, { expiresIn: '1h' });
-        res.status(200).json({ accesstoken: newAccessToken });
+        res.status(200).json({ accesstoken: newAccessToken, statusCode: 200 });
     });
 };
 exports.refreshAccessToken = refreshAccessToken;

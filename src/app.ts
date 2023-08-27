@@ -29,7 +29,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     const status = error.statusCode || 500;
     const message = error.message;
     const result = error.result;
-    res.status(status).json({ success: false, message: message, result: result });
+    res.status(status).json({ success: false, message: message, result: result, statusCode: status });
 });
 
 mongoose.connect(MONGO_URI)
