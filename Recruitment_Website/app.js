@@ -32,6 +32,6 @@ app.use((error, req, res, next) => {
 });
 mongoose_1.default.connect(MONGO_URI)
     .then(result => {
-    app.listen(5173);
+    app.listen(8050);
 })
     .catch(err => console.log(err));

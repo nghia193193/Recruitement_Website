@@ -54,6 +54,8 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             html: ` 
                 Mã xác nhận đăng ký của bạn là <b>${otp}</b>
                 <br>
+                <h1 style="color: red">Hello</h1>
+                <br>
                 Vui lòng xác nhận ở đường link sau:
                 http://localhost:5173/otp?email=${email}
             `

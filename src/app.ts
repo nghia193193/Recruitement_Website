@@ -34,6 +34,6 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
 
 mongoose.connect(MONGO_URI)
     .then(result => {
-        app.listen(5173);
+        app.listen(8050);
     })
     .catch(err => console.log(err));
