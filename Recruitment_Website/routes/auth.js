@@ -44,7 +44,7 @@ router.post('/api/v1/auth/register', [
     }),
     (0, express_validator_1.body)('password').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
-    (0, express_validator_1.body)('confirmePassword').trim()
+    (0, express_validator_1.body)('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
 router.post('/api/v1/auth/verifyOTP', [

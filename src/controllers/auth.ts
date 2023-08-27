@@ -24,7 +24,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     const email: string = req.body.email;
     const phone: string = req.body.phone;
     const password: string = req.body.password;
-    const confirmePassword: string = req.body.confirmePassword;
+    const confirmPassword: string = req.body.confirmPassword;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -33,7 +33,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             error.result = null;
             throw error;
         }
-        if (confirmePassword !== password) {
+        if (confirmPassword !== password) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 401;
             throw error;

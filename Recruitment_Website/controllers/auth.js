@@ -55,7 +55,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
     const email = req.body.email;
     const phone = req.body.phone;
     const password = req.body.password;
-    const confirmePassword = req.body.confirmePassword;
+    const confirmPassword = req.body.confirmPassword;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -64,7 +64,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             error.result = null;
             throw error;
         }
-        if (confirmePassword !== password) {
+        if (confirmPassword !== password) {
             const error = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 401;
             throw error;
