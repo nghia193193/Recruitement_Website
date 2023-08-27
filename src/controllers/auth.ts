@@ -51,7 +51,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             throw error;
         }
         const hashedPw = await bcrypt.hash(password, 12);
-        const role = await Role.findOne({roleName: 'Candidate', isActive: true});
+        const role = await Role.findOne({roleName: 'CANDIDATE', isActive: true});
         const otp = Math.floor(Math.random() * 1000000).toString();
         const otpExpired: Date = new Date(Date.now() + 10*60*1000);
         const user = new User ({
@@ -191,7 +191,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             address: user.address ? user.address : null,
             dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
             active: true,
-            roleName: user.get('roleId.roleName')
+            role: user.get('roleId.roleName'),
+            createAt: user.createdAt,
+            updateAt: user.updatedAt ? user.updatedAt : null
         }
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, refreshKey, {expiresIn: '7d'});
@@ -225,7 +227,8 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
             success: true,
             message: "Lấy dữ liệu thành công",
             result: {
-                userId: decoded._id,
+                userId: decoded.userId,
+                fullName: decoded.fullName,
                 email: decoded.email,
                 phone: decoded.phone,
                 avatar: decoded.avatar,
@@ -233,7 +236,9 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
                 address: decoded.address,
                 dateOfBirth: decoded.dateOfBirth,
                 active: decoded.active, 
-                roleName: decoded.roleName,
+                role: decoded.role,
+                createAt: decoded.createAt,
+                updateAt: decoded.updateAt
             },
             statusCode: 200
          });
@@ -249,6 +254,7 @@ export const refreshAccessToken = (req: Request, res: Response, next: NextFuncti
         const newAccessToken = jwt.sign(
             { 
                 userId: decoded.userId, 
+                fullName: decoded.fullName,
                 email: decoded.email, 
                 phone: decoded.phone,
                 avatar: decoded.avatar,
@@ -256,7 +262,9 @@ export const refreshAccessToken = (req: Request, res: Response, next: NextFuncti
                 address: decoded.address,
                 dateOfBirth: decoded.dateOfBirth,
                 active: decoded.active, 
-                roleName: decoded.roleName 
+                role: decoded.role,
+                createAt: decoded.createAt,
+                updateAt: decoded.updateAt
             }, secretKey, { expiresIn: '1h' });
         res.status(200).json(
             { 
