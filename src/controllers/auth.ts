@@ -24,7 +24,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     const email: string = req.body.email;
     const phone: string = req.body.phone;
     const password: string = req.body.password;
-    const confirmedPassword: string = req.body.confirmedPassword;
+    const confirmePassword: string = req.body.confirmePassword;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -33,7 +33,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             error.result = null;
             throw error;
         }
-        if (confirmedPassword !== password) {
+        if (confirmePassword !== password) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 401;
             throw error;
@@ -61,7 +61,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             phone: phone,
             isVerifiedEmail: false,
             isActive: false,
-            roleId: role ? role._id : null,
+            roleId: role ? role._id : undefined,
             otp: otp,
             otpExpired: otpExpired
         })
@@ -83,8 +83,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
         const payload = {
             userId: user._id,
             email: user.email,
-            phone: user.phone,
-            roleId: user.roleId
+            phone: user.phone
         }
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
@@ -121,7 +120,7 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
         user.isVerifiedEmail = true;
         user.otpExpired = undefined;
         await user.save();
-        res.status(200).json({message: 'Xác thực thành công', statusCode: 200});
+        res.status(200).json({ success: true, message: 'Xác thực thành công', statusCode: 200});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -144,7 +143,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         }
         let user;
         if (emailPattern.test(credentialId)) {
-            user = await User.findOne({email: credentialId});
+            user = await User.findOne({email: credentialId}).populate('roleId');
             if (!user) {
                 const error: Error & {statusCode?: number, result?: any} = new Error('Email không chính xác');
                 error.statusCode = 401;
@@ -158,7 +157,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 throw error;
             }
         } else {
-            user = await User.findOne({phone: credentialId});
+            user = await User.findOne({phone: credentialId}).populate('roleId');
             if (!user) {
                 const error: Error & {statusCode?: number, result?: any} = new Error('Số điện thoại không chính xác');
                 error.statusCode = 401;
@@ -172,6 +171,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 throw error;
             }
         }
+        console.log(user)
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu không chính xác');
@@ -179,11 +179,19 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             error.result = null;
             throw error;
         }
+        user.isActive = true;
+        await user.save();
         const payload = {
             userId: user._id,
+            fullName: user.fullName,
             email: user.email,
             phone: user.phone,
-            roleId: user.roleId
+            avatar: user.avatar ? user.avatar : null,
+            gender: user.gender ? user.gender : null,
+            address: user.address ? user.address : null,
+            dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
+            active: true,
+            roleName: user.get('roleId.roleName')
         }
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, refreshKey, {expiresIn: '7d'});
@@ -192,7 +200,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 success: true, 
                 message: "Login successful!", 
                 result: {
-                    accesstoken: accessToken, 
+                    accessToken: accessToken, 
                     refreshToken: refreshToken
                 },
                 statusCode: 200
@@ -211,13 +219,22 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     const accessToken = authHeader.split(' ')[1];
     jwt.verify(accessToken, secretKey, (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {
-          return res.status(401).json({ message: 'Invalid access token', statusCode: 401 });
+          return res.status(401).json({ success: false, message: 'Invalid access token', statusCode: 401 });
         }
         res.status(200).json({ 
-            userId: decoded._id,
-            email: decoded.email,
-            phone: decoded.phone,
-            roleId: decoded.roleId,
+            success: true,
+            message: "Lấy dữ liệu thành công",
+            result: {
+                userId: decoded._id,
+                email: decoded.email,
+                phone: decoded.phone,
+                avatar: decoded.avatar,
+                gender: decoded.gender,
+                address: decoded.address,
+                dateOfBirth: decoded.dateOfBirth,
+                active: decoded.active, 
+                roleName: decoded.roleName,
+            },
             statusCode: 200
          });
     });
@@ -227,15 +244,29 @@ export const refreshAccessToken = (req: Request, res: Response, next: NextFuncti
     const refreshToken: string = req.body.refreshToken;
     jwt.verify(refreshToken, refreshKey, (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {
-          return res.status(401).json({ message: 'Invalid refresh token', statusCode: 401 });
+          return res.status(401).json({ success: false, message: 'Invalid refresh token', statusCode: 401 });
         }
         const newAccessToken = jwt.sign(
             { 
                 userId: decoded.userId, 
                 email: decoded.email, 
-                phone: decoded.phone, 
-                roleId: decoded.roleId 
+                phone: decoded.phone,
+                avatar: decoded.avatar,
+                gender: decoded.gender,
+                address: decoded.address,
+                dateOfBirth: decoded.dateOfBirth,
+                active: decoded.active, 
+                roleName: decoded.roleName 
             }, secretKey, { expiresIn: '1h' });
-        res.status(200).json({ accesstoken: newAccessToken, statusCode: 200 });
+        res.status(200).json(
+            { 
+                success: true,
+                message: "Làm mới token thành công", 
+                result: {
+                    accessToken: newAccessToken
+                },
+                statusCode: 200 
+            }
+        );
     });
 }

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
@@ -21,7 +21,7 @@ const userSchema = new Schema(
         },
         gender: String,
         roleId: {
-            type: String,
+            type: Schema.Types.ObjectId,
             ref: "Role",
         },
         avatar: String,

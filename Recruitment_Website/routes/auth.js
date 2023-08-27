@@ -44,7 +44,7 @@ router.post('/api/v1/auth/register', [
     }),
     (0, express_validator_1.body)('password').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
-    (0, express_validator_1.body)('confirmedPassword').trim()
+    (0, express_validator_1.body)('confirmePassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
 router.post('/api/v1/auth/verifyOTP', [
@@ -67,6 +67,6 @@ router.post('/api/v1/auth/login', [
     (0, express_validator_1.body)('password').trim()
         .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
 ], authController.login);
-router.post('/user/profile', authController.isAuth);
+router.get('/api/v1/user/profile', authController.isAuth);
 router.post('/api/v1/auth/refresh-access-token', authController.refreshAccessToken);
 exports.default = router;

@@ -25,7 +25,7 @@ const userSchema = new Schema({
     },
     gender: String,
     roleId: {
-        type: String,
+        type: Schema.Types.ObjectId,
         ref: "Role",
     },
     avatar: String,
