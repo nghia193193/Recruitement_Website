@@ -50,7 +50,7 @@ const jobSchema = new Schema({
         type: String,
         required: true
     },
-    desc: {
+    description: {
         type: String,
         required: true
     },
@@ -61,7 +61,19 @@ const jobSchema = new Schema({
     deadline: {
         type: Date,
         required: true
-    }
+    },
+    skills: [
+        {
+            skillId: {
+                type: Schema.Types.ObjectId,
+                required: true
+            },
+            name: {
+                type: String,
+                required: true
+            }
+        }
+    ]
 }, {
     timestamps: true
 });
