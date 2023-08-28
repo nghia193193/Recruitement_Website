@@ -146,7 +146,7 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         }
         if (user.otp !== otp) {
             const error = new Error('Mã xác nhận không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         user.isVerifiedEmail = true;
