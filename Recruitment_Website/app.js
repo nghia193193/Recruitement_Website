@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const auth_1 = __importDefault(require("./routes/auth"));
+const job_1 = __importDefault(require("./routes/job"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
 const node_schedule_1 = __importDefault(require("node-schedule"));
@@ -34,12 +35,18 @@ app.use((req, res, next) => {
     next();
 });
 app.use(auth_1.default);
+app.use(job_1.default);
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error.statusCode || 500;
     const message = error.message;
     const result = error.result;
-    res.status(status).json({ success: false, message: message, result: result, statusCode: status });
+    if (result) {
+        res.status(status).json(Object.assign(Object.assign({ success: false, message: message }, result), { statusCode: status }));
+    }
+    else {
+        res.status(status).json({ success: false, message: message, result: result, statusCode: status });
+    }
 });
 mongoose_1.default.connect(MONGO_URI)
     .then(result => {

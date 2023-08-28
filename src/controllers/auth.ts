@@ -108,13 +108,15 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
         }
         const user = await User.findOne({email: email});
         if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Email không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Email không chính xác');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         if (user.otp !== otp) {
-            const error: Error & {statusCode?: number} = new Error('Mã xác nhận không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Mã xác nhận không chính xác');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         user.isVerifiedEmail = true;

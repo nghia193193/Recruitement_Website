@@ -1,0 +1,64 @@
+import { Router } from 'express';
+import { body, query } from 'express-validator';
+import * as jobController from '../controllers/job';
+import { Job } from '../models/job';
+import { JobPosition } from '../models/jobPosition';
+
+const router = Router();
+
+router.get('/api/v1/jobs',[
+    query('name').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                return Job.findOne({name: value})
+                    .then(job => {
+                        if (!job) {
+                            return Promise.reject(`Failed to convert 'name' with value: '${value}'`)
+                        }
+                        return true
+                    })
+            }
+            return true
+        }),
+    query('position').trim()
+        .custom((value, {req}) => {  
+            if (value) {
+                return Job.findOne({'position.name': value})
+                    .then(job => {
+                        if (!job) {
+                            return Promise.reject(`Failed to convert 'position' with value: '${value}'`)
+                        }
+                        return true
+                    })                
+            }  
+            return true        
+        }),
+    query('type').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                return Job.findOne({jobTypepe: value})
+                    .then(job => {
+                        if (!job) {
+                            return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
+                        }
+                        return true
+                    })
+            }
+            return true
+        }),
+    query('location').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                return Job.findOne({location: value})
+                    .then(job => {
+                        if (!job) {
+                            return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
+                        }
+                        return true
+                    })
+            }
+            return true
+        }),
+], jobController.getJobs);
+
+export default router;

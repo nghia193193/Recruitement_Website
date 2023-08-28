@@ -7,10 +7,16 @@ const jobSchema = new Schema(
             type: String,
             required: true
         },
-        jobPosId: {
-            type: Schema.Types.ObjectId,
-            ref: 'JobPosition',
-            required: true
+        position: {
+            positionId: {
+                type: Schema.Types.ObjectId,
+                required: true
+            },
+            name: {
+                type: String,
+                required: true
+            }
+            
         },
         jobType: {
             type: String,

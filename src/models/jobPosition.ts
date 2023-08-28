@@ -8,4 +8,4 @@ const jobPosSchema = new Schema({
     }
 });
 
-export const JobPosition = mongoose.model('JobPosition', jobPosSchema)
+export const JobPosition = mongoose.model('JobPosition', jobPosSchema);

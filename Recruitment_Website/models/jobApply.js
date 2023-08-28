@@ -3,66 +3,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Job = void 0;
+exports.JobApply = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
-const jobSchema = new Schema({
-    name: {
-        type: String,
+const jobApplySchema = new Schema({
+    jobId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Job',
         required: true
     },
-    position: {
-        positionId: {
-            type: Schema.Types.ObjectId,
-            required: true
-        },
-        name: {
-            type: String,
-            required: true
-        }
-    },
-    jobType: {
-        type: String,
-        required: true
-    },
-    recruiterId: {
+    candidateId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    quantity: {
-        type: Number,
-        required: true
-    },
-    benefit: {
+    fullName: {
         type: String,
         required: true
     },
-    salaryRange: {
+    email: {
         type: String,
         required: true
     },
-    requirement: {
+    address: {
         type: String,
         required: true
     },
-    location: {
+    resumeId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Resume',
+        required: true
+    },
+    phoneNumber: {
         type: String,
         required: true
     },
-    desc: {
+    note: {
         type: String,
         required: true
     },
-    isActive: {
-        type: Boolean,
-        required: true
-    },
-    deadline: {
-        type: Date,
+    state: {
+        type: String,
         required: true
     }
-}, {
-    timestamps: true
 });
-exports.Job = mongoose_1.default.model('Job', jobSchema);
+exports.JobApply = mongoose_1.default.model('JobApply', jobApplySchema);
