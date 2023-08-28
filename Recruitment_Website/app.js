@@ -44,7 +44,7 @@ app.use((error, req, res, next) => {
 mongoose_1.default.connect(MONGO_URI)
     .then(result => {
     app.listen(8050, () => {
-        node_schedule_1.default.scheduleJob('*/10 * * * *', () => {
+        node_schedule_1.default.scheduleJob('*/5 * * * *', () => {
             deleteOtpExpiredUser();
         });
     });

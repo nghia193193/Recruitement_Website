@@ -39,7 +39,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
 mongoose.connect(MONGO_URI)
     .then(result => {
         app.listen(8050, () => {
-            schedule.scheduleJob('*/10 * * * *', () => {
+            schedule.scheduleJob('*/5 * * * *', () => {
                 deleteOtpExpiredUser();
             });
         });
