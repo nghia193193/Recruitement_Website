@@ -4,7 +4,11 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import authRoutes from './routes/auth';
 import helmet from 'helmet';
-import cors from 'cors'
+import cors from 'cors';
+import schedule from 'node-schedule';
+import { User } from './models/user';
+
+
 console.log(process.env.MONGO_USER);
 const MONGO_URI: string = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
@@ -34,6 +38,19 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
 
 mongoose.connect(MONGO_URI)
     .then(result => {
-        app.listen(8050);
+        app.listen(8050, () => {
+            schedule.scheduleJob('*/10 * * * *', () => {
+                deleteOtpExpiredUser();
+            });
+        });
     })
     .catch(err => console.log(err));
+
+async function deleteOtpExpiredUser() {
+    try {
+        const result = await User.deleteMany({otpExpired: {$lte: new Date()}});
+        console.log(`${result.deletedCount} instances deleted.`);
+    } catch (err) {
+        console.error('Error deleting instances: ', err);
+    }
+}
