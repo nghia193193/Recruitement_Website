@@ -40,10 +40,19 @@ const getJobs = async (req, res, next) => {
                 .skip((page - 1) * limit)
                 .limit(limit);
             const listjobs = jobs.map(job => {
-                const { _id, ...rest } = job;
+                const { _id: jobId, ...rest } = job;
+                const { _id, skills, ...r } = rest._doc;
+                const listSkills = skills.map((skill) => {
+                    const { _id, name } = skill;
+                    return {
+                        skillId: _id.toString(),
+                        name: name
+                    };
+                });
                 return {
-                    jobId: _id.toString(),
-                    ...rest
+                    jobId: jobId.toString(),
+                    skills: listSkills,
+                    ...r
                 };
             });
             res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
