@@ -113,6 +113,7 @@ const signup = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -150,6 +151,7 @@ const verifyOTP = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -237,6 +239,7 @@ const login = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }

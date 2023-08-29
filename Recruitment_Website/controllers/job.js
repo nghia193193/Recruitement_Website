@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getJobs = void 0;
+exports.getSingleJob = exports.getType = exports.getPos = exports.getLoc = exports.getJobs = void 0;
 const job_1 = require("../models/job");
 const express_validator_1 = require("express-validator");
 const getJobs = async (req, res, next) => {
@@ -31,6 +31,7 @@ const getJobs = async (req, res, next) => {
                     query[q] = req.query[q];
                 }
             }
+            ;
         }
         ;
         // console.log(query);
@@ -102,8 +103,101 @@ const getJobs = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
 };
 exports.getJobs = getJobs;
+const getLoc = async (req, res, next) => {
+    try {
+        const jobs = await job_1.Job.find();
+        let listLocation = jobs.map(job => {
+            return job.location;
+        });
+        listLocation = [...new Set(listLocation)];
+        res.status(200).json({ success: true, message: 'Lấy list Location thành công', statusCode: 200, result: listLocation });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getLoc = getLoc;
+const getPos = async (req, res, next) => {
+    try {
+        const jobs = await job_1.Job.find();
+        let listPosition = jobs.map(job => {
+            return job.get('position.name');
+        });
+        listPosition = [...new Set(listPosition)];
+        res.status(200).json({ success: true, message: 'Lấy list Position thành công', statusCode: 200, result: listPosition });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getPos = getPos;
+const getType = async (req, res, next) => {
+    try {
+        const jobs = await job_1.Job.find();
+        let listType = jobs.map(job => {
+            return job.jobType;
+        });
+        listType = [...new Set(listType)];
+        res.status(200).json({ success: true, message: 'Lấy list Type thành công', statusCode: 200, result: listType });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getType = getType;
+const getSingleJob = async (req, res, next) => {
+    const jobId = req.params.jobId;
+    try {
+        const job = await job_1.Job.findById(jobId);
+        if (!job) {
+            const error = new Error('Không tìm thấy job');
+            error.statusCode = 404;
+            error.result = null;
+            throw error;
+        }
+        job.set('position.positionId', job.get('position.positionId').toString());
+        const { _id: jId, ...rest } = job;
+        const { _id, skills, position, ...r } = rest._doc;
+        position.positionId = position.positionId.toString();
+        const listSkills = skills.map((skill) => {
+            const { _id, name } = skill;
+            return {
+                skillId: _id.toString(),
+                name: name
+            };
+        });
+        const returnJob = {
+            jobId: jId.toString(),
+            position,
+            listSkills,
+            ...r
+        };
+        res.status(200).json({ success: true, message: 'Đã tìm thấy job', statusCode: 200, result: returnJob });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getSingleJob = getSingleJob;

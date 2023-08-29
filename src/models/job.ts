@@ -6,7 +6,7 @@ const jobSchema = new Schema(
         name: {
             type: String,
             required: true
-        },
+        },  
         position: {
             positionId: {
                 type: Schema.Types.ObjectId,

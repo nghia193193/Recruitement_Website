@@ -61,4 +61,11 @@ router.get('/api/v1/jobs',[
         }),
 ], jobController.getJobs);
 
+router.get('/api/v1/jobs/location', jobController.getLoc);
+router.get('/api/v1/jobs/position', jobController.getPos);
+router.get('/api/v1/jobs/type', jobController.getType);
+
+router.get('/api/v1/jobs/:jobId', jobController.getSingleJob);
+
+
 export default router;

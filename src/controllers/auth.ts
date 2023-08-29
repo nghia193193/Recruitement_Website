@@ -90,6 +90,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null
         }
         next(err);
     }
@@ -126,6 +127,7 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null
         }
         next(err);
     }
@@ -212,6 +214,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null
         }
         next(err);
     }
