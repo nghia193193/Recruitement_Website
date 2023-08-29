@@ -39,7 +39,8 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
                 .limit(limit);
             const listjobs = jobs.map(job => {
                 const { _id: jobId, ...rest} = job;
-                const { _id, skills, ...r} = (rest as any)._doc
+                const { _id, skills, position, ...r} = (rest as any)._doc;
+                position.positionId = position.positionId.toString();
                 const listSkills = skills.map((skill: { _id: any; name: any; }) => {
                     const { _id, name} = skill;
                     return {
@@ -50,9 +51,11 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
                 return {
                     jobId: jobId.toString(),
                     skills: listSkills,
+                    position,
                     ...r
                 }
             });
+            console.log(listjobs)
             res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(jobLength/limit),
@@ -67,7 +70,8 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
                 .limit(limit);
             const listjobs = jobs.map(job => {
                 const { _id: jobId, ...rest} = job;
-                const { _id, skills, ...r} = (rest as any)._doc
+                const { _id, skills, position, ...r} = (rest as any)._doc;
+                position.positionId = position.positionId.toString();
                 const listSkills = skills.map((skill: { _id: any; name: any; }) => {
                     const { _id, name} = skill;
                     return {
@@ -78,10 +82,11 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
                 return {
                     jobId: jobId.toString(),
                     skills: listSkills,
+                    position,
                     ...r
                 }
             });
-            // console.log(listjobs);
+            console.log(listjobs);
             res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(jobLength/limit),
