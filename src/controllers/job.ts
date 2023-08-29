@@ -5,7 +5,7 @@ import { validationResult } from 'express-validator';
 
 export const getJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const page: number = req.query.page ? +req.query.page : 1;
-    const size: number = req.query.size ? +req.query.size : 10;
+    const limit: number = req.query.limit ? +req.query.limit : 10;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -35,26 +35,50 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
         if (req.query.position) {
             const jobLength = await Job.find({...query, 'position.name': req.query.position}).countDocuments();
             const jobs = await Job.find({...query, 'position.name': req.query.position})
-                .skip((page - 1) * size)
-                .limit(size);
+                .skip((page - 1) * limit)
+                .limit(limit);
+            const listjobs = jobs.map(job => {
+                const {_id, ...rest} = job;
+                return {
+                    jobId: _id.toString(),
+                    ...rest
+                }
+            });
             res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
-                totalPages: Math.ceil(jobLength/size),
-                pageSize: size,
+                totalPages: Math.ceil(jobLength/limit),
+                limit: limit,
                 totalElements: jobLength,
-                content: jobs
+                content: listjobs
             }});
         } else {
             const jobLength = await Job.find(query).countDocuments();
             const jobs = await Job.find(query)
-                .skip((page - 1) * size)
-                .limit(size);
+                .skip((page - 1) * limit)
+                .limit(limit);
+            const listjobs = jobs.map(job => {
+                const { _id: jobId, ...rest} = job;
+                const { _id, skills, ...r} = (rest as any)._doc
+                const listSkills = skills.map((skill: { _id: any; name: any; }) => {
+                    const { _id, name} = skill;
+                    return {
+                        skillId: _id.toString(),
+                        name: name
+                    }
+                })
+                return {
+                    jobId: jobId.toString(),
+                    skills: listSkills,
+                    ...r
+                }
+            });
+            // console.log(listjobs);
             res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
-                totalPages: Math.ceil(jobLength/size),
-                pageSize: size,
+                totalPages: Math.ceil(jobLength/limit),
+                limit: limit,
                 totalElements: jobLength,
-                content: jobs
+                content: listjobs
             }});
         }
     } catch (err) {

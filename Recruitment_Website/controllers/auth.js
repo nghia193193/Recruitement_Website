@@ -22,15 +22,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshAccessToken = exports.isAuth = exports.login = exports.verifyOTP = exports.signup = void 0;
 const express_validator_1 = require("express-validator");
@@ -50,7 +41,7 @@ const transporter = nodemailer.createTransport({
 });
 const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const signup = async (req, res, next) => {
     const fullName = req.body.fullName;
     const email = req.body.email;
     const phone = req.body.phone;
@@ -69,20 +60,20 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             error.statusCode = 401;
             throw error;
         }
-        const emailUser = yield user_1.User.findOne({ email: email });
+        const emailUser = await user_1.User.findOne({ email: email });
         if (emailUser) {
             const error = new Error('Email đã tồn tại');
             error.statusCode = 409;
             throw error;
         }
-        const phoneUser = yield user_1.User.findOne({ phone: phone });
+        const phoneUser = await user_1.User.findOne({ phone: phone });
         if (phoneUser) {
             const error = new Error('Số điện thoại đã tồn tại');
             error.statusCode = 409;
             throw error;
         }
-        const hashedPw = yield bcrypt.hash(password, 12);
-        const role = yield role_1.Role.findOne({ roleName: 'CANDIDATE', isActive: true });
+        const hashedPw = await bcrypt.hash(password, 12);
+        const role = await role_1.Role.findOne({ roleName: 'CANDIDATE', isActive: true });
         const otp = Math.floor(Math.random() * 1000000).toString();
         const otpExpired = new Date(Date.now() + 10 * 60 * 1000);
         const user = new user_1.User({
@@ -96,7 +87,7 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             otp: otp,
             otpExpired: otpExpired
         });
-        yield user.save();
+        await user.save();
         let mailDetails = {
             from: 'nguyennghia193913@gmail.com',
             to: email,
@@ -125,9 +116,9 @@ const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         }
         next(err);
     }
-});
+};
 exports.signup = signup;
-const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const verifyOTP = async (req, res, next) => {
     const email = req.body.email;
     const otp = req.body.otp;
     const errors = (0, express_validator_1.validationResult)(req);
@@ -138,7 +129,7 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             error.result = null;
             throw error;
         }
-        const user = yield user_1.User.findOne({ email: email });
+        const user = await user_1.User.findOne({ email: email });
         if (!user) {
             const error = new Error('Email không chính xác');
             error.statusCode = 401;
@@ -153,7 +144,7 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         }
         user.isVerifiedEmail = true;
         user.otpExpired = undefined;
-        yield user.save();
+        await user.save();
         res.status(200).json({ success: true, message: 'Xác thực thành công', statusCode: 200 });
     }
     catch (err) {
@@ -162,9 +153,9 @@ const verifyOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         }
         next(err);
     }
-});
+};
 exports.verifyOTP = verifyOTP;
-const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const login = async (req, res, next) => {
     const credentialId = req.body.credentialId;
     const password = req.body.password;
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -178,7 +169,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         }
         let user;
         if (emailPattern.test(credentialId)) {
-            user = yield user_1.User.findOne({ email: credentialId }).populate('roleId');
+            user = await user_1.User.findOne({ email: credentialId }).populate('roleId');
             if (!user) {
                 const error = new Error('Email không chính xác');
                 error.statusCode = 401;
@@ -193,7 +184,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             }
         }
         else {
-            user = yield user_1.User.findOne({ phone: credentialId }).populate('roleId');
+            user = await user_1.User.findOne({ phone: credentialId }).populate('roleId');
             if (!user) {
                 const error = new Error('Số điện thoại không chính xác');
                 error.statusCode = 401;
@@ -208,7 +199,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             }
         }
         console.log(user);
-        const isEqual = yield bcrypt.compare(password, user.password);
+        const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');
             error.statusCode = 401;
@@ -216,7 +207,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             throw error;
         }
         user.isActive = true;
-        yield user.save();
+        await user.save();
         const payload = {
             userId: user._id,
             fullName: user.fullName,
@@ -249,7 +240,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         }
         next(err);
     }
-});
+};
 exports.login = login;
 const isAuth = (req, res, next) => {
     const authHeader = req.get('Authorization');

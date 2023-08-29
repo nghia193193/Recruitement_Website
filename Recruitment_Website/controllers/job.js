@@ -1,20 +1,11 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJobs = void 0;
 const job_1 = require("../models/job");
 const express_validator_1 = require("express-validator");
-const getJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getJobs = async (req, res, next) => {
     const page = req.query.page ? +req.query.page : 1;
-    const size = req.query.size ? +req.query.size : 10;
+    const limit = req.query.limit ? +req.query.limit : 10;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -44,29 +35,53 @@ const getJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         ;
         // console.log(query);
         if (req.query.position) {
-            const jobLength = yield job_1.Job.find(Object.assign(Object.assign({}, query), { 'position.name': req.query.position })).countDocuments();
-            const jobs = yield job_1.Job.find(Object.assign(Object.assign({}, query), { 'position.name': req.query.position }))
-                .skip((page - 1) * size)
-                .limit(size);
+            const jobLength = await job_1.Job.find({ ...query, 'position.name': req.query.position }).countDocuments();
+            const jobs = await job_1.Job.find({ ...query, 'position.name': req.query.position })
+                .skip((page - 1) * limit)
+                .limit(limit);
+            const listjobs = jobs.map(job => {
+                const { _id, ...rest } = job;
+                return {
+                    jobId: _id.toString(),
+                    ...rest
+                };
+            });
             res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
                     pageNumber: page,
-                    totalPages: Math.ceil(jobLength / size),
-                    pageSize: size,
+                    totalPages: Math.ceil(jobLength / limit),
+                    limit: limit,
                     totalElements: jobLength,
-                    content: jobs
+                    content: listjobs
                 } });
         }
         else {
-            const jobLength = yield job_1.Job.find(query).countDocuments();
-            const jobs = yield job_1.Job.find(query)
-                .skip((page - 1) * size)
-                .limit(size);
+            const jobLength = await job_1.Job.find(query).countDocuments();
+            const jobs = await job_1.Job.find(query)
+                .skip((page - 1) * limit)
+                .limit(limit);
+            const listjobs = jobs.map(job => {
+                const { _id: jobId, ...rest } = job;
+                const { _id, skills, ...r } = rest._doc;
+                const listSkills = skills.map((skill) => {
+                    const { _id, name } = skill;
+                    return {
+                        skillId: _id.toString(),
+                        name: name
+                    };
+                });
+                return {
+                    jobId: jobId.toString(),
+                    skills: listSkills,
+                    ...r
+                };
+            });
+            // console.log(listjobs);
             res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
                     pageNumber: page,
-                    totalPages: Math.ceil(jobLength / size),
-                    pageSize: size,
+                    totalPages: Math.ceil(jobLength / limit),
+                    limit: limit,
                     totalElements: jobLength,
-                    content: jobs
+                    content: listjobs
                 } });
         }
     }
@@ -76,5 +91,5 @@ const getJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         next(err);
     }
-});
+};
 exports.getJobs = getJobs;
