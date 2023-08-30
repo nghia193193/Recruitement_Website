@@ -14,7 +14,8 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
             error.result = {
                 type: "about:blank",
                 title: "Bad request",
-                instance: "/api/v1/jobs"
+                instance: "/api/v1/jobs",
+                content: []
             };
             throw error;
         }
@@ -34,9 +35,21 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
         // console.log(query);
         if (req.query.position) {
             const jobLength = await Job.find({...query, 'position.name': req.query.position}).countDocuments();
+            if (jobLength === 0) {
+                const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
+                error.statusCode = 400;
+                error.result = {
+                    type: "about:blank",
+                    title: "Bad request",
+                    instance: "/api/v1/jobs",
+                    content: []
+                };
+                throw error;
+            };
             const jobs = await Job.find({...query, 'position.name': req.query.position})
                 .skip((page - 1) * limit)
                 .limit(limit);
+            
             const listjobs = jobs.map(job => {
                 const { _id: jobId, ...rest} = job;
                 const { _id, skills, position, ...r} = (rest as any)._doc;
@@ -55,7 +68,6 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
                     ...r
                 };
             });
-            console.log(listjobs)
             res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(jobLength/limit),
@@ -65,9 +77,22 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
             }});
         } else {
             const jobLength = await Job.find(query).countDocuments();
+            if (jobLength === 0) {
+                const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
+                error.statusCode = 400;
+                error.result = {
+                    type: "about:blank",
+                    title: "Bad request",
+                    instance: "/api/v1/jobs",
+                    content: []
+                };
+                throw error;
+            };
+
             const jobs = await Job.find(query)
                 .skip((page - 1) * limit)
                 .limit(limit);
+            
             const listjobs = jobs.map(job => {
                 const { _id: jobId, ...rest} = job;
                 const { _id, skills, position, ...r} = (rest as any)._doc;
