@@ -58,7 +58,7 @@ router.get('/api/v1/jobs', [
     (0, express_validator_1.query)('type').trim()
         .custom((value, { req }) => {
         if (value) {
-            return job_1.Job.findOne({ jobTypepe: value })
+            return job_1.Job.findOne({ jobType: value })
                 .then(job => {
                 if (!job) {
                     return Promise.reject(`Failed to convert 'type' with value: '${value}'`);

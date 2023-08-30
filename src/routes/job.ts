@@ -36,7 +36,7 @@ router.get('/api/v1/jobs',[
     query('type').trim()
         .custom((value, {req}) => {
             if (value) {
-                return Job.findOne({jobTypepe: value})
+                return Job.findOne({jobType: value})
                     .then(job => {
                         if (!job) {
                             return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
