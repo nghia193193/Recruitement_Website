@@ -187,7 +187,7 @@ const getSingleJob = async (req, res, next) => {
         const returnJob = {
             jobId: jId.toString(),
             position,
-            listSkills,
+            skills: listSkills,
             ...r
         };
         res.status(200).json({ success: true, message: 'Đã tìm thấy job', statusCode: 200, result: returnJob });
