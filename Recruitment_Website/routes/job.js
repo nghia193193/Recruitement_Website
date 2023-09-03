@@ -29,19 +29,7 @@ const jobController = __importStar(require("../controllers/job"));
 const job_1 = require("../models/job");
 const router = (0, express_1.Router)();
 router.get('/api/v1/jobs', [
-    (0, express_validator_1.query)('name').trim()
-        .custom((value, { req }) => {
-        if (value) {
-            return job_1.Job.findOne({ name: value })
-                .then(job => {
-                if (!job) {
-                    return Promise.reject(`Failed to convert 'name' with value: '${value}'`);
-                }
-                return true;
-            });
-        }
-        return true;
-    }),
+    (0, express_validator_1.query)('name').trim(),
     (0, express_validator_1.query)('position').trim()
         .custom((value, { req }) => {
         if (value) {

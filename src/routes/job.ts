@@ -7,19 +7,7 @@ import { JobPosition } from '../models/jobPosition';
 const router = Router();
 
 router.get('/api/v1/jobs',[
-    query('name').trim()
-        .custom((value, {req}) => {
-            if (value) {
-                return Job.findOne({name: value})
-                    .then(job => {
-                        if (!job) {
-                            return Promise.reject(`Failed to convert 'name' with value: '${value}'`)
-                        }
-                        return true
-                    })
-            }
-            return true
-        }),
+    query('name').trim(),
     query('position').trim()
         .custom((value, {req}) => {  
             if (value) {

@@ -33,10 +33,10 @@ app.use((error, req, res, next) => {
     const message = error.message;
     const result = error.result;
     if (result) {
-        res.status(status).json({ success: false, message: message, ...result, statusCode: status });
+        res.status(status).json({ success: error.success || false, message: message, ...result, statusCode: status });
     }
     else {
-        res.status(status).json({ success: false, message: message, result: result, statusCode: status });
+        res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
     }
 });
 mongoose_1.default.connect(MONGO_URI)
