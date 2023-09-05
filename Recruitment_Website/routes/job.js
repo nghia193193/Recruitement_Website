@@ -73,5 +73,5 @@ router.get('/api/v1/jobs', [
 router.get('/api/v1/jobs/location', jobController.getLoc);
 router.get('/api/v1/jobs/position', jobController.getPos);
 router.get('/api/v1/jobs/type', jobController.getType);
-router.get('/api/v1/jobs/:jobId', jobController.getSingleJob);
+router.get('/api/v1/jobs/:jobId', (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), jobController.getSingleJob);
 exports.default = router;

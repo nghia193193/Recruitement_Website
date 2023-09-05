@@ -142,7 +142,14 @@ const getType = async (req, res, next) => {
 exports.getType = getType;
 const getSingleJob = async (req, res, next) => {
     const jobId = req.params.jobId;
+    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 422;
+            error.result = null;
+            throw error;
+        }
         const job = await job_1.Job.findById(jobId);
         if (!job) {
             const error = new Error('Không tìm thấy job');

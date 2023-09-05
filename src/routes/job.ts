@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body, query } from 'express-validator';
+import { body, query, param } from 'express-validator';
 import * as jobController from '../controllers/job';
 import { Job } from '../models/job';
 import { JobPosition } from '../models/jobPosition';
@@ -53,7 +53,9 @@ router.get('/api/v1/jobs/location', jobController.getLoc);
 router.get('/api/v1/jobs/position', jobController.getPos);
 router.get('/api/v1/jobs/type', jobController.getType);
 
-router.get('/api/v1/jobs/:jobId', jobController.getSingleJob);
+router.get('/api/v1/jobs/:jobId',
+    param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
+ , jobController.getSingleJob);
 
 
 export default router;

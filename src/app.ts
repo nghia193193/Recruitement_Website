@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import authRoutes from './routes/auth';
 import jobRoutes from './routes/job';
+import eventRoutes from './routes/event';
 import helmet from 'helmet';
 import cors from 'cors';
 import schedule from 'node-schedule';
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 
 app.use(authRoutes);
 app.use(jobRoutes);
+app.use(eventRoutes);
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     console.log(error);
@@ -36,7 +38,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     const message = error.message;
     const result = error.result;
     if (result) {
-        res.status(status).json({ success: error.success || false, message: message, ...result, statusCode: status });
+        res.status(status).json({ success: error.success || false, message: message, result: {...result}, statusCode: status });
     } else {
         res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
     }
