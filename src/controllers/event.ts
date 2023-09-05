@@ -11,7 +11,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
         if (name) {
             query['name'] = name;
         };
-
+        
         const eventLength = await Event.find(query).countDocuments();
         if (eventLength === 0) {
             const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy sự kiện nào');
