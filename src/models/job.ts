@@ -7,16 +7,9 @@ const jobSchema = new Schema(
             type: String,
             required: true
         },  
-        position: {
-            positionId: {
-                type: Schema.Types.ObjectId,
-                required: true
-            },
-            name: {
-                type: String,
-                required: true
-            }
-            
+        positionId: {
+            type: Schema.Types.ObjectId,
+            required: true
         },
         jobType: {
             type: String,
@@ -63,10 +56,6 @@ const jobSchema = new Schema(
             {
                 skillId: {
                     type: Schema.Types.ObjectId,
-                    required: true
-                },
-                name: {
-                    type: String,
                     required: true
                 }
         }]

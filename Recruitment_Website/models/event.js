@@ -7,7 +7,7 @@ exports.Event = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const eventSchema = new Schema({
-    author: {
+    authorId: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true
@@ -25,7 +25,7 @@ const eventSchema = new Schema({
         required: true
     },
     time: {
-        type: Date,
+        type: String,
         required: true
     },
     img: {

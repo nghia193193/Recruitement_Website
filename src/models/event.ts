@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 
 const eventSchema = new Schema(
     {
-        author: {
+        authorId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
@@ -21,7 +21,7 @@ const eventSchema = new Schema(
             required: true
         },
         time: {
-            type: Date,
+            type: String,
             required: true
         },
         img: {

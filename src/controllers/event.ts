@@ -23,18 +23,21 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
         }
 
         const events = await Event.find(query)
+            .populate('authorId')
             .skip((page - 1) * limit)
             .limit(limit);
         
         const listEvents: EventInterface[] = events.map(e => {
-            const {_id, ...rest} = e;
+            const {_id, authorId, ...rest} = e;
             delete (rest as any)._doc._id;
+            delete (rest as any)._doc.authorId;
             return {
                 eventId: _id.toString(),
+                author: (authorId as any).fullName,
                 ...(rest as any)._doc
             }
         })
-        console.log(listEvents);
+        
         res.status(200).json({success: true, message: 'Successfully!', result: {
             pageNumber: page,
             totalPages: Math.ceil(eventLength/limit),
@@ -62,18 +65,20 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
             error.result = null;
             throw error;
         }
-        const event = await Event.findById(eventId);
+        const event = await Event.findById(eventId).populate('authorId');
         if (!event) {
             const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy sự kiện');
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        const {_id, ...rest} = event;
+        const {_id, authorId, ...rest} = event;
         delete (rest as any)._doc._id;
+        delete (rest as any)._doc.authorId;
         
         const returnEvent: EventInterface = {
             eventId: _id.toString(),
+            author: (authorId as any).fullName,
             ...(rest as any)._doc,
         }
         res.status(200).json({success: true, message: 'Successfully!', result: returnEvent})
