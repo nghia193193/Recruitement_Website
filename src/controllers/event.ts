@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Event } from "../models/event";
+import { Event, EventInterface } from "../models/event";
 import { validationResult } from "express-validator";
 
 export const getAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -26,7 +26,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
             .skip((page - 1) * limit)
             .limit(limit);
         
-        const listEvents = events.map(e => {
+        const listEvents: EventInterface[] = events.map(e => {
             const {_id, ...rest} = e;
             delete (rest as any)._doc._id;
             return {
@@ -71,9 +71,10 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
         }
         const {_id, ...rest} = event;
         delete (rest as any)._doc._id;
-        const returnEvent = {
+        
+        const returnEvent: EventInterface = {
             eventId: _id.toString(),
-            ...(rest as any)._doc
+            ...(rest as any)._doc,
         }
         res.status(200).json({success: true, message: 'Successfully!', result: returnEvent})
 

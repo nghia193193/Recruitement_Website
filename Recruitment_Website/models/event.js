@@ -7,12 +7,16 @@ exports.Event = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const eventSchema = new Schema({
-    recruiterId: {
+    author: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
     title: {
+        type: String,
+        required: true
+    },
+    name: {
         type: String,
         required: true
     },
@@ -43,4 +47,5 @@ const eventSchema = new Schema({
 }, {
     timestamps: true
 });
+;
 exports.Event = mongoose_1.default.model('Event', eventSchema);

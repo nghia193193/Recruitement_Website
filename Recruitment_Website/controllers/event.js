@@ -72,7 +72,7 @@ const getSingleEvent = async (req, res, next) => {
         delete rest._doc._id;
         const returnEvent = {
             eventId: _id.toString(),
-            ...rest._doc
+            ...rest._doc,
         };
         res.status(200).json({ success: true, message: 'Successfully!', result: returnEvent });
     }

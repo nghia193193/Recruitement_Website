@@ -55,7 +55,7 @@ router.get('/api/v1/jobs/type', jobController.getType);
 
 router.get('/api/v1/jobs/:jobId',
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
- , jobController.getSingleJob);
+, jobController.getSingleJob);
 
 
 export default router;

@@ -74,7 +74,10 @@ const signup = async (req, res, next) => {
         }
         const hashedPw = await bcrypt.hash(password, 12);
         const role = await role_1.Role.findOne({ roleName: 'CANDIDATE', isActive: true });
-        const otp = Math.floor(Math.random() * 1000000).toString();
+        let otp = '';
+        for (let i = 0; i < 6; i++) {
+            otp += Math.floor(Math.random() * 10);
+        }
         const otpExpired = new Date(Date.now() + 10 * 60 * 1000);
         const user = new user_1.User({
             fullName: fullName,

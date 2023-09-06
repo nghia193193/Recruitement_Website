@@ -52,7 +52,10 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
         }
         const hashedPw = await bcrypt.hash(password, 12);
         const role = await Role.findOne({roleName: 'CANDIDATE', isActive: true});
-        const otp = Math.floor(Math.random() * 1000000).toString();
+        let otp = '';
+        for (let i = 0; i < 6; i++) {
+            otp += Math.floor(Math.random() * 10);
+        }
         const otpExpired: Date = new Date(Date.now() + 10*60*1000);
         const user = new User ({
             fullName: fullName,
