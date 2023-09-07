@@ -9,13 +9,14 @@ const jobSchema = new Schema(
         },  
         positionId: {
             type: Schema.Types.ObjectId,
+            ref: 'JobPosition',
             required: true
         },
         jobType: {
             type: String,
             required: true
         },
-        recruiterId: {
+        authorId: {
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
@@ -56,6 +57,7 @@ const jobSchema = new Schema(
             {
                 skillId: {
                     type: Schema.Types.ObjectId,
+                    ref: 'Skill',
                     required: true
                 }
         }]

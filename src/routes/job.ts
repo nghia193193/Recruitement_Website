@@ -11,13 +11,13 @@ router.get('/api/v1/jobs',[
     query('position').trim()
         .custom((value, {req}) => {  
             if (value) {
-                return Job.findOne({'position.name': value})
-                    .then(job => {
-                        if (!job) {
+                return JobPosition.findOne({name: value})
+                    .then(jobPos => {
+                        if (!jobPos) {
                             return Promise.reject(`Failed to convert 'position' with value: '${value}'`)
                         }
                         return true
-                    })                
+                    })   
             }  
             return true        
         }),

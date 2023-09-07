@@ -27,15 +27,16 @@ const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const jobController = __importStar(require("../controllers/job"));
 const job_1 = require("../models/job");
+const jobPosition_1 = require("../models/jobPosition");
 const router = (0, express_1.Router)();
 router.get('/api/v1/jobs', [
     (0, express_validator_1.query)('name').trim(),
     (0, express_validator_1.query)('position').trim()
         .custom((value, { req }) => {
         if (value) {
-            return job_1.Job.findOne({ 'position.name': value })
-                .then(job => {
-                if (!job) {
+            return jobPosition_1.JobPosition.findOne({ name: value })
+                .then(jobPos => {
+                if (!jobPos) {
                     return Promise.reject(`Failed to convert 'position' with value: '${value}'`);
                 }
                 return true;
