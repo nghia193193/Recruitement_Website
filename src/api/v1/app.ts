@@ -2,7 +2,7 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import path from 'path';
-import routes from './routes'
+import routes from './routes';
 import helmet from 'helmet';
 import cors from 'cors';
 import schedule from 'node-schedule';
