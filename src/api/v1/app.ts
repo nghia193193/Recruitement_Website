@@ -2,9 +2,6 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import path from 'path';
-// import authRoutes from './routes/auth';
-// import jobRoutes from './routes/job';
-// import eventRoutes from './routes/event';
 import routes from './routes'
 import helmet from 'helmet';
 import cors from 'cors';
@@ -29,9 +26,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.use(authRoutes);
-// app.use(jobRoutes);
-// app.use(eventRoutes);
 app.use(routes);
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {

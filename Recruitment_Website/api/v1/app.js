@@ -6,9 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
-// import authRoutes from './routes/auth';
-// import jobRoutes from './routes/job';
-// import eventRoutes from './routes/event';
 const routes_1 = __importDefault(require("./routes"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
@@ -27,9 +24,6 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
-// app.use(authRoutes);
-// app.use(jobRoutes);
-// app.use(eventRoutes);
 app.use(routes_1.default);
 app.use((error, req, res, next) => {
     console.log(error);
