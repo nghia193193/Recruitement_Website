@@ -23,10 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.isAuth = exports.login = exports.verifyOTP = exports.signup = void 0;
+exports.refreshAccessToken = exports.login = exports.verifyOTP = exports.signup = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const role_1 = require("../models/role");
+const utils_1 = require("../utils");
 const bcrypt = __importStar(require("bcryptjs"));
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
@@ -39,8 +40,6 @@ const transporter = nodemailer.createTransport({
         pass: process.env.MAIL_PASS
     }
 });
-const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 const signup = async (req, res, next) => {
     const fullName = req.body.fullName;
     const email = req.body.email;
@@ -110,7 +109,7 @@ const signup = async (req, res, next) => {
             email: user.email,
             phone: user.phone
         };
-        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+        const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
         res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
     }
     catch (err) {
@@ -214,21 +213,10 @@ const login = async (req, res, next) => {
         user.isActive = true;
         await user.save();
         const payload = {
-            userId: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            phone: user.phone,
-            avatar: user.avatar ? user.avatar : null,
-            gender: user.gender ? user.gender : null,
-            address: user.address ? user.address : null,
-            dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
-            active: true,
-            role: user.get('roleId.roleName'),
-            createAt: user.createdAt,
-            updateAt: user.updatedAt ? user.updatedAt : null
+            email: user.email
         };
-        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-        const refreshToken = jwt.sign(payload, refreshKey, { expiresIn: '7d' });
+        const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
+        const refreshToken = jwt.sign(payload, utils_1.refreshKey, { expiresIn: '7d' });
         res.status(200).json({
             success: true,
             message: "Login successful!",
@@ -248,55 +236,15 @@ const login = async (req, res, next) => {
     }
 };
 exports.login = login;
-const isAuth = (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
-    jwt.verify(accessToken, secretKey, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ success: false, message: 'Invalid access token', statusCode: 401 });
-        }
-        res.status(200).json({
-            success: true,
-            message: "Lấy dữ liệu thành công",
-            result: {
-                userId: decoded.userId,
-                fullName: decoded.fullName,
-                email: decoded.email,
-                phone: decoded.phone,
-                avatar: decoded.avatar,
-                gender: decoded.gender,
-                address: decoded.address,
-                dateOfBirth: decoded.dateOfBirth,
-                active: decoded.active,
-                role: decoded.role,
-                createAt: decoded.createAt,
-                updateAt: decoded.updateAt
-            },
-            statusCode: 200
-        });
-    });
-};
-exports.isAuth = isAuth;
 const refreshAccessToken = (req, res, next) => {
     const refreshToken = req.body.refreshToken;
-    jwt.verify(refreshToken, refreshKey, (err, decoded) => {
+    jwt.verify(refreshToken, utils_1.refreshKey, (err, decoded) => {
         if (err) {
-            return res.status(401).json({ success: false, message: 'Invalid refresh token', statusCode: 401 });
+            return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
         }
         const newAccessToken = jwt.sign({
-            userId: decoded.userId,
-            fullName: decoded.fullName,
-            email: decoded.email,
-            phone: decoded.phone,
-            avatar: decoded.avatar,
-            gender: decoded.gender,
-            address: decoded.address,
-            dateOfBirth: decoded.dateOfBirth,
-            active: decoded.active,
-            role: decoded.role,
-            createAt: decoded.createAt,
-            updateAt: decoded.updateAt
-        }, secretKey, { expiresIn: '1h' });
+            email: decoded.email
+        }, utils_1.secretKey, { expiresIn: '1h' });
         res.status(200).json({
             success: true,
             message: "Làm mới token thành công",

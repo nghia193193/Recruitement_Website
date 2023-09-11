@@ -5,7 +5,7 @@ import { User } from '../models/user';
 
 const router = Router();
 
-router.post('/auth/register',[
+router.post('/register',[
     body('fullName').trim()
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     body('email').trim()
@@ -26,7 +26,7 @@ router.post('/auth/register',[
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
 
-router.post('/auth/verifyOTP',[
+router.post('/verifyOTP',[
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
@@ -34,7 +34,7 @@ router.post('/auth/verifyOTP',[
         .isLength({min: 6, max: 6}).withMessage('Mã OTP chỉ gồm 6 ký tự')
 ], authController.verifyOTP);
 
-router.post('/auth/login',[
+router.post('/login',[
     body('credentialId').trim()
         .custom((value: string, {req}) => {
             const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -48,8 +48,6 @@ router.post('/auth/login',[
         .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
 ], authController.login);
 
-router.get('/user/profile', authController.isAuth);
-
-router.post('/auth/refresh-access-token', authController.refreshAccessToken);
+router.post('/refresh-access-token', authController.refreshAccessToken);
 
 export default router;

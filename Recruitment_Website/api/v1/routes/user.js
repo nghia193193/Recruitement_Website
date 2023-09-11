@@ -22,11 +22,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const userController = __importStar(require("../controllers/user"));
 const express_validator_1 = require("express-validator");
-const eventController = __importStar(require("../controllers/event"));
+const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const router = (0, express_1.Router)();
-router.get('/', eventController.getAllEvents);
-router.get('/:eventId', (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), eventController.getSingleEvent);
+router.get('/profile', userController.getProfile);
+router.put('/update', [
+    (0, express_validator_1.body)('fullName').trim()
+        .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
+    (0, express_validator_1.body)('address').trim()
+        .isLength({ max: 200 }).withMessage('Độ dài tối đa cho phép là 200'),
+    (0, express_validator_1.body)('dateOfBirth').trim(),
+    (0, express_validator_1.body)('about').trim().customSanitizer((value, { req }) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
+    })
+], userController.updateProfile);
 exports.default = router;

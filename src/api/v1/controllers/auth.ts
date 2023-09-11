@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { Role } from '../models/role';
+import { secretKey, refreshKey } from '../utils';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import * as nodemailer from 'nodemailer';
@@ -15,9 +16,6 @@ const transporter = nodemailer.createTransport({
         pass: process.env.MAIL_PASS
     }
 })
-
-const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey'
 
 export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const fullName: string = req.body.fullName;
@@ -189,18 +187,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         user.isActive = true;
         await user.save();
         const payload = {
-            userId: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            phone: user.phone,
-            avatar: user.avatar ? user.avatar : null,
-            gender: user.gender ? user.gender : null,
-            address: user.address ? user.address : null,
-            dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
-            active: true,
-            role: user.get('roleId.roleName'),
-            createAt: user.createdAt,
-            updateAt: user.updatedAt ? user.updatedAt : null
+            email: user.email
         }
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, refreshKey, {expiresIn: '7d'});
@@ -224,55 +211,15 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     
 };
 
-export const isAuth = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    jwt.verify(accessToken, secretKey, (err: jwt.VerifyErrors | null, decoded: any) => {
-        if (err) {
-          return res.status(401).json({ success: false, message: 'Invalid access token', statusCode: 401 });
-        }
-        res.status(200).json({ 
-            success: true,
-            message: "Lấy dữ liệu thành công",
-            result: {
-                userId: decoded.userId,
-                fullName: decoded.fullName,
-                email: decoded.email,
-                phone: decoded.phone,
-                avatar: decoded.avatar,
-                gender: decoded.gender,
-                address: decoded.address,
-                dateOfBirth: decoded.dateOfBirth,
-                active: decoded.active, 
-                role: decoded.role,
-                createAt: decoded.createAt,
-                updateAt: decoded.updateAt
-            },
-            statusCode: 200
-         });
-    });
-}
-
 export const refreshAccessToken = (req: Request, res: Response, next: NextFunction) => {
     const refreshToken: string = req.body.refreshToken;
     jwt.verify(refreshToken, refreshKey, (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {
-          return res.status(401).json({ success: false, message: 'Invalid refresh token', statusCode: 401 });
+          return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
         }
         const newAccessToken = jwt.sign(
             { 
-                userId: decoded.userId, 
-                fullName: decoded.fullName,
-                email: decoded.email, 
-                phone: decoded.phone,
-                avatar: decoded.avatar,
-                gender: decoded.gender,
-                address: decoded.address,
-                dateOfBirth: decoded.dateOfBirth,
-                active: decoded.active, 
-                role: decoded.role,
-                createAt: decoded.createAt,
-                updateAt: decoded.updateAt
+                email: decoded.email
             }, secretKey, { expiresIn: '1h' });
         res.status(200).json(
             { 

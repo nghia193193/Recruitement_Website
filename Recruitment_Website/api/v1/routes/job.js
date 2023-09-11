@@ -29,7 +29,7 @@ const jobController = __importStar(require("../controllers/job"));
 const job_1 = require("../models/job");
 const jobPosition_1 = require("../models/jobPosition");
 const router = (0, express_1.Router)();
-router.get('/jobs', [
+router.get('/', [
     (0, express_validator_1.query)('name').trim(),
     (0, express_validator_1.query)('position').trim()
         .custom((value, { req }) => {
@@ -71,8 +71,8 @@ router.get('/jobs', [
         return true;
     }),
 ], jobController.getJobs);
-router.get('/jobs/location', jobController.getLoc);
-router.get('/jobs/position', jobController.getPos);
-router.get('/jobs/type', jobController.getType);
-router.get('/jobs/:jobId', (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), jobController.getSingleJob);
+router.get('/location', jobController.getLoc);
+router.get('/position', jobController.getPos);
+router.get('/type', jobController.getType);
+router.get('/:jobId', (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), jobController.getSingleJob);
 exports.default = router;

@@ -4,8 +4,8 @@ import * as eventController from '../controllers/event';
 
 const router = Router();
 
-router.get('/events', eventController.getAllEvents);
-router.get('/events/:eventId',
+router.get('/', eventController.getAllEvents);
+router.get('/:eventId',
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
  , eventController.getSingleEvent);
 
