@@ -79,7 +79,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
         const decodedToken: any = await verifyToken(accessToken);
         const fullName: string = req.body.fullName;
         const address: string = req.body.address;
-        const unixDateOfBirth: number = +req.body.dateOfBirth;
+        const dateOfBirth: string = req.body.dateOfBirth;
         const about: string = req.body.about;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -94,7 +94,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
         }
         updateUser.fullName = fullName;
         updateUser.address = address;
-        updateUser.dateOfBirth = new Date(unixDateOfBirth * 1000);
+        updateUser.dateOfBirth = new Date(dateOfBirth);
         updateUser.about = about;
 
         await updateUser.save();

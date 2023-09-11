@@ -104,7 +104,7 @@ const updateProfile = async (req, res, next) => {
         const decodedToken = await verifyToken(accessToken);
         const fullName = req.body.fullName;
         const address = req.body.address;
-        const unixDateOfBirth = +req.body.dateOfBirth;
+        const dateOfBirth = req.body.dateOfBirth;
         const about = req.body.about;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
@@ -119,7 +119,7 @@ const updateProfile = async (req, res, next) => {
         }
         updateUser.fullName = fullName;
         updateUser.address = address;
-        updateUser.dateOfBirth = new Date(unixDateOfBirth * 1000);
+        updateUser.dateOfBirth = new Date(dateOfBirth);
         updateUser.about = about;
         await updateUser.save();
         res.status(200).json({ success: true, message: 'Update user thành công', statusCode: 200 });
