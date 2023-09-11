@@ -27,6 +27,6 @@ const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const eventController = __importStar(require("../controllers/event"));
 const router = (0, express_1.Router)();
-router.get('/api/v1/events', eventController.getAllEvents);
-router.get('/api/v1/events/:eventId', (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), eventController.getSingleEvent);
+router.get('/events', eventController.getAllEvents);
+router.get('/events/:eventId', (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), eventController.getSingleEvent);
 exports.default = router;

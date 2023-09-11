@@ -6,7 +6,7 @@ import { JobPosition } from '../models/jobPosition';
 
 const router = Router();
 
-router.get('/api/v1/jobs',[
+router.get('/jobs',[
     query('name').trim(),
     query('position').trim()
         .custom((value, {req}) => {  
@@ -49,11 +49,11 @@ router.get('/api/v1/jobs',[
         }),
 ], jobController.getJobs);
 
-router.get('/api/v1/jobs/location', jobController.getLoc);
-router.get('/api/v1/jobs/position', jobController.getPos);
-router.get('/api/v1/jobs/type', jobController.getType);
+router.get('/jobs/location', jobController.getLoc);
+router.get('/jobs/position', jobController.getPos);
+router.get('/jobs/type', jobController.getType);
 
-router.get('/api/v1/jobs/:jobId',
+router.get('/jobs/:jobId',
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
 , jobController.getSingleJob);
 
