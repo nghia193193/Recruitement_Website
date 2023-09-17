@@ -43,4 +43,13 @@ router.put('/update', [
         return sanitizedValue;
     })
 ], userController.updateProfile);
+router.put('/change-password', [
+    (0, express_validator_1.body)('newPassword').isLength({ min: 8, max: 32 }).withMessage('Mật khẩu mới phải có độ dài từ 8-32 ký tự'),
+    (0, express_validator_1.body)('confirmNewPassword').custom((value, { req }) => {
+        if (value !== req.body.newPassword) {
+            throw new Error('Mật khẩu xác nhận không chính xác');
+        }
+        return true;
+    })
+], userController.changePassword);
 exports.default = router;

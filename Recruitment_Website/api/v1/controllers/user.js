@@ -23,11 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfile = exports.getProfile = void 0;
+exports.changePassword = exports.updateProfile = exports.getProfile = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
+const bcrypt = __importStar(require("bcryptjs"));
 const getProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -132,3 +133,55 @@ const updateProfile = async (req, res, next) => {
     }
 };
 exports.updateProfile = updateProfile;
+const changePassword = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    async function verifyToken(accessToken) {
+        return new Promise((resolve, reject) => {
+            jwt.verify(accessToken, utils_1.secretKey, (err, decoded) => {
+                if (err) {
+                    const error = new Error('Invalid or expired access token');
+                    error.statusCode = 401;
+                    throw error;
+                }
+                else {
+                    resolve(decoded);
+                }
+            });
+        });
+    }
+    ;
+    try {
+        const decodedToken = await verifyToken(accessToken);
+        const currentPassword = req.body.currentPassword;
+        const newPassword = req.body.newPassword;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 422;
+            throw error;
+        }
+        const user = await user_1.User.findOne({ email: decodedToken.email });
+        if (!user) {
+            const error = new Error('Không tìm thấy user');
+            throw error;
+        }
+        const isEqual = await bcrypt.compare(currentPassword, user.password);
+        if (!isEqual) {
+            const error = new Error('Mật khẩu hiện tại không chính xác');
+            error.statusCode = 401;
+            throw error;
+        }
+        const hashNewPass = await bcrypt.hash(newPassword, 12);
+        user.password = hashNewPass;
+        await user.save();
+        res.status(200).json({ success: true, message: 'Đổi mật khẩu thành công', statusCode: 200 });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+exports.changePassword = changePassword;
