@@ -26,6 +26,8 @@ router.put('/change-password', [
         return true;
     })
 ]
-,userController.changePassword)
+,userController.changePassword);
+
+// router.put('/avatar', )
 
 export default router;
