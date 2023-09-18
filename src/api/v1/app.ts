@@ -17,7 +17,7 @@ const app: Application = express();
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
-// app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin','*');
