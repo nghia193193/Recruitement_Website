@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/v1/app.js",
+            "src": "Recruitment_Website/api/v1/app.js",
             "use": "@vercel/node"
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "api/v1/app.js",
+            "dest": "/",
             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
         }
     ]
