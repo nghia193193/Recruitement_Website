@@ -41,7 +41,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     
 });
 
-mongoose.connect(MONGO_URI)
+mongoose.connect(MONGO_URI, {minPoolSize: 5 ,maxPoolSize: 10})
     .then(result => {
         app.listen(8050, () => {
             schedule.scheduleJob('*/5 * * * *', () => {
