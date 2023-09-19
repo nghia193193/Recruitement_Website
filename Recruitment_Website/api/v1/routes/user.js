@@ -30,9 +30,10 @@ const express_1 = require("express");
 const userController = __importStar(require("../controllers/user"));
 const express_validator_1 = require("express-validator");
 const sanitize_html_1 = __importDefault(require("sanitize-html"));
+const middleware_1 = require("../middleware");
 const router = (0, express_1.Router)();
-router.get('/profile', userController.getProfile);
-router.put('/update', [
+router.get('/profile', middleware_1.isAuth, userController.getProfile);
+router.put('/update', middleware_1.isAuth, [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     (0, express_validator_1.body)('address').trim()
@@ -43,7 +44,7 @@ router.put('/update', [
         return sanitizedValue;
     })
 ], userController.updateProfile);
-router.put('/change-password', [
+router.put('/change-password', middleware_1.isAuth, [
     (0, express_validator_1.body)('newPassword').isLength({ min: 8, max: 32 }).withMessage('Mật khẩu mới phải có độ dài từ 8-32 ký tự'),
     (0, express_validator_1.body)('confirmNewPassword').custom((value, { req }) => {
         if (value !== req.body.newPassword) {
@@ -52,5 +53,5 @@ router.put('/change-password', [
         return true;
     })
 ], userController.changePassword);
-// router.put('/avatar', )
+router.put('/avatar', middleware_1.isAuth, userController.changeAvatar);
 exports.default = router;

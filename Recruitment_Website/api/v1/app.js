@@ -38,7 +38,7 @@ app.use((error, req, res, next) => {
         res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
     }
 });
-mongoose_1.default.connect(MONGO_URI)
+mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 10 })
     .then(result => {
     app.listen(8050, () => {
         node_schedule_1.default.scheduleJob('*/5 * * * *', () => {

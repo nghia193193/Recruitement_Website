@@ -28,7 +28,7 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Role",
     },
-    avatar: String,
+    avatar: Buffer,
     isVerifiedEmail: Boolean,
     address: String,
     dateOfBirth: Date,
