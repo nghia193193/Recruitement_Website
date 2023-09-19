@@ -2,10 +2,11 @@ import { Router } from "express";
 import * as userController from '../controllers/user';
 import { body } from "express-validator";
 import sanitizeHtml from 'sanitize-html';
+import { isAuth } from '../middleware';
 const router = Router();
 
-router.get('/profile', userController.getProfile);
-router.put('/update',[
+router.get('/profile',isAuth, userController.getProfile);
+router.put('/update',isAuth ,[
     body('fullName').trim()
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
     body('address').trim()
@@ -17,7 +18,7 @@ router.put('/update',[
     })
 ], userController.updateProfile);
 
-router.put('/change-password', [
+router.put('/change-password',isAuth, [
     body('newPassword').isLength({min: 8, max: 32}).withMessage('Mật khẩu mới phải có độ dài từ 8-32 ký tự'),
     body('confirmNewPassword').custom((value: string, {req}) => {
         if (value !== req.body.newPassword) {

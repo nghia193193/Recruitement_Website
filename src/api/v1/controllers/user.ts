@@ -4,6 +4,7 @@ import { secretKey, uploadImage } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as bcrypt from 'bcryptjs';
+import fileUpload from 'express-fileupload';
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;
@@ -160,46 +161,46 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     
 }
 
-// export const changeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//     const authHeader = req.get('Authorization') as string;
-//     const accessToken = authHeader.split(' ')[1];
-//     const avatarFile = req.file.avatarFile;
-//     async function verifyToken(accessToken: string) {
-//         return new Promise((resolve, reject) => {
-//           jwt.verify(accessToken, secretKey, (err, decoded: any) => {
-//             if (err) {
-//                 const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
-//                 error.statusCode = 401;
-//                 throw error;
-//             } else {
-//                 resolve(decoded);
-//             }
-//           });
-//         });
-//     };
+export const changeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+    // const avatarFile = req.file.avatarFile;
+    async function verifyToken(accessToken: string) {
+        return new Promise((resolve, reject) => {
+          jwt.verify(accessToken, secretKey, (err, decoded: any) => {
+            if (err) {
+                const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
+                error.statusCode = 401;
+                throw error;
+            } else {
+                resolve(decoded);
+            }
+          });
+        });
+    };
 
-//     try {
-//         const decodedToken: any = await verifyToken(accessToken);
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
         
-//         const errors = validationResult(req);
-//         if (!errors.isEmpty()) {
-//             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-//             error.statusCode = 422;
-//             throw error;
-//         }
-//         const user = await User.findOne({email: decodedToken.email});
-//         if (!user) {
-//             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-//             throw error;
-//         }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 422;
+            throw error;
+        }
+        const user = await User.findOne({email: decodedToken.email});
+        if (!user) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            throw error;
+        }
         
-//         await user.save()
-//         res.status(200).json({success: true, message: 'Đổi avatar thành công', statusCode: 200});
-//     } catch (err) {
-//         if (!(err as any).statusCode) {
-//             (err as any).statusCode = 500;
-//         }
-//         next(err);
-//     }
+        await user.save()
+        res.status(200).json({success: true, message: 'Đổi avatar thành công', statusCode: 200});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        }
+        next(err);
+    }
     
-// }
+}
