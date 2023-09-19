@@ -29,6 +29,6 @@ router.put('/change-password',isAuth, [
 ]
 ,userController.changePassword);
 
-// router.put('/avatar', )
+router.put('/avatar',isAuth, userController.changeAvatar);
 
 export default router;
