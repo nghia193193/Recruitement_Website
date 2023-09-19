@@ -23,12 +23,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeAvatar = exports.changePassword = exports.updateProfile = exports.getProfile = void 0;
+exports.changeAvatar = exports.changePassword = exports.updateProfile = exports.getProfile = exports.cloudConfig = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const bcrypt = __importStar(require("bcryptjs"));
+const cloudinary_1 = require("cloudinary");
+exports.cloudConfig = cloudinary_1.v2.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
 const getProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -63,7 +69,7 @@ const getProfile = async (req, res, next) => {
                 fullName: user.fullName,
                 email: user.email,
                 phone: user.phone,
-                avatar: user.avatar ? user.avatar : null,
+                avatar: user.avatar ? user.avatar.url : null,
                 gender: user.gender ? user.gender : null,
                 address: user.address ? user.address : null,
                 dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
@@ -205,31 +211,39 @@ const changeAvatar = async (req, res, next) => {
     ;
     try {
         const decodedToken = await verifyToken(accessToken);
-        if (!req.files || !req.files.image) {
+        if (!req.files || !req.files.avatarFile) {
             const error = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
             throw error;
         }
-        else if (!req.files.image) {
-            const error = new Error('File không phải ảnh');
-            error.statusCode = 400;
-            throw error;
-        }
         ;
-        const avatar = req.files.image;
+        const avatar = req.files.avatarFile;
         if (avatar.mimetype !== 'image/jpg' && avatar.mimetype !== 'image/png' && avatar.mimetype !== 'image/jpeg') {
             const error = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
             error.statusCode = 400;
             throw error;
         }
-        const binaryAva = avatar.data;
+        const result = await cloudinary_1.v2.uploader.upload(avatar.tempFilePath);
+        if (!result) {
+            const error = new Error('Upload thất bại');
+            throw error;
+        }
+        const publicId = result.public_id;
+        const avatarUrl = cloudinary_1.v2.url(publicId);
         const user = await user_1.User.findOne({ email: decodedToken.email });
         if (!user) {
             const error = new Error('Không tìm thấy user');
             throw error;
         }
         ;
-        user.avatar = binaryAva;
+        const oldAva = user.avatar?.publicId;
+        if (oldAva) {
+            await cloudinary_1.v2.uploader.destroy(oldAva);
+        }
+        user.avatar = {
+            publicId: publicId,
+            url: avatarUrl
+        };
         await user.save();
         res.status(200).json({ success: true, message: 'Đổi avatar thành công', statusCode: 200 });
     }

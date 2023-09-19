@@ -1,8 +1,11 @@
-import {v2 as cloudinary} from 'cloudinary';
+import fileUpload from 'express-fileupload';
 
-export const cloudConfig = cloudinary.config({ 
-    cloud_name: 'de84ozlrg', 
-    api_key: '991416757427279', 
-    api_secret: 'PXfZ-BvJ5MUwUIxIw8-rD0AekMM' 
-});
-
+export const fileConfig = fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    limits: {fileSize: 5*1024*1024},
+    safeFileNames: true,
+    abortOnLimit: true,
+    responseOnLimit: 'File size limit has been reached (5MB)',
+    preserveExtension: true,
+})

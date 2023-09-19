@@ -1,10 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, uploadImage } from '../utils';
+import { secretKey } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as bcrypt from 'bcryptjs';
 import fileUpload, {UploadedFile} from 'express-fileupload';
+import {v2 as cloudinary} from 'cloudinary';
+
+export const cloudConfig = cloudinary.config({ 
+    cloud_name: process.env.CLOUD_NAME, 
+    api_key: process.env.API_KEY, 
+    api_secret: process.env.API_SECRET
+});
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;
@@ -40,7 +47,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
                 fullName: user.fullName,
                 email: user.email,
                 phone: user.phone,
-                avatar: user.avatar ? user.avatar : null,
+                avatar: user.avatar ? user.avatar.url : null,
                 gender: user.gender ? user.gender : null,
                 address: user.address ? user.address : null,
                 dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
@@ -181,29 +188,44 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        if (!req.files || !req.files.image) {
+        if (!req.files || !req.files.avatarFile) {
             const error: Error & {statusCode?: number} = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
             throw error;
-        }else if (!req.files.image) {
-            const error: Error & {statusCode?: number} = new Error('File không phải ảnh');
-            error.statusCode = 400;
-            throw error;
         };
-        const avatar: UploadedFile = req.files.image as UploadedFile;
+
+        const avatar: UploadedFile = req.files.avatarFile as UploadedFile;
         if (avatar.mimetype !== 'image/jpg' && avatar.mimetype !== 'image/png' && avatar.mimetype !== 'image/jpeg') {
             const error: Error & {statusCode?: number} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
             error.statusCode = 400;
             throw error;
         }
-        const binaryAva: Buffer = avatar.data;
+        
+        const result = await cloudinary.uploader.upload(avatar.tempFilePath);
+        if (!result) {
+            const error = new Error('Upload thất bại');
+            throw error;
+        }
+
+        const publicId = result.public_id;
+        const avatarUrl = cloudinary.url(publicId);
+
         const user = await User.findOne({email: decodedToken.email});
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             throw error;
         };
-        user.avatar = binaryAva;
-        await user.save()
+
+        const oldAva = user.avatar?.publicId;
+        if (oldAva) {
+            await cloudinary.uploader.destroy(oldAva);
+        }
+        
+        user.avatar = {
+            publicId: publicId,
+            url: avatarUrl
+        };
+        await user.save();
         res.status(200).json({success: true, message: 'Đổi avatar thành công', statusCode: 200});
     } catch (err) {
         if (!(err as any).statusCode) {

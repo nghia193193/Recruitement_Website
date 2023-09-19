@@ -12,12 +12,14 @@ const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
 const node_schedule_1 = __importDefault(require("node-schedule"));
 const user_1 = require("./models/user");
+const config_1 = require("../../config");
 console.log(process.env.MONGO_USER);
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use((0, helmet_1.default)());
 app.use(body_parser_1.default.json());
+app.use(config_1.fileConfig);
 app.use('/images', express_1.default.static(path_1.default.join(__dirname, 'public/images')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

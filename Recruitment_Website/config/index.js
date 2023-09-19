@@ -1,9 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cloudConfig = void 0;
-const cloudinary_1 = require("cloudinary");
-exports.cloudConfig = cloudinary_1.v2.config({
-    cloud_name: 'de84ozlrg',
-    api_key: '991416757427279',
-    api_secret: 'PXfZ-BvJ5MUwUIxIw8-rD0AekMM'
+exports.fileConfig = void 0;
+const express_fileupload_1 = __importDefault(require("express-fileupload"));
+exports.fileConfig = (0, express_fileupload_1.default)({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    limits: { fileSize: 5 * 1024 * 1024 },
+    safeFileNames: true,
+    abortOnLimit: true,
+    responseOnLimit: 'File size limit has been reached (5MB)',
+    preserveExtension: true,
 });
