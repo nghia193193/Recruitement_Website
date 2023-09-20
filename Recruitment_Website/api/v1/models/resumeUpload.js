@@ -7,11 +7,20 @@ exports.ResumeUpload = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const resumeUploadSchema = new Schema({
+    candidateId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     publicId: {
         type: String,
         required: true
     },
-    linkResumeUpload: {
+    name: {
+        type: String,
+        required: true
+    },
+    resumeUpload: {
         type: String,
         required: true
     }

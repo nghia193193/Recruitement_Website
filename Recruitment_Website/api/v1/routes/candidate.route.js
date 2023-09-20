@@ -22,10 +22,22 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const candidateController = __importStar(require("../controllers/candidate.controller"));
 const middleware_1 = require("../middleware");
+const express_validator_1 = require("express-validator");
+const mongoose_1 = __importDefault(require("mongoose"));
 const router = (0, express_1.Router)();
+router.get('/resumes', middleware_1.isAuth, candidateController.getResumes);
 router.put('/resumes', middleware_1.isAuth, candidateController.uploadResume);
+router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().custom((value, { req }) => {
+    if (!mongoose_1.default.Types.ObjectId.isValid(value)) {
+        throw new Error('Id không hợp lệ');
+    }
+    return true;
+}), candidateController.deleteResume);
 exports.default = router;
