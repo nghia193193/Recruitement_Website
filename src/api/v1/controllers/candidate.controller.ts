@@ -4,3 +4,7 @@ import { User } from '../models/user';
 import * as jwt from 'jsonwebtoken';
 import { secretKey } from '../utils';
 import {v2 as cloudinary} from 'cloudinary';
+
+export const uploadCV = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+       
+}

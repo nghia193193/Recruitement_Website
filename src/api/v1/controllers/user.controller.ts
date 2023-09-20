@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey } from '../utils';
+import { secretKey, verifyToken } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as bcrypt from 'bcryptjs';
@@ -10,21 +10,6 @@ import {v2 as cloudinary} from 'cloudinary';
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
-
-    async function verifyToken(accessToken: string) {
-        return new Promise((resolve, reject) => {
-          jwt.verify(accessToken, secretKey, (err, decoded: any) => {
-            if (err) {
-                const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                error.result = null;
-                throw error;
-            } else {
-                resolve(decoded);
-            }
-          });
-        });
-    };
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
@@ -64,20 +49,6 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
-    async function verifyToken(accessToken: string) {
-        return new Promise((resolve, reject) => {
-          jwt.verify(accessToken, secretKey, (err, decoded: any) => {
-            if (err) {
-                const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                throw error;
-            } else {
-                resolve(decoded);
-            }
-          });
-        });
-    };
-
     try {
         const decodedToken: any = await verifyToken(accessToken);
         const fullName: string = req.body.fullName;
@@ -113,20 +84,6 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
-
-    async function verifyToken(accessToken: string) {
-        return new Promise((resolve, reject) => {
-          jwt.verify(accessToken, secretKey, (err, decoded: any) => {
-            if (err) {
-                const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                throw error;
-            } else {
-                resolve(decoded);
-            }
-          });
-        });
-    };
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
@@ -165,21 +122,7 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
 export const changeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
-    
-    async function verifyToken(accessToken: string) {
-        return new Promise((resolve, reject) => {
-          jwt.verify(accessToken, secretKey, (err, decoded: any) => {
-            if (err) {
-                const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                throw error;
-            } else {
-                resolve(decoded);
-            }
-          });
-        });
-    };
-
+      
     try {
         const decodedToken: any = await verifyToken(accessToken);
         if (!req.files || !req.files.avatarFile) {

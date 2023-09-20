@@ -176,7 +176,6 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 throw error;
             }
         }
-        console.log(user)
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu không chính xác');

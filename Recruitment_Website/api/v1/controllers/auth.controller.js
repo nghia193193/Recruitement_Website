@@ -202,7 +202,6 @@ const login = async (req, res, next) => {
                 throw error;
             }
         }
-        console.log(user);
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');

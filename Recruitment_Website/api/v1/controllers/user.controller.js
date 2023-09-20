@@ -24,7 +24,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changeAvatar = exports.changePassword = exports.updateProfile = exports.getProfile = void 0;
-const jwt = __importStar(require("jsonwebtoken"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -33,24 +32,8 @@ const cloudinary_1 = require("cloudinary");
 const getProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
-    async function verifyToken(accessToken) {
-        return new Promise((resolve, reject) => {
-            jwt.verify(accessToken, utils_1.secretKey, (err, decoded) => {
-                if (err) {
-                    const error = new Error('Invalid or expired access token');
-                    error.statusCode = 401;
-                    error.result = null;
-                    throw error;
-                }
-                else {
-                    resolve(decoded);
-                }
-            });
-        });
-    }
-    ;
     try {
-        const decodedToken = await verifyToken(accessToken);
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findOne({ email: decodedToken.email });
         if (!user) {
             const error = new Error('Không tìm thấy user');
@@ -87,23 +70,8 @@ exports.getProfile = getProfile;
 const updateProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
-    async function verifyToken(accessToken) {
-        return new Promise((resolve, reject) => {
-            jwt.verify(accessToken, utils_1.secretKey, (err, decoded) => {
-                if (err) {
-                    const error = new Error('Invalid or expired access token');
-                    error.statusCode = 401;
-                    throw error;
-                }
-                else {
-                    resolve(decoded);
-                }
-            });
-        });
-    }
-    ;
     try {
-        const decodedToken = await verifyToken(accessToken);
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const fullName = req.body.fullName;
         const address = req.body.address;
         const dateOfBirth = req.body.dateOfBirth;
@@ -137,23 +105,8 @@ exports.updateProfile = updateProfile;
 const changePassword = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
-    async function verifyToken(accessToken) {
-        return new Promise((resolve, reject) => {
-            jwt.verify(accessToken, utils_1.secretKey, (err, decoded) => {
-                if (err) {
-                    const error = new Error('Invalid or expired access token');
-                    error.statusCode = 401;
-                    throw error;
-                }
-                else {
-                    resolve(decoded);
-                }
-            });
-        });
-    }
-    ;
     try {
-        const decodedToken = await verifyToken(accessToken);
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const currentPassword = req.body.currentPassword;
         const newPassword = req.body.newPassword;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -189,23 +142,8 @@ exports.changePassword = changePassword;
 const changeAvatar = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
-    async function verifyToken(accessToken) {
-        return new Promise((resolve, reject) => {
-            jwt.verify(accessToken, utils_1.secretKey, (err, decoded) => {
-                if (err) {
-                    const error = new Error('Invalid or expired access token');
-                    error.statusCode = 401;
-                    throw error;
-                }
-                else {
-                    resolve(decoded);
-                }
-            });
-        });
-    }
-    ;
     try {
-        const decodedToken = await verifyToken(accessToken);
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         if (!req.files || !req.files.avatarFile) {
             const error = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;

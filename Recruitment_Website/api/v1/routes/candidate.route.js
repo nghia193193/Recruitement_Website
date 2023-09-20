@@ -23,23 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.refreshKey = exports.secretKey = void 0;
-const jwt = __importStar(require("jsonwebtoken"));
-exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-async function verifyToken(accessToken) {
-    return new Promise((resolve, reject) => {
-        jwt.verify(accessToken, exports.secretKey, (err, decoded) => {
-            if (err) {
-                const error = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                throw error;
-            }
-            else {
-                resolve(decoded);
-            }
-        });
-    });
-}
-exports.verifyToken = verifyToken;
-;
+const express_1 = require("express");
+const candidateController = __importStar(require("../controllers/candidate.controller"));
+const middleware_1 = require("../middleware");
+const router = (0, express_1.Router)();
+router.put('/resumes', middleware_1.isAuth, candidateController.uploadCV);
+exports.default = router;
