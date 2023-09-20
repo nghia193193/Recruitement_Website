@@ -4,6 +4,6 @@ import { isAuth } from '../middleware';
 
 const router = Router();
 
-router.put('/resumes',isAuth, candidateController.uploadCV);
+router.put('/resumes',isAuth, candidateController.uploadResume);
 
 export default router;

@@ -7,7 +7,7 @@ exports.Resume = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const resumeSchema = new Schema({
-    candiateId: {
+    candidateId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true

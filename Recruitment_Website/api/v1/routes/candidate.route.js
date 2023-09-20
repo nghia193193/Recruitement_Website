@@ -27,5 +27,5 @@ const express_1 = require("express");
 const candidateController = __importStar(require("../controllers/candidate.controller"));
 const middleware_1 = require("../middleware");
 const router = (0, express_1.Router)();
-router.put('/resumes', middleware_1.isAuth, candidateController.uploadCV);
+router.put('/resumes', middleware_1.isAuth, candidateController.uploadResume);
 exports.default = router;

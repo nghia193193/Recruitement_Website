@@ -1,4 +1,5 @@
 import * as jwt from 'jsonwebtoken';
+import { UploadedFile } from 'express-fileupload';
 
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
@@ -16,3 +17,9 @@ export async function verifyToken(accessToken: string) {
       });
     });
 };
+
+export const isPDF = function isPDF(file: UploadedFile): boolean {
+  const allowedExtensions = ['.pdf']; 
+  const fileExtension = (file.name || '').toLowerCase().split('.').pop();
+  return allowedExtensions.includes(`.${fileExtension}`);
+}

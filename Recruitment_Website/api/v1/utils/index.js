@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.refreshKey = exports.secretKey = void 0;
+exports.isPDF = exports.verifyToken = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
@@ -43,3 +43,9 @@ async function verifyToken(accessToken) {
 }
 exports.verifyToken = verifyToken;
 ;
+const isPDF = function isPDF(file) {
+    const allowedExtensions = ['.pdf'];
+    const fileExtension = (file.name || '').toLowerCase().split('.').pop();
+    return allowedExtensions.includes(`.${fileExtension}`);
+};
+exports.isPDF = isPDF;
