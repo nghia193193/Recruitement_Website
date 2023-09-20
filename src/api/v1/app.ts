@@ -8,6 +8,7 @@ import cors from 'cors';
 import schedule from 'node-schedule';
 import { User } from './models/user';
 import { fileConfig } from '../../config';
+import {v2 as cloudinary} from 'cloudinary';
 
 const MONGO_URI: string = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
@@ -18,6 +19,12 @@ app.use(helmet());
 app.use(bodyParser.json());
 app.use(fileConfig);
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+cloudinary.config({ 
+    cloud_name: process.env.CLOUD_NAME, 
+    api_key: process.env.API_KEY, 
+    api_secret: process.env.API_SECRET
+});
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin','*');

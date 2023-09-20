@@ -8,4 +8,5 @@ export const fileConfig = fileUpload({
     abortOnLimit: true,
     responseOnLimit: 'File size limit has been reached (5MB)',
     preserveExtension: true,
-})
+});
+

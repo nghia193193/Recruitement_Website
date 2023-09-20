@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {param} from 'express-validator'
-import * as eventController from '../controllers/event';
+import * as eventController from '../controllers/event.controller';
 
 const router = Router();
 

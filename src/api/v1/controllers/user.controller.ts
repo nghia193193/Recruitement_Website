@@ -4,14 +4,8 @@ import { secretKey } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as bcrypt from 'bcryptjs';
-import fileUpload, {UploadedFile} from 'express-fileupload';
+import {UploadedFile} from 'express-fileupload';
 import {v2 as cloudinary} from 'cloudinary';
-
-export const cloudConfig = cloudinary.config({ 
-    cloud_name: process.env.CLOUD_NAME, 
-    api_key: process.env.API_KEY, 
-    api_secret: process.env.API_SECRET
-});
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;

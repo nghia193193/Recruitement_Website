@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, query, param } from 'express-validator';
-import * as jobController from '../controllers/job';
+import * as jobController from '../controllers/job.controller';
 import { Job } from '../models/job';
 import { JobPosition } from '../models/jobPosition';
 

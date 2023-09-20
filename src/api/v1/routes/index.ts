@@ -1,8 +1,8 @@
 import { Router } from "express";
-import authRoutes from './auth';
-import eventRoutes from './event';
-import jobRoutes from './job';
-import userRoutes from './user'
+import authRoutes from './auth.route';
+import eventRoutes from './event.route';
+import jobRoutes from './job.route';
+import userRoutes from './user.route'
 
 const routes = Router();
 
