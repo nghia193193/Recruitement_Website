@@ -39,6 +39,7 @@ const getProfile = async (req, res, next) => {
             const error = new Error('Không tìm thấy user');
             throw error;
         }
+        ;
         res.status(200).json({
             success: true,
             message: "Lấy dữ liệu thành công",
@@ -63,8 +64,10 @@ const getProfile = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getProfile = getProfile;
 const updateProfile = async (req, res, next) => {
@@ -82,11 +85,13 @@ const updateProfile = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        ;
         const updateUser = await user_1.User.findOne({ email: decodedToken.email });
         if (!updateUser) {
             const error = new Error('Không tìm thấy user');
             throw error;
         }
+        ;
         updateUser.fullName = fullName;
         updateUser.address = address;
         updateUser.dateOfBirth = new Date(dateOfBirth);
@@ -98,8 +103,10 @@ const updateProfile = async (req, res, next) => {
         if (!err.statusCode) {
             err.statusCode = 500;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.updateProfile = updateProfile;
 const changePassword = async (req, res, next) => {
@@ -115,17 +122,20 @@ const changePassword = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        ;
         const user = await user_1.User.findOne({ email: decodedToken.email });
         if (!user) {
             const error = new Error('Không tìm thấy user');
             throw error;
         }
+        ;
         const isEqual = await bcrypt.compare(currentPassword, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu hiện tại không chính xác');
             error.statusCode = 401;
             throw error;
         }
+        ;
         const hashNewPass = await bcrypt.hash(newPassword, 12);
         user.password = hashNewPass;
         await user.save();
@@ -135,8 +145,10 @@ const changePassword = async (req, res, next) => {
         if (!err.statusCode) {
             err.statusCode = 500;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.changePassword = changePassword;
 const changeAvatar = async (req, res, next) => {
@@ -156,11 +168,13 @@ const changeAvatar = async (req, res, next) => {
             error.statusCode = 400;
             throw error;
         }
+        ;
         const result = await cloudinary_1.v2.uploader.upload(avatar.tempFilePath);
         if (!result) {
             const error = new Error('Upload thất bại');
             throw error;
         }
+        ;
         const publicId = result.public_id;
         const avatarUrl = cloudinary_1.v2.url(publicId);
         const user = await user_1.User.findOne({ email: decodedToken.email });
@@ -173,6 +187,7 @@ const changeAvatar = async (req, res, next) => {
         if (oldAva) {
             await cloudinary_1.v2.uploader.destroy(oldAva);
         }
+        ;
         user.avatar = {
             publicId: publicId,
             url: avatarUrl
@@ -184,7 +199,9 @@ const changeAvatar = async (req, res, next) => {
         if (!err.statusCode) {
             err.statusCode = 500;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.changeAvatar = changeAvatar;

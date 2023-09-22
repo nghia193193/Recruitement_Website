@@ -54,29 +54,34 @@ const signup = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         if (confirmPassword !== password) {
             const error = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 401;
             throw error;
         }
+        ;
         const emailUser = await user_1.User.findOne({ email: email });
         if (emailUser) {
             const error = new Error('Email đã tồn tại');
             error.statusCode = 409;
             throw error;
         }
+        ;
         const phoneUser = await user_1.User.findOne({ phone: phone });
         if (phoneUser) {
             const error = new Error('Số điện thoại đã tồn tại');
             error.statusCode = 409;
             throw error;
         }
+        ;
         const hashedPw = await bcrypt.hash(password, 12);
         const role = await role_1.Role.findOne({ roleName: 'CANDIDATE', isActive: true });
         let otp = '';
         for (let i = 0; i < 6; i++) {
             otp += Math.floor(Math.random() * 10);
         }
+        ;
         const otpExpired = new Date(Date.now() + 10 * 60 * 1000);
         const user = new user_1.User({
             fullName: fullName,
@@ -119,6 +124,7 @@ const signup = async (req, res, next) => {
         }
         next(err);
     }
+    ;
 };
 exports.signup = signup;
 const verifyOTP = async (req, res, next) => {
@@ -132,6 +138,7 @@ const verifyOTP = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         const user = await user_1.User.findOne({ email: email });
         if (!user) {
             const error = new Error('Email không chính xác');
@@ -139,12 +146,14 @@ const verifyOTP = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         if (user.otp !== otp) {
             const error = new Error('Mã xác nhận không chính xác');
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
+        ;
         user.isVerifiedEmail = true;
         user.otpExpired = undefined;
         await user.save();
@@ -155,8 +164,10 @@ const verifyOTP = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.verifyOTP = verifyOTP;
 const login = async (req, res, next) => {
@@ -171,6 +182,7 @@ const login = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         let user;
         if (emailPattern.test(credentialId)) {
             user = await user_1.User.findOne({ email: credentialId }).populate('roleId');
@@ -180,12 +192,14 @@ const login = async (req, res, next) => {
                 error.result = null;
                 throw error;
             }
+            ;
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
+            ;
         }
         else {
             user = await user_1.User.findOne({ phone: credentialId }).populate('roleId');
@@ -195,13 +209,16 @@ const login = async (req, res, next) => {
                 error.result = null;
                 throw error;
             }
+            ;
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
             }
+            ;
         }
+        ;
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');
@@ -209,6 +226,7 @@ const login = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         user.isActive = true;
         await user.save();
         const payload = {
@@ -233,6 +251,7 @@ const login = async (req, res, next) => {
         }
         next(err);
     }
+    ;
 };
 exports.login = login;
 const refreshAccessToken = (req, res, next) => {
@@ -241,6 +260,7 @@ const refreshAccessToken = (req, res, next) => {
         if (err) {
             return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
         }
+        ;
         const newAccessToken = jwt.sign({
             email: decoded.email
         }, utils_1.secretKey, { expiresIn: '1h' });

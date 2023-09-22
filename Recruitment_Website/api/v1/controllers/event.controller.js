@@ -22,6 +22,7 @@ const getAllEvents = async (req, res, next) => {
             };
             throw error;
         }
+        ;
         const events = await event_1.Event.find(query)
             .populate('authorId')
             .skip((page - 1) * limit)
@@ -49,8 +50,10 @@ const getAllEvents = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getAllEvents = getAllEvents;
 const getSingleEvent = async (req, res, next) => {
@@ -63,6 +66,7 @@ const getSingleEvent = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         const event = await event_1.Event.findById(eventId).populate('authorId');
         if (!event) {
             const error = new Error('Không tìm thấy sự kiện');
@@ -70,6 +74,7 @@ const getSingleEvent = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         const { _id, authorId, ...rest } = event;
         delete rest._doc._id;
         delete rest._doc.authorId;
@@ -85,7 +90,9 @@ const getSingleEvent = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getSingleEvent = getSingleEvent;

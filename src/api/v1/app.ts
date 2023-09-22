@@ -44,7 +44,7 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
         res.status(status).json({ success: error.success || false, message: message, result: {...result}, statusCode: status });
     } else {
         res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
-    }
+    };
     
 });
 
@@ -64,5 +64,5 @@ async function deleteOtpExpiredUser() {
         console.log(`${result.deletedCount} instances deleted.`);
     } catch (err) {
         console.error('Error deleting instances: ', err);
-    }
-}
+    };
+};

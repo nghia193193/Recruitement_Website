@@ -17,7 +17,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             throw error;
-        }
+        };
         res.status(200).json({ 
             success: true,
             message: "Lấy dữ liệu thành công",
@@ -40,10 +40,10 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
             (err as any).result = null;
-        }
+        };
         next(err);
-    }
-}
+    };
+};
 
 export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -60,12 +60,12 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
             throw error;
-        }
+        };
         const updateUser = await User.findOne({email: decodedToken.email});
         if (!updateUser) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             throw error;
-        }
+        };
         updateUser.fullName = fullName;
         updateUser.address = address;
         updateUser.dateOfBirth = new Date(dateOfBirth);
@@ -76,10 +76,10 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-        }
+        };
         next(err);
-    }
-}
+    };
+};
 
 export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -94,30 +94,30 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
             throw error;
-        }
+        };
         const user = await User.findOne({email: decodedToken.email});
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             throw error;
-        }
+        };
         const isEqual = await bcrypt.compare(currentPassword, user.password);
         if (!isEqual) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu hiện tại không chính xác');
             error.statusCode = 401;
             throw error;
-        }
+        };
         const hashNewPass = await bcrypt.hash(newPassword, 12);
         user.password = hashNewPass;
-        await user.save()
+        await user.save();
         res.status(200).json({success: true, message: 'Đổi mật khẩu thành công', statusCode: 200});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-        }
+        };
         next(err);
-    }
+    };
     
-}
+};
 
 export const changeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -136,13 +136,13 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
             const error: Error & {statusCode?: number} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
             error.statusCode = 400;
             throw error;
-        }
+        };
         
         const result = await cloudinary.uploader.upload(avatar.tempFilePath);
         if (!result) {
             const error = new Error('Upload thất bại');
             throw error;
-        }
+        };
 
         const publicId = result.public_id;
         const avatarUrl = cloudinary.url(publicId);
@@ -156,7 +156,7 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
         const oldAva = user.avatar?.publicId;
         if (oldAva) {
             await cloudinary.uploader.destroy(oldAva);
-        }
+        };
         
         user.avatar = {
             publicId: publicId,
@@ -167,8 +167,8 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-        }
+        };
         next(err);
-    }
+    };
     
-}
+};

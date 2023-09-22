@@ -28,7 +28,7 @@ export const getResumes = async (req: Request, res: Response, next: NextFunction
                 name: resume.name,
                 resumeUpload: resume.resumeUpload,
                 createdDay: resume.createdAt
-            }
+            };
         })
         res.status(200).json({success: true, message: 'Lấy list resumes thành công',result: listResumes,resumesLength: resumesLength, statusCode: 200});
     } catch (err) {
@@ -36,8 +36,8 @@ export const getResumes = async (req: Request, res: Response, next: NextFunction
             (err as any).statusCode = 500;
         }
         next(err);
-    }
-}
+    };
+};
 
 export const uploadResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -62,7 +62,7 @@ export const uploadResume = async (req: Request, res: Response, next: NextFuncti
         if (!result) {
             const error = new Error('Upload thất bại');
             throw error;
-        }
+        };
 
         const publicId = result.public_id;
         const resumeUrl = cloudinary.url(publicId);
@@ -86,16 +86,16 @@ export const uploadResume = async (req: Request, res: Response, next: NextFuncti
             name: resume.name,
             resumeUpload: resumeUrl,
             createDate: cv.createdAt
-        }
+        };
         
         res.status(200).json({success: true, message: 'Upload resume thành công',result: cvInfo, statusCode: 200});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-        }
+        };
         next(err);
-    }
-}
+    };
+};
 
 export const deleteResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -107,19 +107,19 @@ export const deleteResume = async (req: Request, res: Response, next: NextFuncti
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 422;
             throw error;
-        }
+        };
         const resumeId = new mongoose.Types.ObjectId(req.params.resumeId);
         const resume = await ResumeUpload.findOne({_id: resumeId});
         if(!resume) {
             const error: Error = new Error('Không tìm thấy resume');
             throw error;
-        }
+        };
         const publicId = resume.publicId;
         const isDelete = await ResumeUpload.findOneAndDelete({_id: resumeId});
         if (!isDelete) {
             const error: Error = new Error('Xóa resume thất bại');
             throw error;
-        }
+        };
         await cloudinary.uploader.destroy(publicId);
         res.status(200).json({success: true, message: 'Xóa resume thành công', statusCode: 200});
     } catch (err) {
@@ -127,5 +127,5 @@ export const deleteResume = async (req: Request, res: Response, next: NextFuncti
             (err as any).statusCode = 500;
         }
         next(err);
-    }
-}
+    };
+};

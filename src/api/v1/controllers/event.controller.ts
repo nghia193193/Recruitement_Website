@@ -20,7 +20,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
                 content: []
             };
             throw error;
-        }
+        };
 
         const events = await Event.find(query)
             .populate('authorId')
@@ -36,7 +36,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
                 author: (authorId as any).fullName,
                 ...(rest as any)._doc
             }
-        })
+        });
         
         res.status(200).json({success: true, message: 'Successfully!', result: {
             pageNumber: page,
@@ -44,15 +44,15 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
             limit: limit,
             totalElements: eventLength,
             content: listEvents
-        }})
+        }});
 
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-            (err as any).result = null
-        }
+            (err as any).result = null;
+        };
         next(err);
-    }
+    };
 };
 
 export const getSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -64,14 +64,14 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
             error.statusCode = 422;
             error.result = null;
             throw error;
-        }
+        };
         const event = await Event.findById(eventId).populate('authorId');
         if (!event) {
             const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy sự kiện');
             error.statusCode = 400;
             error.result = null;
             throw error;
-        }
+        };
         const {_id, authorId, ...rest} = event;
         delete (rest as any)._doc._id;
         delete (rest as any)._doc.authorId;
@@ -80,14 +80,14 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
             eventId: _id.toString(),
             author: (authorId as any).fullName,
             ...(rest as any)._doc,
-        }
-        res.status(200).json({success: true, message: 'Successfully!', result: returnEvent})
+        };
+        res.status(200).json({success: true, message: 'Successfully!', result: returnEvent});
 
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
             (err as any).result = null
-        }
+        };
         next(err);
-    }
+    };
 };

@@ -18,6 +18,7 @@ const getJobs = async (req, res, next) => {
             };
             throw error;
         }
+        ;
         const query = {};
         const optionalQuerys = ['name', 'type', 'location', 'position'];
         for (const q of optionalQuerys) {
@@ -25,17 +26,20 @@ const getJobs = async (req, res, next) => {
                 if (req.query[q]) {
                     query['jobType'] = req.query[q];
                 }
+                ;
             }
             else if (q === 'position') {
                 if (req.query[q]) {
                     const jobPos = await jobPosition_1.JobPosition.findOne({ name: req.query[q] });
                     query['positionId'] = jobPos?._id;
                 }
+                ;
             }
             else {
                 if (req.query[q]) {
                     query[q] = req.query[q];
                 }
+                ;
             }
             ;
         }
@@ -83,8 +87,10 @@ const getJobs = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getJobs = getJobs;
 const getLoc = async (req, res, next) => {
@@ -101,8 +107,10 @@ const getLoc = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getLoc = getLoc;
 const getPos = async (req, res, next) => {
@@ -119,8 +127,10 @@ const getPos = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getPos = getPos;
 const getType = async (req, res, next) => {
@@ -137,8 +147,10 @@ const getType = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getType = getType;
 const getSingleJob = async (req, res, next) => {
@@ -151,6 +163,7 @@ const getSingleJob = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         const job = await job_1.Job.findById(jobId).populate('positionId skills.skillId');
         if (!job) {
             const error = new Error('Không tìm thấy job');
@@ -158,6 +171,7 @@ const getSingleJob = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        ;
         const { _id, skills, positionId, ...rest } = job;
         delete rest._doc._id;
         delete rest._doc.skills;
@@ -178,7 +192,9 @@ const getSingleJob = async (req, res, next) => {
             err.statusCode = 500;
             err.result = null;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.getSingleJob = getSingleJob;

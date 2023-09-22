@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
     }
-})
+});
 
 export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const fullName: string = req.body.fullName;
@@ -30,30 +30,30 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             error.statusCode = 422;
             error.result = null;
             throw error;
-        }
+        };
         if (confirmPassword !== password) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 401;
             throw error;
-        }
+        };
         const emailUser = await User.findOne({email: email});
         if (emailUser) {
             const error: Error & {statusCode?: number} = new Error('Email đã tồn tại');
             error.statusCode = 409;
             throw error;
-        }
+        };
         const phoneUser = await User.findOne({phone: phone});
         if (phoneUser) {
             const error: Error & {statusCode?: number} = new Error('Số điện thoại đã tồn tại');
             error.statusCode = 409;
             throw error;
-        }
+        };
         const hashedPw = await bcrypt.hash(password, 12);
         const role = await Role.findOne({roleName: 'CANDIDATE', isActive: true});
         let otp = '';
         for (let i = 0; i < 6; i++) {
             otp += Math.floor(Math.random() * 10);
-        }
+        };
         const otpExpired: Date = new Date(Date.now() + 10*60*1000);
         const user = new User ({
             fullName: fullName,
@@ -65,7 +65,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             roleId: role ? role._id : undefined,
             otp: otp,
             otpExpired: otpExpired
-        })
+        });
         await user.save();
         let mailDetails = {
             from: 'nguyennghia193913@gmail.com',
@@ -85,16 +85,16 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             userId: user._id,
             email: user.email,
             phone: user.phone
-        }
+        };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-            (err as any).result = null
+            (err as any).result = null;
         }
         next(err);
-    }
+    };
 };
 
 export const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -107,20 +107,20 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
             error.statusCode = 422;
             error.result = null;
             throw error;
-        }
+        };
         const user = await User.findOne({email: email});
         if (!user) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Email không chính xác');
             error.statusCode = 401;
             error.result = null;
             throw error;
-        }
+        };
         if (user.otp !== otp) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Mã xác nhận không chính xác');
             error.statusCode = 400;
             error.result = null;
             throw error;
-        }
+        };
         user.isVerifiedEmail = true;
         user.otpExpired = undefined;
         await user.save();
@@ -129,9 +129,9 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
             (err as any).result = null
-        }
+        };
         next(err);
-    }
+    };
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -145,7 +145,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             error.statusCode = 422;
             error.result = null;
             throw error;
-        }
+        };
         let user;
         if (emailPattern.test(credentialId)) {
             user = await User.findOne({email: credentialId}).populate('roleId');
@@ -154,13 +154,13 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
-            }
+            };
             if (!user.isVerifiedEmail) {
                 const error: Error & {statusCode?: number, result?: any} = new Error('Vui lòng xác nhận email');
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
-            }
+            };
         } else {
             user = await User.findOne({phone: credentialId}).populate('roleId');
             if (!user) {
@@ -168,26 +168,26 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
-            }
+            };
             if (!user.isVerifiedEmail) {
                 const error: Error & {statusCode?: number, result?: any} = new Error('Vui lòng xác nhận email');
                 error.statusCode = 401;
                 error.result = null;
                 throw error;
-            }
-        }
+            };
+        };
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu không chính xác');
             error.statusCode = 401;
             error.result = null;
             throw error;
-        }
+        };
         user.isActive = true;
         await user.save();
         const payload = {
             email: user.email
-        }
+        };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, refreshKey, {expiresIn: '7d'});
         res.status(200).json(
@@ -203,10 +203,10 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
-            (err as any).result = null
+            (err as any).result = null;
         }
         next(err);
-    }
+    };
     
 };
 
@@ -215,7 +215,7 @@ export const refreshAccessToken = (req: Request, res: Response, next: NextFuncti
     jwt.verify(refreshToken, refreshKey, (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {
           return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
-        }
+        };
         const newAccessToken = jwt.sign(
             { 
                 email: decoded.email
@@ -231,4 +231,4 @@ export const refreshAccessToken = (req: Request, res: Response, next: NextFuncti
             }
         );
     });
-}
+};

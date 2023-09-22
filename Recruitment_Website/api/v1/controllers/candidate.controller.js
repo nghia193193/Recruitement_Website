@@ -39,6 +39,7 @@ const getResumes = async (req, res, next) => {
         }
         next(err);
     }
+    ;
 };
 exports.getResumes = getResumes;
 const uploadResume = async (req, res, next) => {
@@ -64,6 +65,7 @@ const uploadResume = async (req, res, next) => {
             const error = new Error('Upload thất bại');
             throw error;
         }
+        ;
         const publicId = result.public_id;
         const resumeUrl = cloudinary_1.v2.url(publicId);
         const candidate = await user_1.User.findOne({ email: decodedToken.email });
@@ -91,8 +93,10 @@ const uploadResume = async (req, res, next) => {
         if (!err.statusCode) {
             err.statusCode = 500;
         }
+        ;
         next(err);
     }
+    ;
 };
 exports.uploadResume = uploadResume;
 const deleteResume = async (req, res, next) => {
@@ -106,18 +110,21 @@ const deleteResume = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        ;
         const resumeId = new mongoose_1.default.Types.ObjectId(req.params.resumeId);
         const resume = await resumeUpload_1.ResumeUpload.findOne({ _id: resumeId });
         if (!resume) {
             const error = new Error('Không tìm thấy resume');
             throw error;
         }
+        ;
         const publicId = resume.publicId;
         const isDelete = await resumeUpload_1.ResumeUpload.findOneAndDelete({ _id: resumeId });
         if (!isDelete) {
             const error = new Error('Xóa resume thất bại');
             throw error;
         }
+        ;
         await cloudinary_1.v2.uploader.destroy(publicId);
         res.status(200).json({ success: true, message: 'Xóa resume thành công', statusCode: 200 });
     }
@@ -127,5 +134,6 @@ const deleteResume = async (req, res, next) => {
         }
         next(err);
     }
+    ;
 };
 exports.deleteResume = deleteResume;

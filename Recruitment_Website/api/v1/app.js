@@ -44,6 +44,7 @@ app.use((error, req, res, next) => {
     else {
         res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
     }
+    ;
 });
 mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 10 })
     .then(result => {
@@ -62,4 +63,6 @@ async function deleteOtpExpiredUser() {
     catch (err) {
         console.error('Error deleting instances: ', err);
     }
+    ;
 }
+;
