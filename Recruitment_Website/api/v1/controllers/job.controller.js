@@ -48,7 +48,7 @@ const getJobs = async (req, res, next) => {
         const jobLength = await job_1.Job.find(query).countDocuments();
         if (jobLength === 0) {
             const error = new Error('Không tìm thấy job');
-            error.statusCode = 400;
+            error.statusCode = 200;
             error.success = true;
             error.result = {
                 content: []
