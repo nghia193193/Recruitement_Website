@@ -25,14 +25,8 @@ const userSchema = new Schema(
             ref: "Role",
         },
         avatar: {
-            publicId: {
-                type: String,
-                required: true   
-            },
-            url: {
-                type: String,
-                required: true
-            }
+            publicId: String,
+            url: String
         },
         isVerifiedEmail: Boolean,
         address: String,
