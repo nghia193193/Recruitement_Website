@@ -98,8 +98,27 @@ const updateProfile = async (req, res, next) => {
         updateUser.address = address;
         updateUser.dateOfBirth = new Date(dateOfBirth);
         updateUser.about = about;
-        await updateUser.save();
-        res.status(200).json({ success: true, message: 'Update user thành công', statusCode: 200 });
+        const user = await updateUser.save();
+        res.status(200).json({
+            success: true,
+            message: 'Update user thành công',
+            result: {
+                userId: user._id.toString(),
+                fullName: user.fullName,
+                email: user.email,
+                phone: user.phone,
+                avatar: user.avatar ? user.avatar.url : null,
+                gender: user.gender ? user.gender : null,
+                address: user.address ? user.address : null,
+                dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
+                active: user.isActive,
+                role: user.roleId.roleName,
+                about: user.about,
+                createAt: user.createdAt,
+                updateAt: user.updatedAt
+            },
+            statusCode: 200
+        });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -195,7 +214,7 @@ const changeAvatar = async (req, res, next) => {
             url: avatarUrl
         };
         await user.save();
-        res.status(200).json({ success: true, message: 'Đổi avatar thành công', statusCode: 200 });
+        res.status(200).json({ success: true, message: 'Đổi avatar thành công', result: avatarUrl, statusCode: 200 });
     }
     catch (err) {
         if (!err.statusCode) {
