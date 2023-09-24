@@ -13,7 +13,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findOne({email: decodedToken.email});
+        const user = await User.findOne({email: decodedToken.email}).populate('roleId');
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             throw error;
@@ -31,6 +31,8 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
                 address: user.address ? user.address : null,
                 dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
                 active: user.isActive, 
+                role: (user.roleId as any).roleName,
+                about: user.about,
                 createAt: user.createdAt,
                 updateAt: user.updatedAt
             },
