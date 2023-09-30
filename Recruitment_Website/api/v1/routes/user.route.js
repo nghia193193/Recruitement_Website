@@ -54,4 +54,15 @@ router.put('/change-password', middleware_1.isAuth, [
     })
 ], userController.changePassword);
 router.put('/avatar', middleware_1.isAuth, userController.changeAvatar);
+router.post('/forgot-password', (0, express_validator_1.body)('email').trim()
+    .isEmail().withMessage('Email không hợp lệ')
+    .normalizeEmail(), userController.forgotPassword);
+router.post('/reset-password', [
+    (0, express_validator_1.body)('newPassword').trim()
+        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+    (0, express_validator_1.body)('confirmPassword/').trim(),
+    (0, express_validator_1.body)('token').trim()
+        .isLength({ min: 64, max: 64 }).withMessage('Token không hợp lệ')
+        .isHexadecimal().withMessage('Token không hợp lệ')
+], userController.resetPassword);
 exports.default = router;

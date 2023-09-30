@@ -2,20 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { Role } from '../models/role';
-import { secretKey, refreshKey } from '../utils';
+import { secretKey, refreshKey, transporter } from '../utils';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import * as nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-    }
-});
 
 export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const fullName: string = req.body.fullName;
@@ -72,15 +62,21 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
             to: email,
             subject: 'Register Account',
             html: ` 
-                Mã xác nhận đăng ký của bạn là <b>${otp}</b>
-                <br>
-                <h3 style="color: red">Vui lòng xác nhận trong vòng 10 phút</h3>
-                <br>
-                Vui lòng xác nhận ở đường link sau:
-                http://localhost:5173/otp?email=${email}
+            <div style="text-align: center; font-family: arial">
+                <h1 style="color: green; ">JOB POST</h1>
+                <h2>Welcome</h2>
+                <span style="margin: 1px">Your OTP confirmation code is: <b>${otp}</b></span>
+                <p style="margin-top: 0px">Click this link below to verify your account.</p>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
+                <p>Thank you for joining us!</p>
+                <p style="color: red">Note: This link is only valid in 10 minutes!</p>
+            </div>
             `
         };
-        transporter.sendMail(mailDetails, err => console.log(err));
+        transporter.sendMail(mailDetails, err => {
+            const error: Error = new Error('Gửi mail thất bại');
+            throw error;
+        });
         const payload = {
             userId: user._id,
             email: user.email,

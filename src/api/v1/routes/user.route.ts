@@ -31,4 +31,19 @@ router.put('/change-password',isAuth, [
 
 router.put('/avatar',isAuth, userController.changeAvatar);
 
+router.post('/forgot-password',
+    body('email').trim()
+        .isEmail().withMessage('Email không hợp lệ')
+        .normalizeEmail()
+, userController.forgotPassword);
+
+router.post('/reset-password',[
+    body('newPassword').trim()
+        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+    body('confirmPassword/').trim(),
+    body('token').trim()
+        .isLength({min: 64, max: 64}).withMessage('Token không hợp lệ')
+        .isHexadecimal().withMessage('Token không hợp lệ')
+], userController.resetPassword)
+
 export default router;

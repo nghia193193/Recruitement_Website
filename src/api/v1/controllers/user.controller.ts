@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken } from '../utils';
+import { secretKey, verifyToken, transporter } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as bcrypt from 'bcryptjs';
 import {UploadedFile} from 'express-fileupload';
 import {v2 as cloudinary} from 'cloudinary';
+import {randomBytes} from 'crypto';
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;
@@ -191,4 +192,92 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
         next(err);
     };
     
+};
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const email: string = req.body.email;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 422;
+            throw error;
+        }
+        const user = await User.findOne({email: email});
+        if (!user) {
+            const error: Error & {statusCode?: number, result?: any} = new Error('Tài khoản không tồn tại');
+            error.statusCode = 401;
+            throw error;
+        }
+        const token = randomBytes(32).toString('hex');
+        user.resetToken = token;
+        user.resetTokenExpired = new Date(Date.now() + 5*60*1000);
+        await user.save();
+        let mailDetails = {
+            from: 'nguyennghia193913@gmail.com',
+            to: email,
+            subject: 'Reset Password',
+            html: ` 
+            <div style="text-align: center; font-family: arial">
+                <h1 style="color: green; ">JOB POST</h1>
+                <h2>Reset Password</h2>
+                <p style="margin: 1px">A password change has been requested to your account.</p>
+                <p style="margin-top: 0px">If this was you, please use the link below to reset your password</p>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/api/v1/forget-password/confirm-password?token=${token}" style="font-size: 15px;color: white; text-decoration: none">Reset Password</a></button>
+                <p>Thank you for joining us!</p>
+                <p style="color: red">Note: This link is only valid in 5 minutes!</p>
+                
+            </div>
+            `
+        };
+        transporter.sendMail(mailDetails, err => {
+            const error: Error = new Error('Gửi mail thất bại');
+            throw error;
+        });
+        res.json({success: true, message: "Đã gửi email"});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        };
+        next(err);
+    };
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const newPassword: string = req.body.newPassword;
+    const confirmPassword: string = req.body.confirmPassword;
+    const token: string = req.body.token;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 422;
+            throw error;
+        }
+        if (confirmPassword !== newPassword) {
+            const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
+            error.statusCode = 401;
+            throw error;
+        }
+        const user = await User.findOne({resetToken: token});
+        if (!user) {
+            const error: Error & {statusCode?: number, result?: any} = new Error('Token không tồn tại');
+            error.statusCode = 401;
+            throw error;
+        }
+        if ((user.resetTokenExpired as any).getTime() > new Date().getTime()) {
+            const error: Error & {statusCode?: number} = new Error('Token đã hết hạn vui lòng tạo yêu cầu mới!');
+            error.statusCode = 401;
+            throw error;
+        }
+        const hashNewPW = await bcrypt.hash(newPassword, 12);
+        user.password = hashNewPW;
+        await user.save();
+        res.json({success: true, message: "Đổi mật khẩu thành công"});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        };
+        next(err);
+    };
 };

@@ -38,6 +38,8 @@ const userSchema = new Schema({
     about: String,
     isActive: Boolean,
     information: String,
+    resetToken: String,
+    resetTokenExpired: Date,
     otp: String,
     otpExpired: Date
 }, {
