@@ -23,9 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isPDF = exports.verifyToken = exports.refreshKey = exports.secretKey = exports.transporter = void 0;
+exports.isPDF = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
+exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
+exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
@@ -35,8 +37,6 @@ exports.transporter = nodemailer.createTransport({
         pass: process.env.MAIL_PASS
     }
 });
-exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 async function verifyToken(accessToken) {
     return new Promise((resolve, reject) => {
         jwt.verify(accessToken, exports.secretKey, (err, decoded) => {

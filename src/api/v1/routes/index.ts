@@ -4,6 +4,7 @@ import eventRoutes from './event.route';
 import jobRoutes from './job.route';
 import userRoutes from './user.route';
 import candidateRoutes from './candidate.route';
+import recruiterRoutes from './recruiter.route';
 
 const routes = Router();
 
@@ -12,5 +13,6 @@ routes.use('/api/v1/events', eventRoutes);
 routes.use('/api/v1/jobs', jobRoutes);
 routes.use('/api/v1/user', userRoutes);
 routes.use('/api/v1/candidate', candidateRoutes);
+routes.use('/api/v1/recruiter', recruiterRoutes);
 
 export default routes;

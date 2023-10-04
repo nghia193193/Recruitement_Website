@@ -16,7 +16,7 @@ const getAllEvents = async (req, res, next) => {
         const eventLength = await event_1.Event.find(query).countDocuments();
         if (eventLength === 0) {
             const error = new Error('Không tìm thấy sự kiện nào');
-            error.statusCode = 400;
+            error.statusCode = 422;
             error.result = {
                 content: []
             };
@@ -62,7 +62,7 @@ const getSingleEvent = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }

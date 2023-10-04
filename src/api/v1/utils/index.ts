@@ -2,6 +2,9 @@ import * as jwt from 'jsonwebtoken';
 import { UploadedFile } from 'express-fileupload';
 import * as nodemailer from 'nodemailer';
 
+export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
+export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
+
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
@@ -11,9 +14,6 @@ export const transporter = nodemailer.createTransport({
       pass: process.env.MAIL_PASS
   }
 });
-
-export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 
 export async function verifyToken(accessToken: string) {
     return new Promise((resolve, reject) => {

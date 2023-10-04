@@ -16,8 +16,9 @@ const jobSchema = new Schema({
         ref: 'JobPosition',
         required: true
     },
-    jobType: {
-        type: String,
+    typeId: {
+        type: Schema.Types.ObjectId,
+        ref: 'JobType',
         required: true
     },
     authorId: {
@@ -41,8 +42,9 @@ const jobSchema = new Schema({
         type: String,
         required: true
     },
-    location: {
-        type: String,
+    locationId: {
+        type: Schema.Types.ObjectId,
+        ref: 'JobLocation',
         required: true
     },
     description: {

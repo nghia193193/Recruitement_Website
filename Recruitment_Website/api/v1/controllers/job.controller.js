@@ -3,8 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSingleJob = exports.getType = exports.getPos = exports.getLoc = exports.getJobs = void 0;
 const job_1 = require("../models/job");
 const jobPosition_1 = require("../models/jobPosition");
-const skill_1 = require("../models/skill");
 const express_validator_1 = require("express-validator");
+const jobLocation_1 = require("../models/jobLocation");
+const jobType_1 = require("../models/jobType");
 const getJobs = async (req, res, next) => {
     const page = req.query.page ? +req.query.page : 1;
     const limit = req.query.limit ? +req.query.limit : 10;
@@ -20,31 +21,25 @@ const getJobs = async (req, res, next) => {
         }
         ;
         const query = {};
-        const optionalQuerys = ['name', 'type', 'location', 'position'];
-        for (const q of optionalQuerys) {
-            if (q === 'type') {
-                if (req.query[q]) {
-                    query['jobType'] = req.query[q];
-                }
-                ;
-            }
-            else if (q === 'position') {
-                if (req.query[q]) {
-                    const jobPos = await jobPosition_1.JobPosition.findOne({ name: req.query[q] });
-                    query['positionId'] = jobPos?._id;
-                }
-                ;
-            }
-            else {
-                if (req.query[q]) {
-                    query[q] = req.query[q];
-                }
-                ;
-            }
-            ;
+        if (req.query['name']) {
+            query['name'] = req.query['name'];
         }
         ;
-        const skill = await skill_1.Skill.find();
+        if (req.query['type']) {
+            const jobType = await jobType_1.JobType.findOne({ name: req.query['type'] });
+            query['typeId'] = jobType?._id;
+        }
+        ;
+        if (req.query['position']) {
+            const jobPos = await jobPosition_1.JobPosition.findOne({ name: req.query['position'] });
+            query['positionId'] = jobPos?._id;
+        }
+        ;
+        if (req.query['location']) {
+            const jobLoc = await jobLocation_1.JobLocation.findOne({ name: req.query['location'] });
+            query['locationId'] = jobLoc?._id;
+        }
+        ;
         const jobLength = await job_1.Job.find(query).countDocuments();
         if (jobLength === 0) {
             const error = new Error('Không tìm thấy job');
@@ -56,20 +51,24 @@ const getJobs = async (req, res, next) => {
             throw error;
         }
         ;
-        const jobs = await job_1.Job.find(query).populate('positionId skills.skillId')
+        const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
         const listjobs = jobs.map(job => {
-            const { _id, skills, positionId, ...rest } = job;
+            const { _id, skills, positionId, locationId, typeId, ...rest } = job;
             delete rest._doc._id;
             delete rest._doc.skills;
             delete rest._doc.positionId;
+            delete rest._doc.locationId;
+            delete rest._doc.typeId;
             const listSkills = skills.map(skill => {
                 return skill.skillId.name;
             });
             return {
                 jobId: _id.toString(),
                 position: positionId.name,
+                location: locationId.name,
+                jobType: typeId.name,
                 ...rest._doc,
                 skills: listSkills
             };
@@ -95,9 +94,9 @@ const getJobs = async (req, res, next) => {
 exports.getJobs = getJobs;
 const getLoc = async (req, res, next) => {
     try {
-        const jobs = await job_1.Job.find();
+        const jobs = await jobLocation_1.JobLocation.find();
         let listLocation = jobs.map(job => {
-            return job.location;
+            return job.name;
         });
         listLocation = [...new Set(listLocation)];
         res.status(200).json({ success: true, message: 'Lấy list Location thành công', statusCode: 200, result: listLocation });
@@ -135,9 +134,9 @@ const getPos = async (req, res, next) => {
 exports.getPos = getPos;
 const getType = async (req, res, next) => {
     try {
-        const jobs = await job_1.Job.find();
+        const jobs = await jobType_1.JobType.find();
         let listType = jobs.map(job => {
-            return job.jobType;
+            return job.name;
         });
         listType = [...new Set(listType)];
         res.status(200).json({ success: true, message: 'Lấy list Type thành công', statusCode: 200, result: listType });
@@ -159,29 +158,33 @@ const getSingleJob = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
         ;
-        const job = await job_1.Job.findById(jobId).populate('positionId skills.skillId');
+        const job = await job_1.Job.findById(jobId).populate('positionId locationId typeId skills.skillId');
         if (!job) {
             const error = new Error('Không tìm thấy job');
-            error.statusCode = 404;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
         ;
-        const { _id, skills, positionId, ...rest } = job;
+        const { _id, skills, positionId, locationId, typeId, ...rest } = job;
         delete rest._doc._id;
         delete rest._doc.skills;
         delete rest._doc.positionId;
+        delete rest._doc.locationId;
+        delete rest._doc.typeId;
         const listSkills = skills.map(skill => {
             return skill.skillId.name;
         });
         const returnJob = {
             jobId: _id.toString(),
             position: positionId.name,
+            location: locationId.name,
+            jobType: typeId.name,
             ...rest._doc,
             skills: listSkills
         };

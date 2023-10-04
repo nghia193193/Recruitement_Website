@@ -22,14 +22,26 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const authController = __importStar(require("../controllers/auth.controller"));
+const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const router = (0, express_1.Router)();
 router.post('/register', [
     (0, express_validator_1.body)('fullName').trim()
-        .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
+        .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
+        .custom((value, { req }) => {
+        const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+        if (!regex.test(value)) {
+            throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+        }
+        ;
+        return true;
+    }),
     (0, express_validator_1.body)('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
@@ -43,7 +55,11 @@ router.post('/register', [
         return true;
     }),
     (0, express_validator_1.body)('password').trim()
-        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
+        .customSanitizer((value, { req }) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
+    }),
     (0, express_validator_1.body)('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
@@ -52,7 +68,15 @@ router.post('/verifyOTP', [
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
     (0, express_validator_1.body)('otp').trim()
-        .isLength({ min: 6, max: 6 }).withMessage('Mã OTP chỉ gồm 6 ký tự')
+        .isLength({ min: 6, max: 6 }).withMessage('Mã OTP gồm 6 số')
+        .custom((value, { req }) => {
+        const regex = /^[0-9]+$/; // Chỉ cho phép số
+        if (!regex.test(value)) {
+            throw new Error('Mã OTP gồm 6 số');
+        }
+        ;
+        return true;
+    })
 ], authController.verifyOTP);
 router.post('/login', [
     (0, express_validator_1.body)('credentialId').trim()

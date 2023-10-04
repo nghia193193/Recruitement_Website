@@ -2,12 +2,20 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import * as authController from '../controllers/auth.controller';
 import { User } from '../models/user';
+import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
 
 router.post('/register',[
     body('fullName').trim()
-        .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự'),
+        .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
+        .custom((value, {req}) => {
+            const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+            };
+            return true;
+        }),
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
@@ -21,7 +29,11 @@ router.post('/register',[
             return true;
         }),
     body('password').trim()
-        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự'),
+        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
+        .customSanitizer((value: string, {req}) => {
+            const sanitizedValue = sanitizeHtml(value);
+            return sanitizedValue;
+        }),
     body('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signup);
@@ -31,7 +43,14 @@ router.post('/verifyOTP',[
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
     body('otp').trim()
-        .isLength({min: 6, max: 6}).withMessage('Mã OTP chỉ gồm 6 ký tự')
+        .isLength({min: 6, max: 6}).withMessage('Mã OTP gồm 6 số')
+        .custom((value, {req}) => {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('Mã OTP gồm 6 số');
+            };
+            return true;
+        })
 ], authController.verifyOTP);
 
 router.post('/login',[

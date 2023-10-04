@@ -38,6 +38,7 @@ const getProfile = async (req, res, next) => {
         const user = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
         if (!user) {
             const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         }
         ;
@@ -85,13 +86,14 @@ const updateProfile = async (req, res, next) => {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         }
         ;
         const updateUser = await user_1.User.findOne({ email: decodedToken.email });
         if (!updateUser) {
             const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         }
         ;
@@ -141,20 +143,21 @@ const changePassword = async (req, res, next) => {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         }
         ;
         const user = await user_1.User.findOne({ email: decodedToken.email });
         if (!user) {
             const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         }
         ;
         const isEqual = await bcrypt.compare(currentPassword, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu hiện tại không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         ;
@@ -178,6 +181,13 @@ const changeAvatar = async (req, res, next) => {
     const accessToken = authHeader.split(' ')[1];
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const user = await user_1.User.findOne({ email: decodedToken.email });
+        if (!user) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        ;
         if (!req.files || !req.files.avatarFile) {
             const error = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
@@ -199,12 +209,6 @@ const changeAvatar = async (req, res, next) => {
         ;
         const publicId = result.public_id;
         const avatarUrl = cloudinary_1.v2.url(publicId);
-        const user = await user_1.User.findOne({ email: decodedToken.email });
-        if (!user) {
-            const error = new Error('Không tìm thấy user');
-            throw error;
-        }
-        ;
         const oldAva = user.avatar?.publicId;
         if (oldAva) {
             await cloudinary_1.v2.uploader.destroy(oldAva);
@@ -239,7 +243,7 @@ const forgotPassword = async (req, res, next) => {
         const user = await user_1.User.findOne({ email: email });
         if (!user) {
             const error = new Error('Tài khoản không tồn tại');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         const token = (0, crypto_1.randomBytes)(32).toString('hex');
@@ -287,23 +291,23 @@ const resetPassword = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         }
         if (confirmPassword !== newPassword) {
             const error = new Error('Mật khẩu xác nhận không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         const user = await user_1.User.findOne({ resetToken: token });
         if (!user) {
             const error = new Error('Token không tồn tại');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
-        if (user.resetTokenExpired.getTime() > new Date().getTime()) {
+        if (user.resetTokenExpired.getTime() < new Date().getTime()) {
             const error = new Error('Token đã hết hạn vui lòng tạo yêu cầu mới!');
-            error.statusCode = 401;
+            error.statusCode = 409;
             throw error;
         }
         const hashNewPW = await bcrypt.hash(newPassword, 12);

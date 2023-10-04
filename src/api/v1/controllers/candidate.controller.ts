@@ -8,6 +8,7 @@ import { UploadedFile } from 'express-fileupload';
 import { ResumeUpload } from '../models/resumeUpload';
 import { Resume } from '../models/resume';
 import mongoose from 'mongoose';
+import { Skill } from '../models/skill';
 
 export const getResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -15,9 +16,15 @@ export const getResumes = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findOne({email: decodedToken.email});
+        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
         if (!candidate) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
             throw error;
         };
         const resumesLength = await ResumeUpload.find({candidateId: candidate._id}).countDocuments();
@@ -45,6 +52,18 @@ export const uploadResume = async (req: Request, res: Response, next: NextFuncti
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        if (!candidate) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+
         if (!req.files || !req.files.resumeFile) {
             const error: Error & {statusCode?: number} = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
@@ -66,12 +85,6 @@ export const uploadResume = async (req: Request, res: Response, next: NextFuncti
 
         const publicId = result.public_id;
         const resumeUrl = cloudinary.url(publicId);
-
-        const candidate = await User.findOne({email: decodedToken.email});
-        if (!candidate) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-            throw error;
-        };
 
         const cv = new ResumeUpload({
             candidateId: candidate._id,
@@ -103,15 +116,28 @@ export const deleteResume = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        if(!errors.isEmpty()) {
-            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        if (!candidate) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         };
-        const resumeId = new mongoose.Types.ObjectId(req.params.resumeId);
-        const resume = await ResumeUpload.findOne({_id: resumeId});
+        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+
+        if(!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        };
+        const resumeId = req.params.resumeId;
+        const resume = await ResumeUpload.findById(resumeId);
         if(!resume) {
-            const error: Error = new Error('Không tìm thấy resume');
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy resume');
+            error.statusCode = 409;
             throw error;
         };
         const publicId = resume.publicId;
@@ -122,6 +148,39 @@ export const deleteResume = async (req: Request, res: Response, next: NextFuncti
         };
         await cloudinary.uploader.destroy(publicId);
         res.status(200).json({success: true, message: 'Xóa resume thành công', statusCode: 200});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        }
+        next(err);
+    };
+};
+
+export const getAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        if (!candidate) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+        const skills = await Skill.find();
+        const listSkills = skills.map(skill => {
+            return {
+                skillId: skill._id,
+                name: skill.name
+            }
+        })
+        res.status(200).json({success: true, message: 'Lấy list skills thành công', result: listSkills});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;

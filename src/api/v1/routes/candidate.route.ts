@@ -9,12 +9,9 @@ const router = Router();
 router.get('/resumes',isAuth, candidateController.getResumes);
 router.put('/resumes',isAuth, candidateController.uploadResume);
 router.delete('/resumes/:resumeId',isAuth,
-    param('resumeId').trim().custom((value: string, {req}) => {
-        if (!mongoose.Types.ObjectId.isValid(value)) {
-            throw new Error('Id không hợp lệ');
-        }
-        return true;
-    })
+    param('resumeId').trim().isMongoId().withMessage('Id không hợp lệ')
 , candidateController.deleteResume);
+
+router.get('/skills', candidateController.getAllSkills);
 
 export default router;

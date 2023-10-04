@@ -17,6 +17,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         const user = await User.findOne({email: decodedToken.email}).populate('roleId');
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         };
         res.status(200).json({ 
@@ -61,12 +62,13 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         };
         const updateUser = await User.findOne({email: decodedToken.email});
         if (!updateUser) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         };
         updateUser.fullName = fullName;
@@ -113,18 +115,19 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         };
         const user = await User.findOne({email: decodedToken.email});
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
             throw error;
         };
         const isEqual = await bcrypt.compare(currentPassword, user.password);
         if (!isEqual) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu hiện tại không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         };
         const hashNewPass = await bcrypt.hash(newPassword, 12);
@@ -146,6 +149,13 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
       
     try {
         const decodedToken: any = await verifyToken(accessToken);
+        const user = await User.findOne({email: decodedToken.email});
+        if (!user) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+
         if (!req.files || !req.files.avatarFile) {
             const error: Error & {statusCode?: number} = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
@@ -167,12 +177,6 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
 
         const publicId = result.public_id;
         const avatarUrl = cloudinary.url(publicId);
-
-        const user = await User.findOne({email: decodedToken.email});
-        if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-            throw error;
-        };
 
         const oldAva = user.avatar?.publicId;
         if (oldAva) {
@@ -206,7 +210,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
         const user = await User.findOne({email: email});
         if (!user) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Tài khoản không tồn tại');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         const token = randomBytes(32).toString('hex');
@@ -251,23 +255,23 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     try {
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             throw error;
         }
         if (confirmPassword !== newPassword) {
             const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         const user = await User.findOne({resetToken: token});
         if (!user) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Token không tồn tại');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
-        if ((user.resetTokenExpired as any).getTime() > new Date().getTime()) {
+        if ((user.resetTokenExpired as any).getTime() < new Date().getTime()) {
             const error: Error & {statusCode?: number} = new Error('Token đã hết hạn vui lòng tạo yêu cầu mới!');
-            error.statusCode = 401;
+            error.statusCode = 409;
             throw error;
         }
         const hashNewPW = await bcrypt.hash(newPassword, 12);

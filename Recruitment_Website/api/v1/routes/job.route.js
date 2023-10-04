@@ -26,11 +26,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const jobController = __importStar(require("../controllers/job.controller"));
-const job_1 = require("../models/job");
 const jobPosition_1 = require("../models/jobPosition");
+const jobType_1 = require("../models/jobType");
+const jobLocation_1 = require("../models/jobLocation");
 const router = (0, express_1.Router)();
 router.get('/', [
-    (0, express_validator_1.query)('name').trim(),
+    (0, express_validator_1.query)('name').trim().custom((value, { req }) => {
+        if (value) {
+            const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
     (0, express_validator_1.query)('position').trim()
         .custom((value, { req }) => {
         if (value) {
@@ -47,7 +58,7 @@ router.get('/', [
     (0, express_validator_1.query)('type').trim()
         .custom((value, { req }) => {
         if (value) {
-            return job_1.Job.findOne({ jobType: value })
+            return jobType_1.JobType.findOne({ name: value })
                 .then(job => {
                 if (!job) {
                     return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
@@ -60,13 +71,37 @@ router.get('/', [
     (0, express_validator_1.query)('location').trim()
         .custom((value, { req }) => {
         if (value) {
-            return job_1.Job.findOne({ location: value })
+            return jobLocation_1.JobLocation.findOne({ name: value })
                 .then(job => {
                 if (!job) {
                     return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
                 }
                 return true;
             });
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('page').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('page không hợp lệ');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('limit').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('limit không hợp lệ');
+            }
+            ;
+            return true;
         }
         return true;
     }),

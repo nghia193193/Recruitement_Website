@@ -40,14 +40,14 @@ const signup = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
         ;
         if (confirmPassword !== password) {
             const error = new Error('Mật khẩu xác nhận không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             throw error;
         }
         ;
@@ -130,7 +130,7 @@ const verifyOTP = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
@@ -138,7 +138,7 @@ const verifyOTP = async (req, res, next) => {
         const user = await user_1.User.findOne({ email: email });
         if (!user) {
             const error = new Error('Email không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
@@ -174,7 +174,7 @@ const login = async (req, res, next) => {
     try {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
@@ -184,14 +184,14 @@ const login = async (req, res, next) => {
             user = await user_1.User.findOne({ email: credentialId }).populate('roleId');
             if (!user) {
                 const error = new Error('Email không chính xác');
-                error.statusCode = 401;
+                error.statusCode = 400;
                 error.result = null;
                 throw error;
             }
             ;
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
-                error.statusCode = 401;
+                error.statusCode = 422;
                 error.result = null;
                 throw error;
             }
@@ -201,14 +201,14 @@ const login = async (req, res, next) => {
             user = await user_1.User.findOne({ phone: credentialId }).populate('roleId');
             if (!user) {
                 const error = new Error('Số điện thoại không chính xác');
-                error.statusCode = 401;
+                error.statusCode = 400;
                 error.result = null;
                 throw error;
             }
             ;
             if (!user.isVerifiedEmail) {
                 const error = new Error('Vui lòng xác nhận email');
-                error.statusCode = 401;
+                error.statusCode = 422;
                 error.result = null;
                 throw error;
             }
@@ -218,7 +218,7 @@ const login = async (req, res, next) => {
         const isEqual = await bcrypt.compare(password, user.password);
         if (!isEqual) {
             const error = new Error('Mật khẩu không chính xác');
-            error.statusCode = 401;
+            error.statusCode = 400;
             error.result = null;
             throw error;
         }
