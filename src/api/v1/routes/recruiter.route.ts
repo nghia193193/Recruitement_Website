@@ -15,7 +15,7 @@ router.get('/jobs', [
     query('name').trim()
         .custom((value, {req}) => {
             if (value) {
-                const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+                const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
                 if (!regex.test(value)) {
                     throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
                 };
@@ -90,7 +90,7 @@ router.post('/job', [
     body('name').trim()
         .isLength({min: 5, max:50}).withMessage('Tên công việc trong khoảng 5-50 ký tự')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+            const regex = /^[\p{L} ,\/0-9]+$/u; 
             if (!regex.test(value)) {
                 throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
             };
@@ -113,7 +113,7 @@ router.post('/job', [
     body('benefit').trim()
         .isLength({min: 5, max:200}).withMessage('Benefit trong khoảng 5-200 ký tự')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s.,/:]+$/; 
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
             };
@@ -122,7 +122,7 @@ router.post('/job', [
     body('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-0z0-9\s$-]+$/; 
+            const regex = /^[A-Za-z0-9\s$-]+$/; 
             if (!regex.test(value)) {
                 throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
             };
@@ -131,7 +131,7 @@ router.post('/job', [
     body('requirement').trim()
         .isLength({min: 5, max:200}).withMessage('Requirement trong khoảng 5-200 ký tự')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s.,/:]+$/; 
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
             };
@@ -151,7 +151,7 @@ router.post('/job', [
     body('desciption').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s.,/:]+$/; 
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
             };

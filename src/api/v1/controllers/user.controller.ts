@@ -55,12 +55,10 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const fullName: string = req.body.fullName;
-        const address: string = req.body.address;
-        const dateOfBirth: string = req.body.dateOfBirth;
-        const about: string = req.body.about;
+        const { fullName, address, dateOfBirth, about} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log(errors.array());
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             throw error;
@@ -227,7 +225,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
                 <h2>Reset Password</h2>
                 <p style="margin: 1px">A password change has been requested to your account.</p>
                 <p style="margin-top: 0px">If this was you, please use the link below to reset your password</p>
-                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/api/v1/forget-password/confirm-password?token=${token}" style="font-size: 15px;color: white; text-decoration: none">Reset Password</a></button>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/forget-password/confirm-password?token=${token}" style="font-size: 15px;color: white; text-decoration: none">Reset Password</a></button>
                 <p>Thank you for joining us!</p>
                 <p style="color: red">Note: This link is only valid in 5 minutes!</p>
                 

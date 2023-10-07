@@ -58,7 +58,7 @@ router.put('/update', middleware_1.isAuth, [
     (0, express_validator_1.body)('about').trim()
         .isLength({ max: 200 }).withMessage('Độ dài tối đa cho phép là 500')
         .custom((value, { req }) => {
-        const regex = /^[A-Za-z0-9\s.,/:]+$/;
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
         if (!regex.test(value)) {
             throw new Error('Thông tin không được chứa ký tự đặc biệt trừ dấu cách, .,/:');
         }
