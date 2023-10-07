@@ -10,7 +10,7 @@ router.put('/update',isAuth ,[
     body('fullName').trim()
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+            const regex = /^[\p{L} ]+$/u; // Cho phép chữ và dấu cách
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
             };
@@ -19,7 +19,7 @@ router.put('/update',isAuth ,[
     body('address').trim()
         .isLength({max: 200}).withMessage('Độ dài tối đa cho phép là 200')
         .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s,/]+$/; 
+            const regex = /^[\p{L} ,\/0-9]+$/u; 
             if (!regex.test(value)) {
                 throw new Error('Địa chỉ không được chứa ký tự đặc biệt trừ dấu cách, ,/');
             };

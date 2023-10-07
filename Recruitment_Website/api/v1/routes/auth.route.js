@@ -35,7 +35,7 @@ router.post('/register', [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
         .custom((value, { req }) => {
-        const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+        const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
         if (!regex.test(value)) {
             throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
         }
