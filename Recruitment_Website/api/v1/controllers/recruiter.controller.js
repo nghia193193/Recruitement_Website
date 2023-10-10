@@ -35,7 +35,9 @@ const GetAllJobs = async (req, res, next) => {
             error.statusCode = 400;
             throw error;
         }
-        const query = {};
+        const query = {
+            authorId: recruiter._id
+        };
         if (req.query['name']) {
             query['name'] = req.query['name'];
         }
@@ -133,19 +135,19 @@ const CreateJob = async (req, res, next) => {
         const type = await jobType_1.JobType.findOne({ name: jobType });
         const loc = await jobLocation_1.JobLocation.findOne({ name: location });
         let listSkill = [];
-        skillRequired.forEach(sk => {
-            return skill_1.Skill.findOne({ name: sk })
-                .then(s => {
-                listSkill.push(s._id.toString());
-            });
-        });
+        for (let skill of skillRequired) {
+            const s = await skill_1.Skill.findOne({ name: skill });
+            listSkill.push({ skillId: s._id });
+        }
+        ;
+        console.log(listSkill);
         const job = new job_1.Job({
             name: name,
             positionId: pos._id.toString(),
             typeId: type._id.toString(),
             authorId: recruiter._id.toString(),
             quantity: +quantity,
-            benefit: +benefit,
+            benefit: benefit,
             salaryRange: salaryRange,
             requirement: requirement,
             locationId: loc._id.toString(),
