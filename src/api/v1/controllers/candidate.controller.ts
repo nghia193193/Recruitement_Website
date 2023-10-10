@@ -10,7 +10,7 @@ import { Resume } from '../models/resume';
 import mongoose from 'mongoose';
 import { Skill } from '../models/skill';
 
-export const getResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -46,7 +46,7 @@ export const getResumes = async (req: Request, res: Response, next: NextFunction
     };
 };
 
-export const uploadResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const UploadResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -110,7 +110,7 @@ export const uploadResume = async (req: Request, res: Response, next: NextFuncti
     };
 };
 
-export const deleteResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const DeleteResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
     const errors = validationResult(req);
@@ -156,7 +156,7 @@ export const deleteResume = async (req: Request, res: Response, next: NextFuncti
     };
 };
 
-export const getAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 

@@ -36,7 +36,7 @@ router.post('/register',[
         }),
     body('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
-], authController.signup);
+], authController.Signup);
 
 router.post('/verifyOTP',[
     body('email').trim()
@@ -51,7 +51,7 @@ router.post('/verifyOTP',[
             };
             return true;
         })
-], authController.verifyOTP);
+], authController.VerifyOTP);
 
 router.post('/login',[
     body('credentialId').trim()
@@ -65,8 +65,8 @@ router.post('/login',[
         }),
     body('password').trim()
         .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
-], authController.login);
+], authController.Login);
 
-router.post('/refresh-access-token', authController.refreshAccessToken);
+router.post('/refresh-access-token', authController.RefreshAccessToken);
 
 export default router;

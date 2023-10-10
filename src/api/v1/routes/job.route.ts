@@ -80,15 +80,15 @@ router.get('/',[
             }
             return true;
         }),
-], jobController.getJobs);
+], jobController.GetJobs);
 
-router.get('/location', jobController.getLoc);
-router.get('/position', jobController.getPos);
-router.get('/type', jobController.getType);
+router.get('/location', jobController.GetLocation);
+router.get('/position', jobController.GetPosition);
+router.get('/type', jobController.GetType);
 
 router.get('/:jobId',
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-, jobController.getSingleJob);
+, jobController.GetSingleJob);
 
 
 export default router;

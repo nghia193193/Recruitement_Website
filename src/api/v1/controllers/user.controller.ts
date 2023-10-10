@@ -8,7 +8,7 @@ import {UploadedFile} from 'express-fileupload';
 import {v2 as cloudinary} from 'cloudinary';
 import {randomBytes} from 'crypto';
 
-export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+export const GetProfile = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -49,7 +49,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
     };
 };
 
-export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const UpdateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -102,7 +102,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
     };
 };
 
-export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const ChangePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -141,7 +141,7 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     
 };
 
-export const changeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const ChangeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
       
@@ -196,7 +196,7 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
     
 };
 
-export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const ForgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const email: string = req.body.email;
     const errors = validationResult(req);
     try {
@@ -245,10 +245,8 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
     };
 };
 
-export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const newPassword: string = req.body.newPassword;
-    const confirmPassword: string = req.body.confirmPassword;
-    const token: string = req.body.token;
+export const ResetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { newPassword, confirmPassword, token } = req.body;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {

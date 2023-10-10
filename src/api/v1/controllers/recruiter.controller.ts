@@ -7,8 +7,9 @@ import { JobPosition } from '../models/jobPosition';
 import { Job } from '../models/job';
 import { JobType } from '../models/jobType';
 import { JobLocation } from '../models/jobLocation';
+import { Skill } from '../models/skill';
 
-export const getAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
 
@@ -50,8 +51,6 @@ export const getAllJobs = async (req: Request, res: Response, next: NextFunction
             const jobLoc = await JobLocation.findOne({name: req.query['location']});
             query['locationId'] = jobLoc?._id;
         };
-       
-
         const jobLength = await Job.find(query).countDocuments();
         if (jobLength === 0) {
             const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy job');
@@ -103,10 +102,12 @@ export const getAllJobs = async (req: Request, res: Response, next: NextFunction
     }
 };
 
-export const createJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const CreateJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
     const accessToken = authHeader.split(' ')[1];
-
+    const { name, jobType, quantity, benefit, salaryRange, 
+        requirement, location, description, deadline, position, skillRequired } = req.body;
+    const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
@@ -115,21 +116,53 @@ export const createJob = async (req: Request, res: Response, next: NextFunction)
             error.statusCode = 409;
             throw error;
         };
-        
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error: Error & {statusCode?: number} = new Error('UnAuthorized');
             error.statusCode = 401;
             throw error;
         };
-
+        if(!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        const pos = await JobPosition.findOne({name: position});
+        const type = await JobType.findOne({name: jobType}); 
+        const loc = await JobLocation.findOne({name: location});
         
-        
-        
-
+        let listSkill: string[] = [];
+        (skillRequired as string[]).forEach(sk => {
+            return Skill.findOne({name: sk})
+                .then(s => {
+                    listSkill.push((s as any)._id.toString())
+                })
+        });
+        const job = new Job({
+            name: name,
+            positionId: (pos as any)._id.toString(),
+            typeId: (type as any)._id.toString(),
+            authorId: recruiter._id.toString(),
+            quantity: +quantity,
+            benefit: +benefit,
+            salaryRange: salaryRange,
+            requirement: requirement,
+            locationId: (loc as any)._id.toString(),
+            description: description,
+            isActive: true,
+            deadline: deadline,
+            skills: listSkill
+        });
+        console.log(job);
+        await job.save();
+        res.status(200).json({success: true, message: "Tạo job thành công"})
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
         }
         next(err);
     }
+};
+
+export const DeleteJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
 };

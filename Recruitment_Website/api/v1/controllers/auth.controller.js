@@ -23,19 +23,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.login = exports.verifyOTP = exports.signup = void 0;
+exports.RefreshAccessToken = exports.Login = exports.VerifyOTP = exports.Signup = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const role_1 = require("../models/role");
 const utils_1 = require("../utils");
 const bcrypt = __importStar(require("bcryptjs"));
 const jwt = __importStar(require("jsonwebtoken"));
-const signup = async (req, res, next) => {
-    const fullName = req.body.fullName;
-    const email = req.body.email;
-    const phone = req.body.phone;
-    const password = req.body.password;
-    const confirmPassword = req.body.confirmPassword;
+const Signup = async (req, res, next) => {
+    const { fullName, email, phone, password, confirmPassword } = req.body;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -122,10 +118,9 @@ const signup = async (req, res, next) => {
     }
     ;
 };
-exports.signup = signup;
-const verifyOTP = async (req, res, next) => {
-    const email = req.body.email;
-    const otp = req.body.otp;
+exports.Signup = Signup;
+const VerifyOTP = async (req, res, next) => {
+    const { email, otp } = req.body;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -165,10 +160,9 @@ const verifyOTP = async (req, res, next) => {
     }
     ;
 };
-exports.verifyOTP = verifyOTP;
-const login = async (req, res, next) => {
-    const credentialId = req.body.credentialId;
-    const password = req.body.password;
+exports.VerifyOTP = VerifyOTP;
+const Login = async (req, res, next) => {
+    const { credentialId, password } = req.body;
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
@@ -249,8 +243,8 @@ const login = async (req, res, next) => {
     }
     ;
 };
-exports.login = login;
-const refreshAccessToken = (req, res, next) => {
+exports.Login = Login;
+const RefreshAccessToken = (req, res, next) => {
     const refreshToken = req.body.refreshToken;
     jwt.verify(refreshToken, utils_1.refreshKey, (err, decoded) => {
         if (err) {
@@ -270,4 +264,4 @@ const refreshAccessToken = (req, res, next) => {
         });
     });
 };
-exports.refreshAccessToken = refreshAccessToken;
+exports.RefreshAccessToken = RefreshAccessToken;

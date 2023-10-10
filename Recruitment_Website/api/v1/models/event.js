@@ -47,5 +47,4 @@ const eventSchema = new Schema({
 }, {
     timestamps: true
 });
-;
 exports.Event = mongoose_1.default.model('Event', eventSchema);

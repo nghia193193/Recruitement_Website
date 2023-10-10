@@ -23,14 +23,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.changeAvatar = exports.changePassword = exports.updateProfile = exports.getProfile = void 0;
+exports.ResetPassword = exports.ForgotPassword = exports.ChangeAvatar = exports.ChangePassword = exports.UpdateProfile = exports.GetProfile = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const bcrypt = __importStar(require("bcryptjs"));
 const cloudinary_1 = require("cloudinary");
 const crypto_1 = require("crypto");
-const getProfile = async (req, res, next) => {
+const GetProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -73,8 +73,8 @@ const getProfile = async (req, res, next) => {
     }
     ;
 };
-exports.getProfile = getProfile;
-const updateProfile = async (req, res, next) => {
+exports.GetProfile = GetProfile;
+const UpdateProfile = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -130,8 +130,8 @@ const updateProfile = async (req, res, next) => {
     }
     ;
 };
-exports.updateProfile = updateProfile;
-const changePassword = async (req, res, next) => {
+exports.UpdateProfile = UpdateProfile;
+const ChangePassword = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -173,8 +173,8 @@ const changePassword = async (req, res, next) => {
     }
     ;
 };
-exports.changePassword = changePassword;
-const changeAvatar = async (req, res, next) => {
+exports.ChangePassword = ChangePassword;
+const ChangeAvatar = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -228,8 +228,8 @@ const changeAvatar = async (req, res, next) => {
     }
     ;
 };
-exports.changeAvatar = changeAvatar;
-const forgotPassword = async (req, res, next) => {
+exports.ChangeAvatar = ChangeAvatar;
+const ForgotPassword = async (req, res, next) => {
     const email = req.body.email;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
@@ -280,11 +280,9 @@ const forgotPassword = async (req, res, next) => {
     }
     ;
 };
-exports.forgotPassword = forgotPassword;
-const resetPassword = async (req, res, next) => {
-    const newPassword = req.body.newPassword;
-    const confirmPassword = req.body.confirmPassword;
-    const token = req.body.token;
+exports.ForgotPassword = ForgotPassword;
+const ResetPassword = async (req, res, next) => {
+    const { newPassword, confirmPassword, token } = req.body;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         if (!errors.isEmpty()) {
@@ -322,4 +320,4 @@ const resetPassword = async (req, res, next) => {
     }
     ;
 };
-exports.resetPassword = resetPassword;
+exports.ResetPassword = ResetPassword;

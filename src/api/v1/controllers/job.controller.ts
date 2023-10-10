@@ -6,7 +6,7 @@ import { validationResult } from 'express-validator';
 import { JobLocation } from '../models/jobLocation';
 import { JobType } from '../models/jobType';
 
-export const getJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const page: number = req.query.page ? +req.query.page : 1;
     const limit: number = req.query.limit ? +req.query.limit : 10;
     const errors = validationResult(req);
@@ -87,7 +87,7 @@ export const getJobs = async (req: Request, res: Response, next: NextFunction): 
     };
 };
 
-export const getLoc = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetLocation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobs = await JobLocation.find();
         let listLocation = jobs.map(job => {
@@ -104,7 +104,7 @@ export const getLoc = async (req: Request, res: Response, next: NextFunction): P
     };
 };
 
-export const getPos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetPosition = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobPos = await JobPosition.find();
         let listPosition = jobPos.map(job => {
@@ -121,7 +121,7 @@ export const getPos = async (req: Request, res: Response, next: NextFunction): P
     };
 };
 
-export const getType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const jobs = await JobType.find();
         let listType = jobs.map(job => {
@@ -138,7 +138,7 @@ export const getType = async (req: Request, res: Response, next: NextFunction): 
     };
 };
 
-export const getSingleJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetSingleJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const jobId = req.params.jobId;
     const errors = validationResult(req);
     try {

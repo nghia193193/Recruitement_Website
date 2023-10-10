@@ -7,12 +7,8 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
 
-export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const fullName: string = req.body.fullName;
-    const email: string = req.body.email;
-    const phone: string = req.body.phone;
-    const password: string = req.body.password;
-    const confirmPassword: string = req.body.confirmPassword;
+export const Signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { fullName, email, phone, password, confirmPassword } = req.body;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -93,9 +89,8 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     };
 };
 
-export const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const email: string = req.body.email;
-    const otp: string = req.body.otp;
+export const VerifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { email, otp } = req.body;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -130,9 +125,8 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     };
 };
 
-export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const credentialId: string = req.body.credentialId;
-    const password: string = req.body.password;
+export const Login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { credentialId, password } = req.body;
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     const errors = validationResult(req);
     try {
@@ -206,7 +200,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     
 };
 
-export const refreshAccessToken = (req: Request, res: Response, next: NextFunction) => {
+export const RefreshAccessToken = (req: Request, res: Response, next: NextFunction) => {
     const refreshToken: string = req.body.refreshToken;
     jwt.verify(refreshToken, refreshKey, (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {

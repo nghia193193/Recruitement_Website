@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createJob = exports.getAllJobs = void 0;
+exports.DeleteJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -8,7 +8,8 @@ const jobPosition_1 = require("../models/jobPosition");
 const job_1 = require("../models/job");
 const jobType_1 = require("../models/jobType");
 const jobLocation_1 = require("../models/jobLocation");
-const getAllJobs = async (req, res, next) => {
+const skill_1 = require("../models/skill");
+const GetAllJobs = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -102,10 +103,12 @@ const getAllJobs = async (req, res, next) => {
         next(err);
     }
 };
-exports.getAllJobs = getAllJobs;
-const createJob = async (req, res, next) => {
+exports.GetAllJobs = GetAllJobs;
+const CreateJob = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
+    const { name, jobType, quantity, benefit, salaryRange, requirement, location, description, deadline, position, skillRequired } = req.body;
+    const errors = (0, express_validator_1.validationResult)(req);
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const recruiter = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
@@ -121,6 +124,39 @@ const createJob = async (req, res, next) => {
             throw error;
         }
         ;
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        const pos = await jobPosition_1.JobPosition.findOne({ name: position });
+        const type = await jobType_1.JobType.findOne({ name: jobType });
+        const loc = await jobLocation_1.JobLocation.findOne({ name: location });
+        let listSkill = [];
+        skillRequired.forEach(sk => {
+            return skill_1.Skill.findOne({ name: sk })
+                .then(s => {
+                listSkill.push(s._id.toString());
+            });
+        });
+        const job = new job_1.Job({
+            name: name,
+            positionId: pos._id.toString(),
+            typeId: type._id.toString(),
+            authorId: recruiter._id.toString(),
+            quantity: +quantity,
+            benefit: +benefit,
+            salaryRange: salaryRange,
+            requirement: requirement,
+            locationId: loc._id.toString(),
+            description: description,
+            isActive: true,
+            deadline: deadline,
+            skills: listSkill
+        });
+        console.log(job);
+        await job.save();
+        res.status(200).json({ success: true, message: "Tạo job thành công" });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -129,4 +165,7 @@ const createJob = async (req, res, next) => {
         next(err);
     }
 };
-exports.createJob = createJob;
+exports.CreateJob = CreateJob;
+const DeleteJob = async (req, res, next) => {
+};
+exports.DeleteJob = DeleteJob;

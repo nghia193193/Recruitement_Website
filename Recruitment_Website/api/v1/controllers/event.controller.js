@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleEvent = exports.getAllEvents = void 0;
+exports.GetSingleEvent = exports.GetAllEvents = void 0;
 const event_1 = require("../models/event");
 const express_validator_1 = require("express-validator");
-const getAllEvents = async (req, res, next) => {
+const GetAllEvents = async (req, res, next) => {
     const name = req.query.name;
     const page = req.query.page ? +req.query.page : 1;
     const limit = req.query.limit ? +req.query.limit : 10;
@@ -55,8 +55,8 @@ const getAllEvents = async (req, res, next) => {
     }
     ;
 };
-exports.getAllEvents = getAllEvents;
-const getSingleEvent = async (req, res, next) => {
+exports.GetAllEvents = GetAllEvents;
+const GetSingleEvent = async (req, res, next) => {
     const eventId = req.params.eventId;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
@@ -95,4 +95,4 @@ const getSingleEvent = async (req, res, next) => {
     }
     ;
 };
-exports.getSingleEvent = getSingleEvent;
+exports.GetSingleEvent = GetSingleEvent;

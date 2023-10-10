@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { Event, EventInterface } from "../models/event";
+import { Event } from "../models/event";
 import { validationResult } from "express-validator";
 
-export const getAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const name = req.query.name;
     const page: number = req.query.page ? +req.query.page : 1; 
     const limit: number = req.query.limit ? +req.query.limit : 10;
@@ -27,7 +27,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
             .skip((page - 1) * limit)
             .limit(limit);
         
-        const listEvents: EventInterface[] = events.map(e => {
+        const listEvents = events.map(e => {
             const {_id, authorId, ...rest} = e;
             delete (rest as any)._doc._id;
             delete (rest as any)._doc.authorId;
@@ -55,7 +55,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
     };
 };
 
-export const getSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const GetSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const eventId = req.params.eventId;
     const errors = validationResult(req);
     try {
@@ -76,7 +76,7 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
         delete (rest as any)._doc._id;
         delete (rest as any)._doc.authorId;
         
-        const returnEvent: EventInterface = {
+        const returnEvent = {
             eventId: _id.toString(),
             author: (authorId as any).fullName,
             ...(rest as any)._doc,

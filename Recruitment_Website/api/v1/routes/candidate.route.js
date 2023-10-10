@@ -28,8 +28,8 @@ const candidateController = __importStar(require("../controllers/candidate.contr
 const middleware_1 = require("../middleware");
 const express_validator_1 = require("express-validator");
 const router = (0, express_1.Router)();
-router.get('/resumes', middleware_1.isAuth, candidateController.getResumes);
-router.put('/resumes', middleware_1.isAuth, candidateController.uploadResume);
-router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.deleteResume);
-router.get('/skills', candidateController.getAllSkills);
+router.get('/resumes', middleware_1.isAuth, candidateController.GetResumes);
+router.put('/resumes', middleware_1.isAuth, candidateController.UploadResume);
+router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.DeleteResume);
+router.get('/skills', candidateController.GetAllSkills);
 exports.default = router;

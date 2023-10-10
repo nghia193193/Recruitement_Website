@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSkills = exports.deleteResume = exports.uploadResume = exports.getResumes = void 0;
+exports.GetAllSkills = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const utils_1 = require("../utils");
 const cloudinary_1 = require("cloudinary");
 const resumeUpload_1 = require("../models/resumeUpload");
 const skill_1 = require("../models/skill");
-const getResumes = async (req, res, next) => {
+const GetResumes = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -45,8 +45,8 @@ const getResumes = async (req, res, next) => {
     }
     ;
 };
-exports.getResumes = getResumes;
-const uploadResume = async (req, res, next) => {
+exports.GetResumes = GetResumes;
+const UploadResume = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -109,8 +109,8 @@ const uploadResume = async (req, res, next) => {
     }
     ;
 };
-exports.uploadResume = uploadResume;
-const deleteResume = async (req, res, next) => {
+exports.UploadResume = UploadResume;
+const DeleteResume = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     const errors = (0, express_validator_1.validationResult)(req);
@@ -161,8 +161,8 @@ const deleteResume = async (req, res, next) => {
     }
     ;
 };
-exports.deleteResume = deleteResume;
-const getAllSkills = async (req, res, next) => {
+exports.DeleteResume = DeleteResume;
+const GetAllSkills = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
     try {
@@ -197,4 +197,4 @@ const getAllSkills = async (req, res, next) => {
     }
     ;
 };
-exports.getAllSkills = getAllSkills;
+exports.GetAllSkills = GetAllSkills;

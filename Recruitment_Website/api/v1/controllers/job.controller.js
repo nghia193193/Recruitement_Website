@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleJob = exports.getType = exports.getPos = exports.getLoc = exports.getJobs = void 0;
+exports.GetSingleJob = exports.GetType = exports.GetPosition = exports.GetLocation = exports.GetJobs = void 0;
 const job_1 = require("../models/job");
 const jobPosition_1 = require("../models/jobPosition");
 const express_validator_1 = require("express-validator");
 const jobLocation_1 = require("../models/jobLocation");
 const jobType_1 = require("../models/jobType");
-const getJobs = async (req, res, next) => {
+const GetJobs = async (req, res, next) => {
     const page = req.query.page ? +req.query.page : 1;
     const limit = req.query.limit ? +req.query.limit : 10;
     const errors = (0, express_validator_1.validationResult)(req);
@@ -91,8 +91,8 @@ const getJobs = async (req, res, next) => {
     }
     ;
 };
-exports.getJobs = getJobs;
-const getLoc = async (req, res, next) => {
+exports.GetJobs = GetJobs;
+const GetLocation = async (req, res, next) => {
     try {
         const jobs = await jobLocation_1.JobLocation.find();
         let listLocation = jobs.map(job => {
@@ -111,8 +111,8 @@ const getLoc = async (req, res, next) => {
     }
     ;
 };
-exports.getLoc = getLoc;
-const getPos = async (req, res, next) => {
+exports.GetLocation = GetLocation;
+const GetPosition = async (req, res, next) => {
     try {
         const jobPos = await jobPosition_1.JobPosition.find();
         let listPosition = jobPos.map(job => {
@@ -131,8 +131,8 @@ const getPos = async (req, res, next) => {
     }
     ;
 };
-exports.getPos = getPos;
-const getType = async (req, res, next) => {
+exports.GetPosition = GetPosition;
+const GetType = async (req, res, next) => {
     try {
         const jobs = await jobType_1.JobType.find();
         let listType = jobs.map(job => {
@@ -151,8 +151,8 @@ const getType = async (req, res, next) => {
     }
     ;
 };
-exports.getType = getType;
-const getSingleJob = async (req, res, next) => {
+exports.GetType = GetType;
+const GetSingleJob = async (req, res, next) => {
     const jobId = req.params.jobId;
     const errors = (0, express_validator_1.validationResult)(req);
     try {
@@ -200,4 +200,4 @@ const getSingleJob = async (req, res, next) => {
     }
     ;
 };
-exports.getSingleJob = getSingleJob;
+exports.GetSingleJob = GetSingleJob;

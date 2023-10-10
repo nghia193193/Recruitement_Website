@@ -107,7 +107,7 @@ router.get('/jobs', [
         }
         return true;
     }),
-], recruiterController.getAllJobs);
+], recruiterController.GetAllJobs);
 router.post('/job', [
     (0, express_validator_1.body)('name').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
@@ -169,12 +169,12 @@ router.post('/job', [
         return jobLocation_1.JobLocation.findOne({ name: value })
             .then(loc => {
             if (!loc) {
-                return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
+                throw new Error(`Failed to convert 'location' with value: '${value}'`);
             }
             return true;
         });
     }),
-    (0, express_validator_1.body)('desciption').trim()
+    (0, express_validator_1.body)('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .custom((value, { req }) => {
         const regex = /^[\p{L} .,\/:0-9]+$/u;
@@ -193,23 +193,25 @@ router.post('/job', [
         return jobPosition_1.JobPosition.findOne({ name: value })
             .then(pos => {
             if (!pos) {
-                return Promise.reject(`Failed to convert 'position' with value: '${value}'`);
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true;
         });
     }),
     (0, express_validator_1.body)('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom((value, { req }) => {
-        value.forEach(skill => {
-            skill_1.Skill.find({ name: skill })
-                .then(s => {
-                if (!s) {
-                    return Promise.reject(`Skill: '${value}' không hợp lệ`);
-                }
-            });
-        });
+        .custom(async (value, { req }) => {
+        const errors = [];
+        for (const skill of value) {
+            const s = await skill_1.Skill.findOne({ name: skill });
+            if (!s) {
+                errors.push(`Skill: '${skill}' không hợp lệ`);
+            }
+        }
+        if (errors.length > 0) {
+            throw new Error(errors[0]);
+        }
         return true;
     })
-], recruiterController.createJob);
+], recruiterController.CreateJob);
 exports.default = router;

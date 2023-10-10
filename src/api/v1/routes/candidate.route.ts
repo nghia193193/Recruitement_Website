@@ -6,12 +6,12 @@ import mongoose from "mongoose";
 
 const router = Router();
 
-router.get('/resumes',isAuth, candidateController.getResumes);
-router.put('/resumes',isAuth, candidateController.uploadResume);
+router.get('/resumes',isAuth, candidateController.GetResumes);
+router.put('/resumes',isAuth, candidateController.UploadResume);
 router.delete('/resumes/:resumeId',isAuth,
     param('resumeId').trim().isMongoId().withMessage('Id không hợp lệ')
-, candidateController.deleteResume);
+, candidateController.DeleteResume);
 
-router.get('/skills', candidateController.getAllSkills);
+router.get('/skills', candidateController.GetAllSkills);
 
 export default router;

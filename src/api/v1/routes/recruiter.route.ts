@@ -84,7 +84,7 @@ router.get('/jobs', [
             }
             return true;
         }),
-] ,recruiterController.getAllJobs);
+] ,recruiterController.GetAllJobs);
 
 router.post('/job', [
     body('name').trim()
@@ -98,14 +98,12 @@ router.post('/job', [
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom((value, {req}) => {
-            return JobType.findOne({name: value})
-                .then(type => {
-                    if (!type) {
-                        return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
-                    }
-                    return true
-                })
+        .custom(async (value, {req}) => {
+            const type = await JobType.findOne({name: value})
+            if (!type) {
+                return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
+            }
+            return true
         }),
     body('quantity').trim()
         .notEmpty().withMessage('Vui lòng nhập số lượng')
@@ -139,16 +137,14 @@ router.post('/job', [
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
-        .custom((value, {req}) => {
-            return JobLocation.findOne({name: value})
-                .then(loc => {
-                    if (!loc) {
-                        return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
-                    }
-                    return true;
-                })
+        .custom(async (value, {req}) => {
+            const location = await JobLocation.findOne({name: value})  
+            if (!location) {
+                throw new Error(`Failed to convert 'location' with value: '${value}'`);
+            }
+            return true; 
         }),
-    body('desciption').trim()
+    body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .custom((value, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
@@ -162,28 +158,28 @@ router.post('/job', [
         .isDate().withMessage('deadline không hợp lệ'),
     body('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
-        .custom((value, {req}) => {
-            return JobPosition.findOne({name: value})
-                .then(pos => {
-                    if (!pos) {
-                        return Promise.reject(`Failed to convert 'position' with value: '${value}'`);
-                    }
-                    return true;
-                })
+        .custom(async (value, {req}) => {
+            const pos = await JobPosition.findOne({name: value})
+            if (!pos) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
+            return true;
         }),
     body('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom((value: string[], {req}) => {
-            value.forEach(skill => {
-                Skill.find({name: skill})
-                    .then(s => {
-                        if (!s) {
-                            return Promise.reject(`Skill: '${value}' không hợp lệ`);
-                        }
-                    })
-            })
-            return true
+        .custom(async (value: string[], {req}) => {
+            const errors = [];
+            for (const skill of value) {
+                const s = await Skill.findOne({ name: skill });
+                if (!s) {
+                    errors.push(`Skill: '${skill}' không hợp lệ`);
+                }
+            }
+            if (errors.length > 0) {
+                throw new Error(errors[0]);
+            }
+            return true;
         })
-],recruiterController.createJob)
+],recruiterController.CreateJob)
 
 export default router;
