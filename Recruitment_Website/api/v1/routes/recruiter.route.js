@@ -30,8 +30,9 @@ const jobPosition_1 = require("../models/jobPosition");
 const jobType_1 = require("../models/jobType");
 const jobLocation_1 = require("../models/jobLocation");
 const skill_1 = require("../models/skill");
+const middleware_1 = require("../middleware");
 const router = (0, express_1.Router)();
-router.get('/jobs', [
+router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
         .custom((value, { req }) => {
         if (value) {
@@ -108,7 +109,7 @@ router.get('/jobs', [
         return true;
     }),
 ], recruiterController.GetAllJobs);
-router.post('/job', [
+router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('name').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
         .custom((value, { req }) => {
@@ -208,4 +209,107 @@ router.post('/job', [
         return true;
     })
 ], recruiterController.CreateJob);
+router.get('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleJob);
+router.put('/jobs/:jobId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
+    (0, express_validator_1.body)('name').trim()
+        .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} ,\/0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('jobType').trim()
+        .notEmpty().withMessage('Vui lòng nhập jobType')
+        .custom(async (value, { req }) => {
+        const type = await jobType_1.JobType.findOne({ name: value });
+        if (!type) {
+            return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
+        }
+        return true;
+    }),
+    (0, express_validator_1.body)('quantity').trim()
+        .notEmpty().withMessage('Vui lòng nhập số lượng')
+        .isNumeric().withMessage('Số lượng phải là số'),
+    (0, express_validator_1.body)('benefit').trim()
+        .isLength({ min: 5, max: 200 }).withMessage('Benefit trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('salaryRange').trim()
+        .notEmpty().withMessage('Vui lòng điền mức lương')
+        .custom((value, { req }) => {
+        const regex = /^[A-Za-z0-9\s$-]+$/;
+        if (!regex.test(value)) {
+            throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('requirement').trim()
+        .isLength({ min: 5, max: 200 }).withMessage('Requirement trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('location').trim()
+        .notEmpty().withMessage('Vui lòng chọn địa điểm')
+        .custom(async (value, { req }) => {
+        const location = await jobLocation_1.JobLocation.findOne({ name: value });
+        if (!location) {
+            throw new Error(`Failed to convert 'location' with value: '${value}'`);
+        }
+        return true;
+    }),
+    (0, express_validator_1.body)('description').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('deadline').trim()
+        .notEmpty().withMessage('Vui lòng nhập deadline')
+        .isISO8601().toDate().withMessage('deadline không hợp lệ'),
+    (0, express_validator_1.body)('position').trim()
+        .notEmpty().withMessage('Vui lòng nhập position')
+        .custom(async (value, { req }) => {
+        const pos = await jobPosition_1.JobPosition.findOne({ name: value });
+        if (!pos) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
+        }
+        return true;
+    }),
+    (0, express_validator_1.body)('skillRequired')
+        .isArray().withMessage('Skills không hợp lệ')
+        .custom(async (value, { req }) => {
+        const errors = [];
+        for (const skill of value) {
+            const s = await skill_1.Skill.findOne({ name: skill });
+            if (!s) {
+                errors.push(`Skill: '${skill}' không hợp lệ`);
+            }
+        }
+        if (errors.length > 0) {
+            throw new Error(errors[0]);
+        }
+        return true;
+    })
+], recruiterController.UpdateJob);
+router.delete('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteJob);
 exports.default = router;

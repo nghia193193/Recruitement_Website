@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -140,7 +140,6 @@ const CreateJob = async (req, res, next) => {
             listSkill.push({ skillId: s._id });
         }
         ;
-        console.log(listSkill);
         const job = new job_1.Job({
             name: name,
             positionId: pos._id.toString(),
@@ -156,7 +155,6 @@ const CreateJob = async (req, res, next) => {
             deadline: deadline,
             skills: listSkill
         });
-        console.log(job);
         await job.save();
         res.status(200).json({ success: true, message: "Tạo job thành công" });
     }
@@ -168,6 +166,171 @@ const CreateJob = async (req, res, next) => {
     }
 };
 exports.CreateJob = CreateJob;
+const GetSingleJob = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    const jobId = req.params.jobId;
+    const errors = (0, express_validator_1.validationResult)(req);
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        }
+        ;
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        ;
+        const job = await job_1.Job.findOne({ authorId: recruiter._id, _id: jobId }).populate('positionId locationId typeId skills.skillId');
+        if (!job) {
+            const error = new Error('Không tìm thấy job');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const { _id, skills, positionId, locationId, typeId, ...rest } = job;
+        delete rest._doc._id;
+        delete rest._doc.skills;
+        delete rest._doc.positionId;
+        delete rest._doc.locationId;
+        delete rest._doc.typeId;
+        const listSkills = skills.map(skill => {
+            return skill.skillId.name;
+        });
+        const returnJob = {
+            jobId: _id.toString(),
+            position: positionId.name,
+            location: locationId.name,
+            jobType: typeId.name,
+            ...rest._doc,
+            skills: listSkills
+        };
+        res.status(200).json({ sucess: true, message: 'Đã tìm thấy job', result: returnJob });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+exports.GetSingleJob = GetSingleJob;
+const UpdateJob = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    const jobId = req.params.jobId;
+    const { name, jobType, quantity, benefit, salaryRange, requirement, location, description, deadline, position, skillRequired } = req.body;
+    const errors = (0, express_validator_1.validationResult)(req);
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        }
+        ;
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        ;
+        const pos = await jobPosition_1.JobPosition.findOne({ name: position });
+        const type = await jobType_1.JobType.findOne({ name: jobType });
+        const loc = await jobLocation_1.JobLocation.findOne({ name: location });
+        let listSkill = [];
+        for (let skill of skillRequired) {
+            const s = await skill_1.Skill.findOne({ name: skill });
+            listSkill.push({ skillId: s._id });
+        }
+        ;
+        const job = await job_1.Job.findOne({ authorId: recruiter._id, _id: jobId });
+        if (!job) {
+            const error = new Error('Không tìm thấy job');
+            error.statusCode = 409;
+            throw error;
+        }
+        job.name = name;
+        job.positionId = pos._id.toString();
+        job.typeId = type._id.toString();
+        job.quantity = +quantity;
+        job.benefit = benefit;
+        job.salaryRange = salaryRange;
+        job.requirement = requirement;
+        job.locationId = loc._id.toString();
+        job.description = description;
+        job.deadline = deadline;
+        job.skills = listSkill;
+        await job.save();
+        res.status(200).json({ sucess: true, message: 'Update job thành công' });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+exports.UpdateJob = UpdateJob;
 const DeleteJob = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    const jobId = req.params.jobId;
+    const errors = (0, express_validator_1.validationResult)(req);
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        }
+        ;
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        ;
+        const job = await job_1.Job.findOne({ authorId: recruiter._id, _id: jobId });
+        if (!job) {
+            const error = new Error('Không tìm thấy job');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        await job_1.Job.findByIdAndDelete(jobId);
+        res.status(200).json({ sucess: true, message: 'Xóa job thành công' });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
 };
 exports.DeleteJob = DeleteJob;

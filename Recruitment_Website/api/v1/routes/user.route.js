@@ -54,7 +54,7 @@ router.put('/update', middleware_1.isAuth, [
         ;
         return true;
     }),
-    (0, express_validator_1.body)('dateOfBirth').trim().isDate().withMessage('Ngày sinh không hợp lệ'),
+    (0, express_validator_1.body)('dateOfBirth').trim().isISO8601().toDate().withMessage('Ngày sinh không hợp lệ'),
     (0, express_validator_1.body)('about').trim()
         .isLength({ max: 200 }).withMessage('Độ dài tối đa cho phép là 500')
         .custom((value, { req }) => {

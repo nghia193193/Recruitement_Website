@@ -25,7 +25,7 @@ router.put('/update',isAuth ,[
             };
             return true;
         }),
-    body('dateOfBirth').trim().isDate().withMessage('Ngày sinh không hợp lệ'),
+    body('dateOfBirth').trim().isISO8601().toDate().withMessage('Ngày sinh không hợp lệ'),
     body('about').trim()
         .isLength({max: 200}).withMessage('Độ dài tối đa cho phép là 500')
         .custom((value, {req}) => {
