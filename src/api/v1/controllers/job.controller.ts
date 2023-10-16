@@ -1,7 +1,6 @@
 import { Request, NextFunction, Response } from 'express';
 import { Job } from '../models/job';
 import { JobPosition } from '../models/jobPosition';
-import { Skill } from '../models/skill';
 import { validationResult } from 'express-validator';
 import { JobLocation } from '../models/jobLocation';
 import { JobType } from '../models/jobType';

@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetAllSkills = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
+exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const utils_1 = require("../utils");
 const cloudinary_1 = require("cloudinary");
 const resumeUpload_1 = require("../models/resumeUpload");
-const skill_1 = require("../models/skill");
 const GetResumes = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -162,33 +161,3 @@ const DeleteResume = async (req, res, next) => {
     ;
 };
 exports.DeleteResume = DeleteResume;
-const GetAllSkills = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
-    try {
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const candidate = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
-        if (!candidate) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            throw error;
-        }
-        ;
-        const skills = await skill_1.Skill.find();
-        const listSkills = skills.map(skill => {
-            return {
-                skillId: skill._id,
-                name: skill.name
-            };
-        });
-        res.status(200).json({ success: true, message: 'Lấy list skills thành công', result: listSkills });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-    ;
-};
-exports.GetAllSkills = GetAllSkills;

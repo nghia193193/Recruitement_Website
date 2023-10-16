@@ -8,7 +8,6 @@ import { UploadedFile } from 'express-fileupload';
 import { ResumeUpload } from '../models/resumeUpload';
 import { Resume } from '../models/resume';
 import mongoose from 'mongoose';
-import { Skill } from '../models/skill';
 
 export const GetResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -156,30 +155,3 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
     };
 };
 
-export const GetAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
-    try {
-        const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
-        if (!candidate) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            throw error;
-        };
-        const skills = await Skill.find();
-        const listSkills = skills.map(skill => {
-            return {
-                skillId: skill._id,
-                name: skill.name
-            }
-        })
-        res.status(200).json({success: true, message: 'Lấy list skills thành công', result: listSkills});
-    } catch (err) {
-        if (!(err as any).statusCode) {
-            (err as any).statusCode = 500;
-        }
-        next(err);
-    };
-};

@@ -24,11 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const candidateController = __importStar(require("../controllers/candidate.controller"));
-const middleware_1 = require("../middleware");
-const express_validator_1 = require("express-validator");
+const skillController = __importStar(require("../controllers/skill.controller"));
 const router = (0, express_1.Router)();
-router.get('/resumes', middleware_1.isAuth, candidateController.GetResumes);
-router.put('/resumes', middleware_1.isAuth, candidateController.UploadResume);
-router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.DeleteResume);
+router.get('/', skillController.GetAllSkills);
 exports.default = router;

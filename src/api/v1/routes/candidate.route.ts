@@ -12,6 +12,4 @@ router.delete('/resumes/:resumeId',isAuth,
     param('resumeId').trim().isMongoId().withMessage('Id không hợp lệ')
 , candidateController.DeleteResume);
 
-router.get('/skills', candidateController.GetAllSkills);
-
 export default router;
