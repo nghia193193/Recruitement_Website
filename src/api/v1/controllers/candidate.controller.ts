@@ -168,11 +168,6 @@ export const GetAllSkills = async (req: Request, res: Response, next: NextFuncti
             error.statusCode = 409;
             throw error;
         };
-        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
-            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
-            error.statusCode = 401;
-            throw error;
-        };
         const skills = await Skill.find();
         const listSkills = skills.map(skill => {
             return {
