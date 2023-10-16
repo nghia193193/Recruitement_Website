@@ -174,12 +174,6 @@ const GetAllSkills = async (req, res, next) => {
             throw error;
         }
         ;
-        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
-            const error = new Error('UnAuthorized');
-            error.statusCode = 401;
-            throw error;
-        }
-        ;
         const skills = await skill_1.Skill.find();
         const listSkills = skills.map(skill => {
             return {

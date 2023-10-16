@@ -268,6 +268,7 @@ const UpdateJob = async (req, res, next) => {
             error.statusCode = 409;
             throw error;
         }
+        ;
         job.name = name;
         job.positionId = pos._id.toString();
         job.typeId = type._id.toString();
