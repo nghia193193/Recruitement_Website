@@ -11,7 +11,7 @@ const GetResumes = async (req, res, next) => {
     const accessToken = authHeader.split(' ')[1];
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const candidate = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -50,7 +50,7 @@ const UploadResume = async (req, res, next) => {
     const accessToken = authHeader.split(' ')[1];
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const candidate = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -115,7 +115,7 @@ const DeleteResume = async (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const candidate = await user_1.User.findOne({ email: decodedToken.email }).populate('roleId');
+        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;

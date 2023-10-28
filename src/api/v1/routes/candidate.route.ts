@@ -11,5 +11,6 @@ router.put('/resumes',isAuth, candidateController.UploadResume);
 router.delete('/resumes/:resumeId',isAuth,
     param('resumeId').trim().isMongoId().withMessage('Id không hợp lệ')
 , candidateController.DeleteResume);
-
+ 
 export default router;
+

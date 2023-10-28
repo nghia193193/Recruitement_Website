@@ -15,7 +15,7 @@ export const GetResumes = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -51,7 +51,7 @@ export const UploadResume = async (req: Request, res: Response, next: NextFuncti
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -115,7 +115,7 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (!candidate) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;

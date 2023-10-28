@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isPDF = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
+exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
@@ -41,6 +41,7 @@ async function verifyToken(accessToken) {
     return new Promise((resolve, reject) => {
         jwt.verify(accessToken, exports.secretKey, (err, decoded) => {
             if (err) {
+                console.log(err);
                 const error = new Error('Invalid or expired access token');
                 error.statusCode = 401;
                 throw error;
@@ -52,6 +53,23 @@ async function verifyToken(accessToken) {
     });
 }
 exports.verifyToken = verifyToken;
+;
+async function verifyRefreshToken(refreshToken) {
+    return new Promise((resolve, reject) => {
+        jwt.verify(refreshToken, exports.refreshKey, (err, decoded) => {
+            if (err) {
+                console.log(err);
+                const error = new Error('Invalid or expired refresh token');
+                error.statusCode = 401;
+                throw error;
+            }
+            else {
+                resolve(decoded);
+            }
+        });
+    });
+}
+exports.verifyRefreshToken = verifyRefreshToken;
 ;
 const isPDF = function isPDF(file) {
     const allowedExtensions = ['.pdf'];

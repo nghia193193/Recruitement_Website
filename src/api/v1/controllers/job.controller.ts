@@ -18,7 +18,9 @@ export const GetJobs = async (req: Request, res: Response, next: NextFunction): 
             };
             throw error;
         };
-        const query: any = {};
+        const query: any = {
+            isActive: true
+        };
         if (req.query['name']) {
             query['name'] = req.query['name'];
         };

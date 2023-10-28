@@ -312,4 +312,31 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     })
 ], recruiterController.UpdateJob);
 router.delete('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteJob);
+router.get('/events', middleware_1.isAuth, [
+    (0, express_validator_1.query)('page').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('page không hợp lệ');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('limit').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('limit không hợp lệ');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+], recruiterController.GetAllEvents);
+router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleEvent);
 exports.default = router;

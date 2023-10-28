@@ -41,7 +41,9 @@ const userSchema = new Schema({
     resetToken: String,
     resetTokenExpired: Date,
     otp: String,
-    otpExpired: Date
+    otpExpired: Date,
+    accessToken: String,
+    refreshToken: String
 }, {
     timestamps: true
 });

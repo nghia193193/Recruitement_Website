@@ -20,7 +20,9 @@ const GetJobs = async (req, res, next) => {
             throw error;
         }
         ;
-        const query = {};
+        const query = {
+            isActive: true
+        };
         if (req.query['name']) {
             query['name'] = req.query['name'];
         }

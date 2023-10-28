@@ -8,6 +8,7 @@ import { Job } from '../models/job';
 import { JobType } from '../models/jobType';
 import { JobLocation } from '../models/jobLocation';
 import { Skill } from '../models/skill';
+import { Event } from '../models/event';
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -15,7 +16,7 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -112,7 +113,7 @@ export const CreateJob = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -170,7 +171,7 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -228,7 +229,7 @@ export const UpdateJob = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -288,7 +289,7 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const recruiter = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -320,3 +321,187 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
         next(err);
     }
 };
+
+export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+        const name = req.query.name;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        const query: any = {
+            authorId: recruiter._id
+        };
+        if (name) {
+            query['name'] = name;
+        };
+        
+        const eventLenght = await Event.find(query).countDocuments();
+        if (eventLenght === 0) {
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy event');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+
+        const events = await Event.find(query).populate('authorId')
+            .skip((page - 1) * limit)
+            .limit(limit);
+        
+        const listEvents = events.map(e => {
+            const {_id, authorId, ...rest} = e;
+            delete (rest as any)._doc._id;
+            delete (rest as any)._doc.authorId;
+            return {
+                eventId: _id.toString(),
+                author: (authorId as any).fullName,
+                ...(rest as any)._doc
+            }
+        });
+
+        res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
+            pageNumber: page,
+            totalPages: Math.ceil(eventLenght/limit),
+            limit: limit,
+            totalElements: eventLenght,
+            content: listEvents
+        }});
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+export const GetSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+        const eventId = req.params.eventId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        
+        const event = await Event.findById(eventId).populate('authorId');
+        if (!event) {
+            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy event');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+           
+        const {_id, authorId, ...rest} = event;
+        delete (rest as any)._doc._id;
+        delete (rest as any)._doc.authorId;
+        
+        const returnEvent = {
+            eventId: _id.toString(),
+            author: (authorId as any).fullName,
+            ...(rest as any)._doc,
+        };
+
+        res.status(200).json({success: true, message: 'Successfully', result: returnEvent});
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+// export const CreateEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+//     const authHeader = req.get('Authorization') as string;
+//     const accessToken = authHeader.split(' ')[1];
+
+//     try {
+//         const decodedToken: any = await verifyToken(accessToken);
+//         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+//         if (!recruiter) {
+//             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+//             error.statusCode = 409;
+//             throw error;
+//         };
+        
+//         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+//             const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+//             error.statusCode = 401;
+//             throw error;
+//         };
+//         const {title, desc, linkContract, name, authorName, datePosted, readTime, by, location, deadline} = req.body;
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+//             error.statusCode = 400;
+//             throw error;
+//         }
+        
+//         const event = await Event.findById(eventId).populate('authorId');
+//         if (!event) {
+//             const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy event');
+//             error.statusCode = 400;
+//             error.result = null;
+//             throw error;
+//         }
+           
+//         const {_id, authorId, ...rest} = event;
+//         delete (rest as any)._doc._id;
+//         delete (rest as any)._doc.authorId;
+        
+//         const returnEvent = {
+//             eventId: _id.toString(),
+//             author: (authorId as any).fullName,
+//             ...(rest as any)._doc,
+//         };
+
+//         res.status(200).json({success: true, message: 'Successfully', result: returnEvent});
+
+//     } catch (err) {
+//         if (!(err as any).statusCode) {
+//             (err as any).statusCode = 500;
+//         }
+//         next(err);
+//     }
+// };

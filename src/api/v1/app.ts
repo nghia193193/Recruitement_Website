@@ -9,6 +9,8 @@ import schedule from 'node-schedule';
 import { User } from './models/user';
 import { fileConfig } from '../../config';
 import {v2 as cloudinary} from 'cloudinary';
+import swaggerUI from 'swagger-ui-express';
+import swaggerSpec from './utils/swaggerDef';
 
 const MONGO_URI: string = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
@@ -34,6 +36,7 @@ app.use((req, res, next) => {
 });
 
 app.use(routes);
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     console.log(error);

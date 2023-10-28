@@ -19,6 +19,7 @@ export async function verifyToken(accessToken: string) {
     return new Promise((resolve, reject) => {
       jwt.verify(accessToken, secretKey, (err, decoded: any) => {
         if (err) {
+            console.log(err)
             const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired access token');
             error.statusCode = 401;
             throw error;
@@ -28,6 +29,22 @@ export async function verifyToken(accessToken: string) {
       });
     });
 };
+
+export async function verifyRefreshToken(refreshToken: string) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(refreshToken, refreshKey, (err, decoded: any) => {
+      if (err) {
+          console.log(err);
+          const error: Error & {statusCode?: number, result?: any} = new Error('Invalid or expired refresh token');
+          error.statusCode = 401;
+          throw error;
+      } else {
+          resolve(decoded);
+      }
+    });
+  });
+};
+
 
 export const isPDF = function isPDF(file: UploadedFile): boolean {
   const allowedExtensions = ['.pdf']; 

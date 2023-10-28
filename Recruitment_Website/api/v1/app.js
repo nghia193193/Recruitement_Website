@@ -14,6 +14,8 @@ const node_schedule_1 = __importDefault(require("node-schedule"));
 const user_1 = require("./models/user");
 const config_1 = require("../../config");
 const cloudinary_1 = require("cloudinary");
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swaggerDef_1 = __importDefault(require("./utils/swaggerDef"));
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -33,6 +35,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use(routes_1.default);
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDef_1.default));
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error.statusCode || 500;

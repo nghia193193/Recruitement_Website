@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { Role } from '../models/role';
-import { secretKey, refreshKey, transporter } from '../utils';
+import { secretKey, refreshKey, transporter, verifyRefreshToken } from '../utils';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
@@ -74,9 +74,7 @@ export const Signup = async (req: Request, res: Response, next: NextFunction): P
             throw error;
         });
         const payload = {
-            userId: user._id,
-            email: user.email,
-            phone: user.phone
+            userId: user._id
         };
         const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
         res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
@@ -174,12 +172,14 @@ export const Login = async (req: Request, res: Response, next: NextFunction): Pr
             throw error;
         };
         user.isActive = true;
-        await user.save();
         const payload = {
-            email: user.email
+            userId: user._id.toString()
         };
-        const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+        const accessToken = jwt.sign(payload, secretKey, {expiresIn: '1h'});
         const refreshToken = jwt.sign(payload, refreshKey, {expiresIn: '7d'});
+        user.accessToken = accessToken;
+        user.refreshToken = refreshToken;
+        await user.save();
         res.status(200).json(
             { 
                 success: true, 
@@ -200,16 +200,22 @@ export const Login = async (req: Request, res: Response, next: NextFunction): Pr
     
 };
 
-export const RefreshAccessToken = (req: Request, res: Response, next: NextFunction) => {
-    const refreshToken: string = req.body.refreshToken;
-    jwt.verify(refreshToken, refreshKey, (err: jwt.VerifyErrors | null, decoded: any) => {
-        if (err) {
-          return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
-        };
+export const RefreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const refreshToken: string = req.body.refreshToken;
+        const decodedToken: any = await verifyRefreshToken(refreshToken);
         const newAccessToken = jwt.sign(
             { 
-                email: decoded.email
+                userId: decodedToken.userId
             }, secretKey, { expiresIn: '1h' });
+        const user = await User.findById(decodedToken.userId);
+        if (!user) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        user.accessToken = newAccessToken;
+        await user.save();
         res.status(200).json(
             { 
                 success: true,
@@ -220,5 +226,11 @@ export const RefreshAccessToken = (req: Request, res: Response, next: NextFuncti
                 statusCode: 200 
             }
         );
-    });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
 };

@@ -14,7 +14,7 @@ export const GetProfile = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findOne({email: decodedToken.email}).populate('roleId');
+        const user = await User.findById(decodedToken.userId).populate('roleId');
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;
@@ -55,18 +55,18 @@ export const UpdateProfile = async (req: Request, res: Response, next: NextFunct
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
+        const updateUser = await User.findById(decodedToken.userId);
+        if (!updateUser) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
         const { fullName, address, dateOfBirth, about} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.log(errors.array());
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
-            throw error;
-        };
-        const updateUser = await User.findOne({email: decodedToken.email});
-        if (!updateUser) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
             throw error;
         };
         updateUser.fullName = fullName;
@@ -108,18 +108,18 @@ export const ChangePassword = async (req: Request, res: Response, next: NextFunc
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
+        const user = await User.findOne(decodedToken.userId);
+        if (!user) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
         const currentPassword: string = req.body.currentPassword;
         const newPassword: string = req.body.newPassword;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
-            throw error;
-        };
-        const user = await User.findOne({email: decodedToken.email});
-        if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
             throw error;
         };
         const isEqual = await bcrypt.compare(currentPassword, user.password);
@@ -147,7 +147,7 @@ export const ChangeAvatar = async (req: Request, res: Response, next: NextFuncti
       
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findOne({email: decodedToken.email});
+        const user = await User.findById(decodedToken.userId);
         if (!user) {
             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
             error.statusCode = 409;

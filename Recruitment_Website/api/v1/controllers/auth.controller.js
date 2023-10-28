@@ -102,9 +102,7 @@ const Signup = async (req, res, next) => {
             throw error;
         });
         const payload = {
-            userId: user._id,
-            email: user.email,
-            phone: user.phone
+            userId: user._id
         };
         const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
         res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
@@ -218,12 +216,14 @@ const Login = async (req, res, next) => {
         }
         ;
         user.isActive = true;
-        await user.save();
         const payload = {
-            email: user.email
+            userId: user._id.toString()
         };
         const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
         const refreshToken = jwt.sign(payload, utils_1.refreshKey, { expiresIn: '7d' });
+        user.accessToken = accessToken;
+        user.refreshToken = refreshToken;
+        await user.save();
         res.status(200).json({
             success: true,
             message: "Login successful!",
@@ -244,16 +244,21 @@ const Login = async (req, res, next) => {
     ;
 };
 exports.Login = Login;
-const RefreshAccessToken = (req, res, next) => {
-    const refreshToken = req.body.refreshToken;
-    jwt.verify(refreshToken, utils_1.refreshKey, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', statusCode: 401 });
-        }
-        ;
+const RefreshAccessToken = async (req, res, next) => {
+    try {
+        const refreshToken = req.body.refreshToken;
+        const decodedToken = await (0, utils_1.verifyRefreshToken)(refreshToken);
         const newAccessToken = jwt.sign({
-            email: decoded.email
+            userId: decodedToken.userId
         }, utils_1.secretKey, { expiresIn: '1h' });
+        const user = await user_1.User.findById(decodedToken.userId);
+        if (!user) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        user.accessToken = newAccessToken;
+        await user.save();
         res.status(200).json({
             success: true,
             message: "Làm mới token thành công",
@@ -262,6 +267,13 @@ const RefreshAccessToken = (req, res, next) => {
             },
             statusCode: 200
         });
-    });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
 };
 exports.RefreshAccessToken = RefreshAccessToken;
