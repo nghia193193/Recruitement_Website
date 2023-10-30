@@ -15,12 +15,14 @@ const GetResumes = async (req, res, next) => {
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
@@ -34,11 +36,12 @@ const GetResumes = async (req, res, next) => {
                 createdDay: resume.createdAt
             };
         });
-        res.status(200).json({ success: true, message: 'Lấy list resumes thành công', result: listResumes, resumesLength: resumesLength, statusCode: 200 });
+        res.status(200).json({ success: true, message: 'Lấy list resumes thành công', result: { content: listResumes, resumesLength: resumesLength }, statusCode: 200 });
     }
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -54,18 +57,21 @@ const UploadResume = async (req, res, next) => {
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!req.files || !req.files.resumeFile) {
             const error = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -73,6 +79,7 @@ const UploadResume = async (req, res, next) => {
         if (!(0, utils_1.isPDF)(resume)) {
             const error = new Error('Resume chỉ cho phép file pdf');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -102,6 +109,7 @@ const UploadResume = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         ;
         next(err);
@@ -119,18 +127,21 @@ const DeleteResume = async (req, res, next) => {
         if (!candidate) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -139,6 +150,7 @@ const DeleteResume = async (req, res, next) => {
         if (!resume) {
             const error = new Error('Không tìm thấy resume');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
@@ -155,6 +167,7 @@ const DeleteResume = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }

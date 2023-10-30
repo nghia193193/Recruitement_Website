@@ -14,6 +14,7 @@ export const GetAllSkills = async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         }
         next(err);
     };

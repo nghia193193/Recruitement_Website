@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -10,6 +10,7 @@ const jobType_1 = require("../models/jobType");
 const jobLocation_1 = require("../models/jobLocation");
 const skill_1 = require("../models/skill");
 const event_1 = require("../models/event");
+const cloudinary_1 = require("cloudinary");
 const GetAllJobs = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -19,12 +20,18 @@ const GetAllJobs = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         ;
@@ -34,6 +41,9 @@ const GetAllJobs = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         const query = {
@@ -102,6 +112,7 @@ const GetAllJobs = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -118,18 +129,21 @@ const CreateJob = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         const pos = await jobPosition_1.JobPosition.findOne({ name: position });
@@ -157,11 +171,12 @@ const CreateJob = async (req, res, next) => {
             skills: listSkill
         });
         await job.save();
-        res.status(200).json({ success: true, message: "Tạo job thành công" });
+        res.status(200).json({ success: true, message: "Tạo job thành công", result: null });
     }
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -178,18 +193,21 @@ const GetSingleJob = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -222,6 +240,7 @@ const GetSingleJob = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -239,18 +258,21 @@ const UpdateJob = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -267,6 +289,7 @@ const UpdateJob = async (req, res, next) => {
         if (!job) {
             const error = new Error('Không tìm thấy job');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
@@ -282,11 +305,12 @@ const UpdateJob = async (req, res, next) => {
         job.deadline = deadline;
         job.skills = listSkill;
         await job.save();
-        res.status(200).json({ sucess: true, message: 'Update job thành công' });
+        res.status(200).json({ sucess: true, message: 'Update job thành công', result: null });
     }
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -303,18 +327,21 @@ const DeleteJob = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -326,11 +353,12 @@ const DeleteJob = async (req, res, next) => {
             throw error;
         }
         await job_1.Job.findByIdAndDelete(jobId);
-        res.status(200).json({ sucess: true, message: 'Xóa job thành công' });
+        res.status(200).json({ sucess: true, message: 'Xóa job thành công', result: null });
     }
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -345,12 +373,18 @@ const GetAllEvents = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         ;
@@ -361,6 +395,9 @@ const GetAllEvents = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         const query = {
@@ -405,6 +442,7 @@ const GetAllEvents = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
@@ -419,12 +457,14 @@ const GetSingleEvent = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
@@ -433,6 +473,7 @@ const GetSingleEvent = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         const event = await event_1.Event.findById(eventId).populate('authorId');
@@ -455,57 +496,171 @@ const GetSingleEvent = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
 };
 exports.GetSingleEvent = GetSingleEvent;
-// export const CreateEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//     const authHeader = req.get('Authorization') as string;
-//     const accessToken = authHeader.split(' ')[1];
-//     try {
-//         const decodedToken: any = await verifyToken(accessToken);
-//         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
-//         if (!recruiter) {
-//             const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
-//             error.statusCode = 409;
-//             throw error;
-//         };
-//         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-//             const error: Error & {statusCode?: number} = new Error('UnAuthorized');
-//             error.statusCode = 401;
-//             throw error;
-//         };
-//         const {title, desc, linkContract, name, authorName, datePosted, readTime, by, location, deadline} = req.body;
-//         const errors = validationResult(req);
-//         if (!errors.isEmpty()) {
-//             const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-//             error.statusCode = 400;
-//             throw error;
-//         }
-//         const event = await Event.findById(eventId).populate('authorId');
-//         if (!event) {
-//             const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy event');
-//             error.statusCode = 400;
-//             error.result = null;
-//             throw error;
-//         }
-//         const {_id, authorId, ...rest} = event;
-//         delete (rest as any)._doc._id;
-//         delete (rest as any)._doc.authorId;
-//         const returnEvent = {
-//             eventId: _id.toString(),
-//             author: (authorId as any).fullName,
-//             ...(rest as any)._doc,
-//         };
-//         res.status(200).json({success: true, message: 'Successfully', result: returnEvent});
-//     } catch (err) {
-//         if (!(err as any).statusCode) {
-//             (err as any).statusCode = 500;
-//         }
-//         next(err);
-//     }
-// };
+const CreateEvent = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const { title, name, description, time, location, deadline, startAt } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        if (!req.files || !req.files.image) {
+            const error = new Error('Không có tệp nào được tải lên!');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const image = req.files.image;
+        if (image.mimetype !== 'image/jpg' && image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
+            const error = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const result = await cloudinary_1.v2.uploader.upload(image.tempFilePath);
+        if (!result) {
+            const error = new Error('Upload thất bại');
+            throw error;
+        }
+        ;
+        const publicId = result.public_id;
+        const imageUrl = cloudinary_1.v2.url(publicId);
+        const event = new event_1.Event({
+            authorId: recruiter._id,
+            title: title,
+            name: name,
+            description: description,
+            time: time,
+            image: {
+                publicId: publicId,
+                url: imageUrl
+            },
+            isActive: true,
+            location: location,
+            deadline: deadline,
+            startAt: startAt
+        });
+        await event.save();
+        res.status(200).json({ success: true, message: 'Thêm event thành công', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.CreateEvent = CreateEvent;
+const UpdateEvent = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const eventId = req.params.eventId;
+        const { title, name, description, time, location, deadline, startAt } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const event = await event_1.Event.findById(eventId);
+        if (!event) {
+            const error = new Error('event không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        if (req.files?.image) {
+            const image = req.files.image;
+            if (image.mimetype !== 'image/jpg' && image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
+                const error = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
+                error.statusCode = 400;
+                error.result = null;
+                throw error;
+            }
+            ;
+            const result = await cloudinary_1.v2.uploader.upload(image.tempFilePath);
+            if (!result) {
+                const error = new Error('Upload thất bại');
+                throw error;
+            }
+            ;
+            const publicId = result.public_id;
+            const imageUrl = cloudinary_1.v2.url(publicId);
+            const deleteEventImage = event.image?.publicId;
+            if (deleteEventImage) {
+                await cloudinary_1.v2.uploader.destroy(deleteEventImage);
+            }
+            event.image = {
+                publicId: publicId,
+                url: imageUrl
+            };
+        }
+        event.title = title;
+        event.name = name;
+        event.description = description;
+        event.time = time;
+        event.location = location;
+        event.deadline = deadline;
+        event.startAt = startAt;
+        await event.save();
+        res.status(200).json({ success: true, message: 'Update event thành công', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.UpdateEvent = UpdateEvent;
 const DeleteEvent = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -515,12 +670,14 @@ const DeleteEvent = async (req, res, next) => {
         if (!recruiter) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
+            error.result = null;
             throw error;
         }
         ;
@@ -529,14 +686,27 @@ const DeleteEvent = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
+        const event = await event_1.Event.findById(eventId);
+        if (!event) {
+            const error = new Error('event không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const deleteEventImage = event.image?.publicId;
+        if (deleteEventImage) {
+            await cloudinary_1.v2.uploader.destroy(deleteEventImage);
+        }
         await event_1.Event.findByIdAndDelete(eventId);
-        res.status(200).json({ success: true, message: 'Xóa event thành công' });
+        res.status(200).json({ success: true, message: 'Xóa event thành công', result: null });
     }
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }

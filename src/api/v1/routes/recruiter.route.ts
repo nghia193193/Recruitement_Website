@@ -317,6 +317,114 @@ router.get('/events/:eventId',isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
 ,recruiterController.GetSingleEvent);
 
+router.post('/events', isAuth, [
+    body('title').trim()
+        .notEmpty().withMessage('Vui lòng nhập title')
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('name').trim()
+        .notEmpty().withMessage('Vui lòng nhập tên')
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('description').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('time').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('location').trim()
+        .notEmpty().withMessage('Vui lòng nhập địa điểm')
+        .custom((value, {req}) => {
+            return JobLocation.findOne({name: value})
+                .then(job => {
+                    if (!job) {
+                        return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
+                    }
+                    return true
+                })
+        }),
+    body('deadline').trim()
+        .notEmpty().withMessage('Vui lòng nhập deadline')
+        .isISO8601().toDate().withMessage('Deadline không hợp lệ'),
+    body('startAt').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
+        .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
+], recruiterController.CreateEvent);
+
+router.put('/events/:eventId', isAuth, [
+    param('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
+    body('title').trim()
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('name').trim()
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('description').trim()
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('time').trim()
+        .custom((value, {req}) => {
+            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+            };
+            return true;
+        }),
+    body('location').trim()
+        .custom((value, {req}) => {
+            return JobLocation.findOne({name: value})
+                .then(job => {
+                    if (!job) {
+                        return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
+                    }
+                    return true
+                })
+        }),
+    body('deadline').trim()
+        .notEmpty().withMessage('Vui lòng nhập deadline')
+        .isISO8601().toDate().withMessage('Deadline không hợp lệ'),
+    body('startAt').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
+        .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
+], recruiterController.UpdateEvent)
+
 router.delete('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
 , recruiterController.DeleteEvent);

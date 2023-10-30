@@ -44,6 +44,7 @@ const Signup = async (req, res, next) => {
         if (confirmPassword !== password) {
             const error = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         ;
@@ -51,6 +52,7 @@ const Signup = async (req, res, next) => {
         if (emailUser) {
             const error = new Error('Email đã tồn tại');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
@@ -58,6 +60,7 @@ const Signup = async (req, res, next) => {
         if (phoneUser) {
             const error = new Error('Số điện thoại đã tồn tại');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         ;
@@ -255,6 +258,7 @@ const RefreshAccessToken = async (req, res, next) => {
         if (!user) {
             const error = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         user.accessToken = newAccessToken;

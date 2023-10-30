@@ -6,6 +6,7 @@ const isAuth = (req, res, next) => {
     if (!authHeader) {
         const error = new Error('Not authenticated');
         error.statusCode = 401;
+        error.result = null;
         throw error;
     }
     next();

@@ -339,5 +339,119 @@ router.get('/events', middleware_1.isAuth, [
     }),
 ], recruiterController.GetAllEvents);
 router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleEvent);
+router.post('/events', middleware_1.isAuth, [
+    (0, express_validator_1.body)('title').trim()
+        .notEmpty().withMessage('Vui lòng nhập title')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('name').trim()
+        .notEmpty().withMessage('Vui lòng nhập tên')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('description').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('time').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('location').trim()
+        .notEmpty().withMessage('Vui lòng nhập địa điểm')
+        .custom((value, { req }) => {
+        return jobLocation_1.JobLocation.findOne({ name: value })
+            .then(job => {
+            if (!job) {
+                return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
+            }
+            return true;
+        });
+    }),
+    (0, express_validator_1.body)('deadline').trim()
+        .notEmpty().withMessage('Vui lòng nhập deadline')
+        .isISO8601().toDate().withMessage('Deadline không hợp lệ'),
+    (0, express_validator_1.body)('startAt').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
+        .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
+], recruiterController.CreateEvent);
+router.put('/events/:eventId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
+    (0, express_validator_1.body)('title').trim()
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('name').trim()
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('description').trim()
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('time').trim()
+        .custom((value, { req }) => {
+        const regex = /^[\p{L} .,\/:0-9]+$/u;
+        if (!regex.test(value)) {
+            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        }
+        ;
+        return true;
+    }),
+    (0, express_validator_1.body)('location').trim()
+        .custom((value, { req }) => {
+        return jobLocation_1.JobLocation.findOne({ name: value })
+            .then(job => {
+            if (!job) {
+                return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
+            }
+            return true;
+        });
+    }),
+    (0, express_validator_1.body)('deadline').trim()
+        .notEmpty().withMessage('Vui lòng nhập deadline')
+        .isISO8601().toDate().withMessage('Deadline không hợp lệ'),
+    (0, express_validator_1.body)('startAt').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
+        .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
+], recruiterController.UpdateEvent);
 router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
 exports.default = router;

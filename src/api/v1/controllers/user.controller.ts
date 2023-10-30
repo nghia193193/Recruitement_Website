@@ -16,8 +16,9 @@ export const GetProfile = async (req: Request, res: Response, next: NextFunction
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findById(decodedToken.userId).populate('roleId');
         if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
         res.status(200).json({ 
@@ -57,16 +58,18 @@ export const UpdateProfile = async (req: Request, res: Response, next: NextFunct
         const decodedToken: any = await verifyToken(accessToken);
         const updateUser = await User.findById(decodedToken.userId);
         if (!updateUser) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
         const { fullName, address, dateOfBirth, about} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.log(errors.array());
-            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
         updateUser.fullName = fullName;
@@ -97,6 +100,7 @@ export const UpdateProfile = async (req: Request, res: Response, next: NextFunct
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         };
         next(err);
     };
@@ -110,22 +114,25 @@ export const ChangePassword = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findOne(decodedToken.userId);
         if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
         const currentPassword: string = req.body.currentPassword;
         const newPassword: string = req.body.newPassword;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
         const isEqual = await bcrypt.compare(currentPassword, user.password);
         if (!isEqual) {
-            const error: Error & {statusCode?: number} = new Error('Mật khẩu hiện tại không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu hiện tại không chính xác');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
         const hashNewPass = await bcrypt.hash(newPassword, 12);
@@ -135,6 +142,7 @@ export const ChangePassword = async (req: Request, res: Response, next: NextFunc
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         };
         next(err);
     };
@@ -149,21 +157,24 @@ export const ChangeAvatar = async (req: Request, res: Response, next: NextFuncti
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findById(decodedToken.userId);
         if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
 
         if (!req.files || !req.files.avatarFile) {
-            const error: Error & {statusCode?: number} = new Error('Không có tệp nào được tải lên!');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
 
         const avatar: UploadedFile = req.files.avatarFile as UploadedFile;
         if (avatar.mimetype !== 'image/jpg' && avatar.mimetype !== 'image/png' && avatar.mimetype !== 'image/jpeg') {
-            const error: Error & {statusCode?: number} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
+            const error: Error & {statusCode?: number, result?: any} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
         
@@ -190,6 +201,7 @@ export const ChangeAvatar = async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         };
         next(err);
     };
@@ -201,14 +213,16 @@ export const ForgotPassword = async (req: Request, res: Response, next: NextFunc
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
-            error.statusCode = 422;
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         const user = await User.findOne({email: email});
         if (!user) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Tài khoản không tồn tại');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         const token = randomBytes(32).toString('hex');
@@ -240,6 +254,7 @@ export const ForgotPassword = async (req: Request, res: Response, next: NextFunc
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         };
         next(err);
     };
@@ -250,24 +265,28 @@ export const ResetPassword = async (req: Request, res: Response, next: NextFunct
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         if (confirmPassword !== newPassword) {
-            const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         const user = await User.findOne({resetToken: token});
         if (!user) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Token không tồn tại');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         }
         if ((user.resetTokenExpired as any).getTime() < new Date().getTime()) {
-            const error: Error & {statusCode?: number} = new Error('Token đã hết hạn vui lòng tạo yêu cầu mới!');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Token đã hết hạn vui lòng tạo yêu cầu mới!');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         const hashNewPW = await bcrypt.hash(newPassword, 12);
@@ -277,6 +296,7 @@ export const ResetPassword = async (req: Request, res: Response, next: NextFunct
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
+            (err as any).result = null;
         };
         next(err);
     };

@@ -28,9 +28,9 @@ const eventSchema = new Schema({
         type: String,
         required: true
     },
-    img: {
-        type: String,
-        required: true
+    image: {
+        publicId: String,
+        url: String
     },
     isActive: {
         type: Boolean,
@@ -41,6 +41,10 @@ const eventSchema = new Schema({
         required: true
     },
     deadline: {
+        type: Date,
+        required: true
+    },
+    startAt: {
         type: Date,
         required: true
     }

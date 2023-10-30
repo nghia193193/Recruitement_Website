@@ -18,20 +18,23 @@ export const Signup = async (req: Request, res: Response, next: NextFunction): P
             throw error;
         };
         if (confirmPassword !== password) {
-            const error: Error & {statusCode?: number} = new Error('Mật khẩu xác nhận không chính xác');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Mật khẩu xác nhận không chính xác');
             error.statusCode = 400;
+            error.result = null;
             throw error;
         };
         const emailUser = await User.findOne({email: email});
         if (emailUser) {
-            const error: Error & {statusCode?: number} = new Error('Email đã tồn tại');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Email đã tồn tại');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
         const phoneUser = await User.findOne({phone: phone});
         if (phoneUser) {
-            const error: Error & {statusCode?: number} = new Error('Số điện thoại đã tồn tại');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Số điện thoại đã tồn tại');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         };
         const hashedPw = await bcrypt.hash(password, 12);
@@ -210,8 +213,9 @@ export const RefreshAccessToken = async (req: Request, res: Response, next: Next
             }, secretKey, { expiresIn: '1h' });
         const user = await User.findById(decodedToken.userId);
         if (!user) {
-            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
             error.statusCode = 409;
+            error.result = null;
             throw error;
         }
         user.accessToken = newAccessToken;

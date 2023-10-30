@@ -16,6 +16,7 @@ const GetAllSkills = async (req, res, next) => {
     catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
+            err.result = null;
         }
         next(err);
     }
