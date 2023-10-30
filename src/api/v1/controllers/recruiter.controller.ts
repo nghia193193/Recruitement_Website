@@ -505,3 +505,39 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
 //         next(err);
 //     }
 // };
+
+export const DeleteEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error: Error & {statusCode?: number} = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        };
+        
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: number} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        };
+        const eventId = req.params.eventId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: number} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        await Event.findByIdAndDelete(eventId);
+        res.status(200).json({success: true, message: 'Xóa event thành công'});
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+        }
+        next(err);
+    }
+};

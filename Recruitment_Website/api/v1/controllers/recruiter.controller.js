@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.DeleteEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -506,3 +506,39 @@ exports.GetSingleEvent = GetSingleEvent;
 //         next(err);
 //     }
 // };
+const DeleteEvent = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (!recruiter) {
+            const error = new Error('Không tìm thấy user');
+            error.statusCode = 409;
+            throw error;
+        }
+        ;
+        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            throw error;
+        }
+        ;
+        const eventId = req.params.eventId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            throw error;
+        }
+        await event_1.Event.findByIdAndDelete(eventId);
+        res.status(200).json({ success: true, message: 'Xóa event thành công' });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+exports.DeleteEvent = DeleteEvent;

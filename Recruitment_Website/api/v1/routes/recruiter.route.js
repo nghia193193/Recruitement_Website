@@ -339,4 +339,5 @@ router.get('/events', middleware_1.isAuth, [
     }),
 ], recruiterController.GetAllEvents);
 router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleEvent);
+router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
 exports.default = router;
