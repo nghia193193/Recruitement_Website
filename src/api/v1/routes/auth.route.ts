@@ -9,7 +9,7 @@ const router = Router();
 router.post('/register',[
     body('fullName').trim()
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
@@ -44,7 +44,7 @@ router.post('/verifyOTP',[
         .normalizeEmail(),
     body('otp').trim()
         .isLength({min: 6, max: 6}).withMessage('Mã OTP gồm 6 số')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
                 throw new Error('Mã OTP gồm 6 số');

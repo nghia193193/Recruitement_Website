@@ -52,7 +52,7 @@ export const isPDF = function isPDF(file: UploadedFile): boolean {
   return allowedExtensions.includes(`.${fileExtension}`);
 };
 
-export function isValidISO8601Date(dateString: string) {
-  const iso8601Pattern = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
-  return iso8601Pattern.test(dateString);
-};
+export function isValidTimeFormat(timeString: string) {
+  const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  return timePattern.test(timeString);
+}

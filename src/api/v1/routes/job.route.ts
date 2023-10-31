@@ -9,7 +9,7 @@ import { JobLocation } from '../models/jobLocation';
 const router = Router();
 
 router.get('/',[
-    query('name').trim().custom((value, {req}) => {
+    query('name').trim().custom((value: string, {req}) => {
         if (value) {
             const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
             if (!regex.test(value)) {
@@ -20,7 +20,7 @@ router.get('/',[
         return true;
     }),
     query('position').trim()
-        .custom((value, {req}) => {  
+        .custom((value: string, {req}) => {  
             if (value) {
                 return JobPosition.findOne({name: value})
                     .then(jobPos => {
@@ -33,7 +33,7 @@ router.get('/',[
             return true        
         }),
     query('type').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             if (value) {
                 return JobType.findOne({name: value})
                     .then(job => {
@@ -46,7 +46,7 @@ router.get('/',[
             return true
         }),
     query('location').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             if (value) {
                 return JobLocation.findOne({name: value})
                     .then(job => {
@@ -59,7 +59,7 @@ router.get('/',[
             return true
         }),
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -70,7 +70,7 @@ router.get('/',[
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {

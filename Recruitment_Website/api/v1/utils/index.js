@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isValidISO8601Date = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
+exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
@@ -77,9 +77,8 @@ const isPDF = function isPDF(file) {
     return allowedExtensions.includes(`.${fileExtension}`);
 };
 exports.isPDF = isPDF;
-function isValidISO8601Date(dateString) {
-    const iso8601Pattern = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
-    return iso8601Pattern.test(dateString);
+function isValidTimeFormat(timeString) {
+    const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timePattern.test(timeString);
 }
-exports.isValidISO8601Date = isValidISO8601Date;
-;
+exports.isValidTimeFormat = isValidTimeFormat;

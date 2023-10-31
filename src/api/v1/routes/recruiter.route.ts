@@ -8,7 +8,7 @@ import { JobType } from "../models/jobType";
 import { JobLocation } from "../models/jobLocation";
 import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
-import { isValidISO8601Date } from "../utils";
+import { isValidTimeFormat } from "../utils";
 
 
 const router = Router();
@@ -321,7 +321,7 @@ router.get('/events/:eventId',isAuth,
 router.post('/events', isAuth, [
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -330,7 +330,7 @@ router.post('/events', isAuth, [
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -339,7 +339,7 @@ router.post('/events', isAuth, [
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -348,20 +348,15 @@ router.post('/events', isAuth, [
         }),
     body('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
-        .custom((value, {req}) => {
-            if (!(value instanceof Date) || isNaN(value.getTime())) {
-                throw new Error('Thời gian không hợp lệ');
-            }
-            const hours = value.getHours();
-            const minutes = value.getMinutes();
-            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        .custom((value: string, {req}) => {
+            if (!isValidTimeFormat(value)) {
                 throw new Error('Thời gian không hợp lệ.');
             }
             return true;
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             return JobLocation.findOne({name: value})
                 .then(job => {
                     if (!job) {
@@ -381,7 +376,7 @@ router.post('/events', isAuth, [
 router.put('/events/:eventId', isAuth, [
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     body('title').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -389,7 +384,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('name').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -397,7 +392,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('description').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -405,21 +400,14 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('time').trim()
-        .custom((value, {req}) => {
-            if (!(value instanceof Date) || isNaN(value.getTime())) {
-                console.log('here instance');
-                throw new Error('Thời gian không hợp lệ');
-            }
-            const hours = value.getHours();
-            const minutes = value.getMinutes();
-            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-                console.log('here');
+        .custom((value: string, {req}) => {
+            if (!isValidTimeFormat(value)) {
                 throw new Error('Thời gian không hợp lệ.');
             }
             return true;
         }),
     body('location').trim()
-        .custom((value, {req}) => {
+        .custom((value: string, {req}) => {
             return JobLocation.findOne({name: value})
                 .then(job => {
                     if (!job) {

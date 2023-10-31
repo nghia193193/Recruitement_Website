@@ -31,6 +31,7 @@ const jobType_1 = require("../models/jobType");
 const jobLocation_1 = require("../models/jobLocation");
 const skill_1 = require("../models/skill");
 const middleware_1 = require("../middleware");
+const utils_1 = require("../utils");
 const router = (0, express_1.Router)();
 router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
@@ -373,12 +374,7 @@ router.post('/events', middleware_1.isAuth, [
     (0, express_validator_1.body)('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
         .custom((value, { req }) => {
-        if (!(value instanceof Date) || isNaN(value.getTime())) {
-            throw new Error('Thời gian không hợp lệ');
-        }
-        const hours = value.getHours();
-        const minutes = value.getMinutes();
-        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        if (!(0, utils_1.isValidTimeFormat)(value)) {
             throw new Error('Thời gian không hợp lệ.');
         }
         return true;
@@ -432,14 +428,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('time').trim()
         .custom((value, { req }) => {
-        if (!(value instanceof Date) || isNaN(value.getTime())) {
-            console.log('here instance');
-            throw new Error('Thời gian không hợp lệ');
-        }
-        const hours = value.getHours();
-        const minutes = value.getMinutes();
-        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-            console.log('here');
+        if (!(0, utils_1.isValidTimeFormat)(value)) {
             throw new Error('Thời gian không hợp lệ.');
         }
         return true;
