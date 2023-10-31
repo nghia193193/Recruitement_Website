@@ -371,13 +371,16 @@ router.post('/events', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('time').trim()
-        .notEmpty().withMessage('Vui lòng nhập description')
+        .notEmpty().withMessage('Vui lòng nhập thời gian')
         .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        if (!(value instanceof Date) || isNaN(value.getTime())) {
+            throw new Error('Thời gian không hợp lệ');
         }
-        ;
+        const hours = value.getHours();
+        const minutes = value.getMinutes();
+        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            throw new Error('Thời gian không hợp lệ.');
+        }
         return true;
     }),
     (0, express_validator_1.body)('location').trim()
@@ -429,11 +432,16 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('time').trim()
         .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+        if (!(value instanceof Date) || isNaN(value.getTime())) {
+            console.log('here instance');
+            throw new Error('Thời gian không hợp lệ');
         }
-        ;
+        const hours = value.getHours();
+        const minutes = value.getMinutes();
+        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            console.log('here');
+            throw new Error('Thời gian không hợp lệ.');
+        }
         return true;
     }),
     (0, express_validator_1.body)('location').trim()

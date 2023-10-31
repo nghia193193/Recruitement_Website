@@ -8,6 +8,7 @@ import { JobType } from "../models/jobType";
 import { JobLocation } from "../models/jobLocation";
 import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
+import { isValidISO8601Date } from "../utils";
 
 
 const router = Router();
@@ -346,12 +347,16 @@ router.post('/events', isAuth, [
             return true;
         }),
     body('time').trim()
-        .notEmpty().withMessage('Vui lòng nhập description')
+        .notEmpty().withMessage('Vui lòng nhập thời gian')
         .custom((value, {req}) => {
-            const regex = /^[\p{L} .,\/:0-9]+$/u;
-            if (!regex.test(value)) {
-                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-            };
+            if (!(value instanceof Date) || isNaN(value.getTime())) {
+                throw new Error('Thời gian không hợp lệ');
+            }
+            const hours = value.getHours();
+            const minutes = value.getMinutes();
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                throw new Error('Thời gian không hợp lệ.');
+            }
             return true;
         }),
     body('location').trim()
@@ -401,10 +406,16 @@ router.put('/events/:eventId', isAuth, [
         }),
     body('time').trim()
         .custom((value, {req}) => {
-            const regex = /^[\p{L} .,\/:0-9]+$/u;
-            if (!regex.test(value)) {
-                throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-            };
+            if (!(value instanceof Date) || isNaN(value.getTime())) {
+                console.log('here instance');
+                throw new Error('Thời gian không hợp lệ');
+            }
+            const hours = value.getHours();
+            const minutes = value.getMinutes();
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                console.log('here');
+                throw new Error('Thời gian không hợp lệ.');
+            }
             return true;
         }),
     body('location').trim()

@@ -409,7 +409,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         const events = await Event.find(query).populate('authorId')
             .skip((page - 1) * limit)
             .limit(limit);
-        
+
         const listEvents = events.map(e => {
             const {_id, authorId, ...rest} = e;
             delete (rest as any)._doc._id;

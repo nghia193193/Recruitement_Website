@@ -50,4 +50,9 @@ export const isPDF = function isPDF(file: UploadedFile): boolean {
   const allowedExtensions = ['.pdf']; 
   const fileExtension = (file.name || '').toLowerCase().split('.').pop();
   return allowedExtensions.includes(`.${fileExtension}`);
-}
+};
+
+export function isValidISO8601Date(dateString: string) {
+  const iso8601Pattern = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+  return iso8601Pattern.test(dateString);
+};
