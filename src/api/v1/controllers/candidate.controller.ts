@@ -238,3 +238,67 @@ export const ApplyJob = async (req: Request, res: Response, next: NextFunction):
     }
 };
 
+export const GetAppliedJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const appliedJobsLength = await JobApply.find({candidateId: candidate._id.toString()}).countDocuments();
+        if (appliedJobsLength === 0) {
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Bạn chưa apply công việc nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const appliedJobs = await JobApply.find({candidateId: candidate._id.toString()}).populate('jobAppliedId')
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const retunAppliedJobs = appliedJobs.map(job => {
+            return {
+                jobAppliedId: job.jobAppliedId._id.toString(),
+                status: job.status,
+                AppliedDate: job.createdAt,
+                jobName: job.get('jobAppliedId.name')
+            }
+        })
+        res.status(200).json({success: true, message: 'Lấy danh sách thành công', result: {
+            pageNumber: page,
+            totalPages: Math.ceil(appliedJobsLength/limit),
+            limit: limit,
+            totalElements: appliedJobsLength,
+            content: retunAppliedJobs
+        }})
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+

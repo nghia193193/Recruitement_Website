@@ -38,4 +38,30 @@ router.post('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     (0, express_validator_1.body)('resumeId').trim().isMongoId().withMessage('resumeId không hợp lệ')
 ], candidateController.ApplyJob);
+router.get('/jobs/applicants', middleware_1.isAuth, [
+    (0, express_validator_1.query)('page').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('page không hợp lệ');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('limit').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('limit không hợp lệ');
+            }
+            ;
+            return true;
+        }
+        return true;
+    })
+], candidateController.GetAppliedJobs);
 exports.default = router;

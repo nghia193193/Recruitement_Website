@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
+exports.GetAppliedJobs = exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const utils_1 = require("../utils");
@@ -249,3 +249,68 @@ const ApplyJob = async (req, res, next) => {
     }
 };
 exports.ApplyJob = ApplyJob;
+const GetAppliedJobs = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const appliedJobsLength = await jobApply_1.JobApply.find({ candidateId: candidate._id.toString() }).countDocuments();
+        if (appliedJobsLength === 0) {
+            const error = new Error('Bạn chưa apply công việc nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const appliedJobs = await jobApply_1.JobApply.find({ candidateId: candidate._id.toString() }).populate('jobAppliedId')
+            .skip((page - 1) * limit)
+            .limit(limit);
+        const retunAppliedJobs = appliedJobs.map(job => {
+            return {
+                jobAppliedId: job.jobAppliedId._id.toString(),
+                status: job.status,
+                AppliedDate: job.createdAt,
+                jobName: job.get('jobAppliedId.name')
+            };
+        });
+        res.status(200).json({ success: true, message: 'Lấy danh sách thành công', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(appliedJobsLength / limit),
+                limit: limit,
+                totalElements: appliedJobsLength,
+                content: retunAppliedJobs
+            } });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.GetAppliedJobs = GetAppliedJobs;

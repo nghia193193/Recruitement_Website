@@ -341,16 +341,7 @@ const GetAllEvents = async (req, res, next) => {
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
-        if (!recruiter) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = {
-                content: []
-            };
-            throw error;
-        }
-        ;
-        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
@@ -693,7 +684,9 @@ const GetAllInterviewers = async (req, res, next) => {
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
-            error.result = null;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         ;
@@ -704,7 +697,9 @@ const GetAllInterviewers = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
-            error.result = null;
+            error.result = {
+                content: []
+            };
             throw error;
         }
         const roleInterviewerId = await role_1.Role.findOne({ roleName: "INTERVIEWER" });
