@@ -17,33 +17,14 @@ const jobApplySchema = new Schema({
         ref: 'User',
         required: true
     },
-    fullName: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    address: {
-        type: String,
-        required: true
-    },
     resumeId: {
         type: Schema.Types.ObjectId,
         ref: 'Resume',
         required: true
     },
-    phoneNumber: {
-        type: String,
-        required: true
-    },
-    note: {
-        type: String,
-        required: true
-    },
-    state: {
-        type: String,
+    note: String,
+    status: {
+        type: Number,
         required: true
     }
 });

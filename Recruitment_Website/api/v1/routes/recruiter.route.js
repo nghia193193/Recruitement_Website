@@ -451,4 +451,5 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
 ], recruiterController.UpdateEvent);
 router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
+router.get('/interviewers', middleware_1.isAuth, [], recruiterController.GetAllInterviewers);
 exports.default = router;

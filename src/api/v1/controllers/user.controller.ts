@@ -14,13 +14,7 @@ export const GetProfile = async (req: Request, res: Response, next: NextFunction
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findById(decodedToken.userId).populate('roleId');
-        if (!user) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
+        const user = await User.findById(decodedToken.userId).populate('roleId') as any;
         res.status(200).json({ 
             success: true,
             message: "Lấy dữ liệu thành công",
@@ -112,13 +106,7 @@ export const ChangePassword = async (req: Request, res: Response, next: NextFunc
 
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findOne(decodedToken.userId);
-        if (!user) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
+        const user = await User.findOne(decodedToken.userId) as any;
         const currentPassword: string = req.body.currentPassword;
         const newPassword: string = req.body.newPassword;
         const errors = validationResult(req);
@@ -155,14 +143,7 @@ export const ChangeAvatar = async (req: Request, res: Response, next: NextFuncti
       
     try {
         const decodedToken: any = await verifyToken(accessToken);
-        const user = await User.findById(decodedToken.userId);
-        if (!user) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
-
+        const user = await User.findById(decodedToken.userId) as any;
         if (!req.files || !req.files.avatarFile) {
             const error: Error & {statusCode?: number, result?: any} = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;

@@ -428,4 +428,6 @@ router.delete('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
 , recruiterController.DeleteEvent);
 
+router.get('/interviewers', isAuth, [], recruiterController.GetAllInterviewers);
+
 export default router;

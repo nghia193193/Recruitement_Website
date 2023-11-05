@@ -4,6 +4,7 @@ import * as nodemailer from 'nodemailer';
 
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
+export const ApplyStatus: string[] = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
 
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -55,4 +56,8 @@ export const isPDF = function isPDF(file: UploadedFile): boolean {
 export function isValidTimeFormat(timeString: string) {
   const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
   return timePattern.test(timeString);
+}
+
+export function CheckRoleRecruiter() {
+
 }

@@ -23,11 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.refreshKey = exports.secretKey = void 0;
+exports.CheckRoleRecruiter = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
+exports.ApplyStatus = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
@@ -82,3 +83,6 @@ function isValidTimeFormat(timeString) {
     return timePattern.test(timeString);
 }
 exports.isValidTimeFormat = isValidTimeFormat;
+function CheckRoleRecruiter() {
+}
+exports.CheckRoleRecruiter = CheckRoleRecruiter;

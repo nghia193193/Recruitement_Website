@@ -1,13 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
-import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken, isPDF } from '../utils';
+import { verifyToken, isPDF } from '../utils';
 import {v2 as cloudinary} from 'cloudinary';
 import { UploadedFile } from 'express-fileupload';
 import { ResumeUpload } from '../models/resumeUpload';
-import { Resume } from '../models/resume';
-import mongoose from 'mongoose';
+import { JobApply } from '../models/jobApply';
+
 
 export const GetResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.get('Authorization') as string;
@@ -16,13 +15,7 @@ export const GetResumes = async (req: Request, res: Response, next: NextFunction
     try {
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
-        if (!candidate) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
-        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
             const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
@@ -55,13 +48,7 @@ export const UploadResume = async (req: Request, res: Response, next: NextFuncti
     try {
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
-        if (!candidate) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
-        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
             const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
@@ -124,13 +111,7 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
     try {
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
-        if (!candidate) {
-            const error: Error & {statusCode?: number, result?: any} = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        };
-        if (candidate.get('roleId.roleName') !== 'CANDIDATE') {
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
             const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
@@ -166,5 +147,59 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
         }
         next(err);
     };
+};
+
+export const CheckApply = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const jobId = req.params.jobId;
+        const jobApply = await JobApply.findOne({jobId: jobId, candidateId: candidate._id.toString()});
+        if(!jobApply) {
+            res.status(200).json({success: true, message: 'Bạn chưa apply vào công việc này', result: null});
+        }
+        res.status(200).json({success: true, message: 'Bạn đã apply vào công việc này', result: {
+            jobAppliedId: jobId,
+            status: jobApply?.status
+        }});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+}
+
+export const ApplyJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const jobId = req.params.jobId;
+        const resumeId = req.body.resumeId;
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
 };
 

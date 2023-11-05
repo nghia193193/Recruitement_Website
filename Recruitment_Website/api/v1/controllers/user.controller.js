@@ -36,13 +36,6 @@ const GetProfile = async (req, res, next) => {
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findById(decodedToken.userId).populate('roleId');
-        if (!user) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        }
-        ;
         res.status(200).json({
             success: true,
             message: "Lấy dữ liệu thành công",
@@ -141,13 +134,6 @@ const ChangePassword = async (req, res, next) => {
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findOne(decodedToken.userId);
-        if (!user) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        }
-        ;
         const currentPassword = req.body.currentPassword;
         const newPassword = req.body.newPassword;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -188,13 +174,6 @@ const ChangeAvatar = async (req, res, next) => {
     try {
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findById(decodedToken.userId);
-        if (!user) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        }
-        ;
         if (!req.files || !req.files.avatarFile) {
             const error = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
