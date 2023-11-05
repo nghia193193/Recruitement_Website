@@ -7,6 +7,7 @@ const utils_1 = require("../utils");
 const cloudinary_1 = require("cloudinary");
 const resumeUpload_1 = require("../models/resumeUpload");
 const jobApply_1 = require("../models/jobApply");
+const job_1 = require("../models/job");
 const GetResumes = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -168,7 +169,15 @@ const CheckApply = async (req, res, next) => {
         }
         ;
         const jobId = req.params.jobId;
-        const jobApply = await jobApply_1.JobApply.findOne({ jobId: jobId, candidateId: candidate._id.toString() });
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const jobApply = await jobApply_1.JobApply.findOne({ jobAppliedId: jobId, candidateId: candidate._id.toString() });
         if (!jobApply) {
             res.status(200).json({ success: true, message: 'Bạn chưa apply vào công việc này', result: null });
         }
@@ -201,6 +210,35 @@ const ApplyJob = async (req, res, next) => {
         ;
         const jobId = req.params.jobId;
         const resumeId = req.body.resumeId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const isExist = resumeUpload_1.ResumeUpload.findById(resumeId);
+        if (!isExist) {
+            const error = new Error('Resume không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = new jobApply_1.JobApply({
+            jobAppliedId: jobId.toString(),
+            candidateId: candidate._id.toString(),
+            resumeId: resumeId,
+            status: utils_1.ApplyStatus[0]
+        });
+        await jobApply.save();
+        const job = await job_1.Job.findById(jobId);
+        res.status(200).json({ success: true, message: 'Apply thành công', result: {
+                jobAppliedId: jobApply.jobAppliedId,
+                status: jobApply.status,
+                appliedDate: jobApply.createdAt,
+                jobName: job?.name
+            } });
     }
     catch (err) {
         if (!err.statusCode) {

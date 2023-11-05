@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
-import { verifyToken, isPDF } from '../utils';
+import { verifyToken, isPDF, ApplyStatus } from '../utils';
 import {v2 as cloudinary} from 'cloudinary';
 import { UploadedFile } from 'express-fileupload';
 import { ResumeUpload } from '../models/resumeUpload';
 import { JobApply } from '../models/jobApply';
+import { Job } from '../models/job';
 
 
 export const GetResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -162,7 +163,14 @@ export const CheckApply = async (req: Request, res: Response, next: NextFunction
             throw error;
         };
         const jobId = req.params.jobId;
-        const jobApply = await JobApply.findOne({jobId: jobId, candidateId: candidate._id.toString()});
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        };
+        const jobApply = await JobApply.findOne({jobAppliedId: jobId, candidateId: candidate._id.toString()});
         if(!jobApply) {
             res.status(200).json({success: true, message: 'Bạn chưa apply vào công việc này', result: null});
         }
@@ -193,7 +201,34 @@ export const ApplyJob = async (req: Request, res: Response, next: NextFunction):
         };
         const jobId = req.params.jobId;
         const resumeId = req.body.resumeId;
-
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        };
+        const isExist = ResumeUpload.findById(resumeId);
+        if (!isExist) {
+            const error: Error & {statusCode?: number, result?: any} = new Error('Resume không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = new JobApply({
+            jobAppliedId: jobId.toString(),
+            candidateId: candidate._id.toString(),
+            resumeId: resumeId,
+            status: ApplyStatus[0]
+        })
+        await jobApply.save();
+        const job = await Job.findById(jobId);
+        res.status(200).json({success: true, message: 'Apply thành công', result: {
+            jobAppliedId: jobApply.jobAppliedId,
+            status: jobApply.status,
+            appliedDate: jobApply.createdAt,
+            jobName: job?.name
+        }})
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;

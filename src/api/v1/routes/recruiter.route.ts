@@ -322,18 +322,18 @@ router.post('/events', isAuth, [
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
         .custom((value: string, {req}) => {
-            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
-                throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+                throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách ,/:');
             };
             return true;
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
         .custom((value: string, {req}) => {
-            const regex = /^[\p{L} .,\/:0-9]+$/u;
+            const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
-                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách ,/:');
             };
             return true;
         }),

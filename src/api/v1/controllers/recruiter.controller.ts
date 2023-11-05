@@ -491,6 +491,7 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
             throw error;
         };
         const {title, name, description, time, location, deadline, startAt} = req.body;
+        console.log(title, name, time);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);

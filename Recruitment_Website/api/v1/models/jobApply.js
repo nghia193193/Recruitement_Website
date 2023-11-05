@@ -7,7 +7,7 @@ exports.JobApply = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const jobApplySchema = new Schema({
-    jobId: {
+    jobAppliedId: {
         type: Schema.Types.ObjectId,
         ref: 'Job',
         required: true
@@ -27,5 +27,7 @@ const jobApplySchema = new Schema({
         type: String,
         required: true
     }
+}, {
+    timestamps: true
 });
 exports.JobApply = mongoose_1.default.model('JobApply', jobApplySchema);

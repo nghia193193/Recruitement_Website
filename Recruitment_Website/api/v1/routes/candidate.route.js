@@ -31,4 +31,11 @@ const router = (0, express_1.Router)();
 router.get('/resumes', middleware_1.isAuth, candidateController.GetResumes);
 router.put('/resumes', middleware_1.isAuth, candidateController.UploadResume);
 router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.DeleteResume);
+router.get('/applied-jobs/:jobId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
+], candidateController.CheckApply);
+router.post('/jobs/:jobId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
+    (0, express_validator_1.body)('resumeId').trim().isMongoId().withMessage('resumeId không hợp lệ')
+], candidateController.ApplyJob);
 exports.default = router;
