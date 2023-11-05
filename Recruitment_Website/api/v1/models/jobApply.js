@@ -24,7 +24,7 @@ const jobApplySchema = new Schema({
     },
     note: String,
     status: {
-        type: Number,
+        type: String,
         required: true
     }
 });
