@@ -28,6 +28,13 @@ const userSchema = new Schema(
             publicId: String,
             url: String
         },
+        skills: [
+            {
+                skillId: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'Skill',
+                }
+        }],
         isVerifiedEmail: Boolean,
         address: String,
         dateOfBirth: Date,

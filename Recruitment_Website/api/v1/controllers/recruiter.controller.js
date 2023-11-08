@@ -485,7 +485,6 @@ const CreateEvent = async (req, res, next) => {
         }
         ;
         const { title, name, description, time, location, deadline, startAt } = req.body;
-        console.log(title, name, time);
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);

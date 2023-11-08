@@ -45,6 +45,10 @@ router.get('/jobs/applicants', isAuth, [
             return true;
         })
 ], candidateController.GetAppliedJobs);
+
+router.put('/information', isAuth, candidateController.saveInformation);
+router.get('/information', isAuth, candidateController.getInformation);
+
  
 export default router;
 
