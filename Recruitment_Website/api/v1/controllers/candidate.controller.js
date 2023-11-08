@@ -407,9 +407,11 @@ const saveInformation = async (req, res, next) => {
         }
         if (skills.length !== 0) {
             for (let i = 0; i < skills.length; i++) {
-                let skillId = await skill_1.Skill.findOne({ name: skills[i].label });
-                candidate.skills.push(skillId._id);
+                console.log("Skill: " + skills[i].label);
+                let skill = await skill_1.Skill.findOne({ name: skills[i].label });
+                candidate.skills.push(skill._id);
             }
+            await candidate.save();
         }
         res.status(200).json({ success: true, message: "Successfully!", result: null });
     }
@@ -473,7 +475,10 @@ const getInformation = async (req, res, next) => {
         let skills = [];
         for (let i = 0; i < candidate.skills.length; i++) {
             let skill = await skill_1.Skill.findById(candidate.skills[i]);
-            skills.push(skill?.name);
+            skills.push({
+                skillId: skill?._id.toString(),
+                name: skill?.name
+            });
         }
         res.status(200).json({ success: true, message: "Successfully!", result: {
                 education: returnEducationList,

@@ -391,9 +391,11 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
         }
         if (skills.length !== 0) {
             for (let i=0; i<skills.length; i++) {
-                let skillId = await Skill.findOne({name: skills[i].label});
-                candidate.skills.push((skillId as any)._id);
+                console.log("Skill: "+skills[i].label);
+                let skill = await Skill.findOne({name: skills[i].label});
+                candidate.skills.push((skill as any)._id);
             }
+            await candidate.save();
         }
         res.status(200).json({success: true, message: "Successfully!", result: null});
     } catch (err) {
@@ -456,7 +458,10 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
         let skills = [];
         for (let i=0; i<candidate.skills.length; i++) {
             let skill = await Skill.findById(candidate.skills[i]);
-            skills.push(skill?.name);
+            skills.push({
+                skillId: skill?._id.toString(),
+                name: skill?.name
+            });
         } 
         res.status(200).json({success: true, message: "Successfully!", result: {
             education: returnEducationList,
