@@ -689,7 +689,7 @@ const GetAllInterviewers = async (req, res, next) => {
             throw error;
         }
         ;
-        const { name } = req.query;
+        const { name, skill } = req.query;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -706,15 +706,34 @@ const GetAllInterviewers = async (req, res, next) => {
             roleId: roleInterviewerId?._id.toString()
         };
         if (req.query['name']) {
-            query['name'] = req.query['name'];
+            query['fullName'] = new RegExp(req.query['name'], 'i');
         }
         ;
+        if (req.query['skill']) {
+            const skillId = await skill_1.Skill.findOne({ name: req.query['skill'] });
+            query['skills.skillId'] = skillId;
+        }
         console.log(query);
-        const interviewerList = await user_1.User.find(query).populate('roleId')
+        const interviewerList = await user_1.User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
+        const returnInterviewerList = interviewerList.map(interviewer => {
+            let listSkill = [];
+            for (let i = 0; i < interviewer.skills.length; i++) {
+                listSkill.push(interviewer.skills[i].skillId.name);
+            }
+            return {
+                fullName: interviewer.fullName,
+                about: interviewer.about,
+                email: interviewer.email,
+                dateOfBirth: interviewer.dateOfBirth,
+                address: interviewer.address,
+                phone: interviewer.phone,
+                skills: listSkill
+            };
+        });
         console.log(interviewerList);
-        res.status(200).json({ success: true, message: 'Successfully', result: null });
+        res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewerList });
     }
     catch (err) {
         if (!err.statusCode) {

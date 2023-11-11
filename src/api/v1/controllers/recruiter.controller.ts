@@ -693,7 +693,7 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             };
             throw error;
         };
-        const {name} = req.query;
+        const {name, skill} = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
@@ -710,14 +710,33 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             roleId: roleInterviewerId?._id.toString()
         };
         if (req.query['name']) {
-            query['name'] = req.query['name'];
+            query['fullName'] = new RegExp((req.query['name'] as any), 'i');
         };
+        if (req.query['skill']) {
+            const skillId = await Skill.findOne({name: req.query['skill']});
+            query['skills.skillId'] = skillId;
+        }
         console.log(query);
-        const interviewerList = await User.find(query).populate('roleId')
+        const interviewerList = await User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
-        console.log(interviewerList);
-        res.status(200).json({success: true, message: 'Successfully', result: null});
+        const returnInterviewerList = interviewerList.map(interviewer => {
+            let listSkill = []
+            for (let i=0;i<interviewer.skills.length;i++) {
+                listSkill.push((interviewer.skills[i].skillId as any).name);
+            }
+            return {
+                fullName: interviewer.fullName,
+                about: interviewer.about,
+                email: interviewer.email,
+                dateOfBirth: interviewer.dateOfBirth,
+                address: interviewer.address,
+                phone: interviewer.phone,
+                skills: listSkill
+            }
+        })
+        console.log(interviewerList)
+        res.status(200).json({success: true, message: 'Successfully', result: returnInterviewerList});
 
     } catch (err) {
         if (!(err as any).statusCode) {

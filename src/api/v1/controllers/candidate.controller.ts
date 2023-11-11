@@ -391,9 +391,8 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
         }
         if (skills.length !== 0) {
             for (let i=0; i<skills.length; i++) {
-                console.log("Skill: "+skills[i].label);
                 let skill = await Skill.findOne({name: skills[i].label});
-                candidate.skills.push((skill as any)._id);
+                candidate.skills.push({skillId: (skill as any)._id});
             }
             await candidate.save();
         }

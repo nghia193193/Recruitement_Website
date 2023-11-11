@@ -407,9 +407,8 @@ const saveInformation = async (req, res, next) => {
         }
         if (skills.length !== 0) {
             for (let i = 0; i < skills.length; i++) {
-                console.log("Skill: " + skills[i].label);
                 let skill = await skill_1.Skill.findOne({ name: skills[i].label });
-                candidate.skills.push(skill._id);
+                candidate.skills.push({ skillId: skill._id });
             }
             await candidate.save();
         }
