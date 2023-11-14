@@ -428,6 +428,31 @@ router.delete('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
 , recruiterController.DeleteEvent);
 
-router.get('/interviewers', isAuth, [], recruiterController.GetAllInterviewers);
+router.get('/interviewers', isAuth, [
+    query('name').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+                };
+                return true
+            }
+            return true;
+        }),
+    query('skill').trim()
+        .custom( async (value, {req}) => {
+            if (value) {
+                const skill = await Skill.findOne({ name: value });
+                if (!skill) {
+                    throw new Error(`Skill: '${value}' không hợp lệ`);
+                }
+            }
+            return true;
+        })
+], recruiterController.GetAllInterviewers);
+router.get('/interviewers/:interviewerId', isAuth, [
+    param('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
+], recruiterController.GetSingleInterviewer);
 
 export default router;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -713,7 +713,6 @@ const GetAllInterviewers = async (req, res, next) => {
             const skillId = await skill_1.Skill.findOne({ name: req.query['skill'] });
             query['skills.skillId'] = skillId;
         }
-        console.log(query);
         const interviewerList = await user_1.User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
@@ -723,6 +722,7 @@ const GetAllInterviewers = async (req, res, next) => {
                 listSkill.push(interviewer.skills[i].skillId.name);
             }
             return {
+                interviewerId: interviewer._id.toString(),
                 fullName: interviewer.fullName,
                 about: interviewer.about,
                 email: interviewer.email,
@@ -732,7 +732,6 @@ const GetAllInterviewers = async (req, res, next) => {
                 skills: listSkill
             };
         });
-        console.log(interviewerList);
         res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewerList });
     }
     catch (err) {
@@ -744,3 +743,55 @@ const GetAllInterviewers = async (req, res, next) => {
     }
 };
 exports.GetAllInterviewers = GetAllInterviewers;
+const GetSingleInterviewer = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const interviewerId = req.params.interviewerId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const interviewer = await user_1.User.findById(interviewerId).populate('roleId skills.skillId');
+        if (!interviewer) {
+            const error = new Error('Interviewer không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        let listSkill = [];
+        for (let i = 0; i < interviewer.skills.length; i++) {
+            listSkill.push(interviewer.skills[i].skillId.name);
+        }
+        const returnInterviewer = {
+            fullName: interviewer.fullName,
+            about: interviewer.about,
+            email: interviewer.email,
+            dateOfBirth: interviewer.dateOfBirth,
+            address: interviewer.address,
+            phone: interviewer.phone,
+            skills: listSkill
+        };
+        res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewer });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.GetSingleInterviewer = GetSingleInterviewer;

@@ -716,16 +716,16 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             const skillId = await Skill.findOne({name: req.query['skill']});
             query['skills.skillId'] = skillId;
         }
-        console.log(query);
         const interviewerList = await User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
         const returnInterviewerList = interviewerList.map(interviewer => {
-            let listSkill = []
+            let listSkill = [];
             for (let i=0;i<interviewer.skills.length;i++) {
                 listSkill.push((interviewer.skills[i].skillId as any).name);
             }
             return {
+                interviewerId: interviewer._id.toString(),
                 fullName: interviewer.fullName,
                 about: interviewer.about,
                 email: interviewer.email,
@@ -735,8 +735,59 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
                 skills: listSkill
             }
         })
-        console.log(interviewerList)
         res.status(200).json({success: true, message: 'Successfully', result: returnInterviewerList});
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const GetSingleInterviewer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const interviewerId = req.params.interviewerId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const interviewer = await User.findById(interviewerId).populate('roleId skills.skillId')
+        if(!interviewer) {
+            const error: Error & {statusCode?: any, result?: any} = new Error('Interviewer không tồn tại');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        let listSkill = [];
+        for (let i=0;i<interviewer.skills.length;i++) {
+            listSkill.push((interviewer.skills[i].skillId as any).name);
+        }
+        const returnInterviewer = {
+            fullName: interviewer.fullName,
+            about: interviewer.about,
+            email: interviewer.email,
+            dateOfBirth: interviewer.dateOfBirth,
+            address: interviewer.address,
+            phone: interviewer.phone,
+            skills: listSkill
+        }
+        res.status(200).json({success: true, message: 'Successfully', result: returnInterviewer});
 
     } catch (err) {
         if (!(err as any).statusCode) {

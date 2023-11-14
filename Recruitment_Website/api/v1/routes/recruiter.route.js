@@ -451,5 +451,31 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
 ], recruiterController.UpdateEvent);
 router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
-router.get('/interviewers', middleware_1.isAuth, [], recruiterController.GetAllInterviewers);
+router.get('/interviewers', middleware_1.isAuth, [
+    (0, express_validator_1.query)('name').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[\p{L} ]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('skill').trim()
+        .custom(async (value, { req }) => {
+        if (value) {
+            const skill = await skill_1.Skill.findOne({ name: value });
+            if (!skill) {
+                throw new Error(`Skill: '${value}' không hợp lệ`);
+            }
+        }
+        return true;
+    })
+], recruiterController.GetAllInterviewers);
+router.get('/interviewers/:interviewerId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
+], recruiterController.GetSingleInterviewer);
 exports.default = router;
