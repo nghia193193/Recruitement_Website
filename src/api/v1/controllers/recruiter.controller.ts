@@ -12,6 +12,8 @@ import { Event } from '../models/event';
 import {UploadedFile} from 'express-fileupload';
 import {v2 as cloudinary} from 'cloudinary';
 import { Role } from '../models/role';
+import { JobApply } from '../models/jobApply';
+import mongoose from 'mongoose';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -788,6 +790,51 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
             skills: listSkill
         }
         res.status(200).json({success: true, message: 'Successfully', result: returnInterviewer});
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const GetAllApplicants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.get('Authorization') as string;
+    const accessToken = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const ListApplicants = await JobApply.find()
+            .populate({
+                path: 'jobAppliedId',
+                model: Job,
+                match: {
+                    authorId: recruiter._id.toString()
+                },
+            })
+            .populate({
+                path: 'candidateId',
+                model: User
+            })
+        console.log(ListApplicants);
+        res.status(200).json({success: true, message: 'Successfully', result: null});
 
     } catch (err) {
         if (!(err as any).statusCode) {

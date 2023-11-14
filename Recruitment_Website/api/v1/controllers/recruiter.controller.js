@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -12,6 +15,8 @@ const skill_1 = require("../models/skill");
 const event_1 = require("../models/event");
 const cloudinary_1 = require("cloudinary");
 const role_1 = require("../models/role");
+const jobApply_1 = require("../models/jobApply");
+const mongoose_1 = __importDefault(require("mongoose"));
 const GetAllJobs = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -795,3 +800,49 @@ const GetSingleInterviewer = async (req, res, next) => {
     }
 };
 exports.GetSingleInterviewer = GetSingleInterviewer;
+const GetAllApplicants = async (req, res, next) => {
+    const authHeader = req.get('Authorization');
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const recruiterId = '651935ff08c696d277adcc55';
+        const recruiterObjectId = new mongoose_1.default.Types.ObjectId(recruiterId);
+        const ListApplicants = await jobApply_1.JobApply.find()
+            .populate({
+            path: 'jobAppliedId',
+            model: job_1.Job,
+            match: {
+                authorId: recruiter._id.toString()
+            },
+        })
+            .populate({
+            path: 'candidateId',
+            model: user_1.User
+        });
+        console.log(ListApplicants);
+        res.status(200).json({ success: true, message: 'Successfully', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.GetAllApplicants = GetAllApplicants;
