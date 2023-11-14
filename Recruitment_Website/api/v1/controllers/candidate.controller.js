@@ -360,6 +360,12 @@ const saveInformation = async (req, res, next) => {
         }
         ;
         const { education, experience, certificate, project, skills } = req.body;
+        await education_1.Education.deleteMany({ candidateId: candidate._id.toString() });
+        await experience_1.Experience.deleteMany({ candidateId: candidate._id.toString() });
+        await certificate_1.Certificate.deleteMany({ candidateId: candidate._id.toString() });
+        await project_1.Project.deleteMany({ candidateId: candidate._id.toString() });
+        candidate.skills = [];
+        await candidate.save();
         if (education.length !== 0) {
             for (let i = 0; i < education.length; i++) {
                 let e = new education_1.Education({
@@ -473,7 +479,7 @@ const getInformation = async (req, res, next) => {
         });
         let skills = [];
         for (let i = 0; i < candidate.skills.length; i++) {
-            let skill = await skill_1.Skill.findById(candidate.skills[i]);
+            let skill = await skill_1.Skill.findById(candidate.skills[i].skillId);
             skills.push({
                 skillId: skill?._id.toString(),
                 name: skill?.name
