@@ -6,6 +6,7 @@ import userRoutes from './user.route';
 import candidateRoutes from './candidate.route';
 import recruiterRoutes from './recruiter.route';
 import skillRoutes from './skill.route';
+import interviewerRoutes from './interviewer.route';
 
 const routes = Router();
 
@@ -16,5 +17,6 @@ routes.use('/api/v1/user', userRoutes);
 routes.use('/api/v1/candidate', candidateRoutes);
 routes.use('/api/v1/recruiter', recruiterRoutes);
 routes.use('/api/v1/skills', skillRoutes);
+routes.use('/api/v1/interviewers', interviewerRoutes);
 
 export default routes;

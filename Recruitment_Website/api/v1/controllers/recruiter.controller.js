@@ -1,7 +1,4 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
@@ -16,7 +13,10 @@ const event_1 = require("../models/event");
 const cloudinary_1 = require("cloudinary");
 const role_1 = require("../models/role");
 const jobApply_1 = require("../models/jobApply");
-const mongoose_1 = __importDefault(require("mongoose"));
+const education_1 = require("../models/education");
+const experience_1 = require("../models/experience");
+const certificate_1 = require("../models/certificate");
+const project_1 = require("../models/project");
 const GetAllJobs = async (req, res, next) => {
     const authHeader = req.get('Authorization');
     const accessToken = authHeader.split(' ')[1];
@@ -721,23 +721,73 @@ const GetAllInterviewers = async (req, res, next) => {
         const interviewerList = await user_1.User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
-        const returnInterviewerList = interviewerList.map(interviewer => {
-            let listSkill = [];
-            for (let i = 0; i < interviewer.skills.length; i++) {
-                listSkill.push(interviewer.skills[i].skillId.name);
-            }
-            return {
-                interviewerId: interviewer._id.toString(),
-                fullName: interviewer.fullName,
-                about: interviewer.about,
-                email: interviewer.email,
-                dateOfBirth: interviewer.dateOfBirth,
-                address: interviewer.address,
-                phone: interviewer.phone,
-                skills: listSkill
-            };
+        const returnInterviewerList = async () => {
+            const mappedInterviewers = await Promise.all(interviewerList.map(async (interviewer) => {
+                try {
+                    const educationList = await education_1.Education.find({ candidateId: interviewer._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        };
+                    });
+                    const experienceList = await experience_1.Experience.find({ candidateId: interviewer._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        };
+                    });
+                    const certificateList = await certificate_1.Certificate.find({ candidateId: interviewer._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        };
+                    });
+                    const projectList = await project_1.Project.find({ candidateId: interviewer._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        };
+                    });
+                    let listSkill = [];
+                    for (let i = 0; i < interviewer.skills.length; i++) {
+                        listSkill.push({ label: interviewer.skills[i].skillId.name, value: i });
+                    }
+                    return {
+                        interviewerId: interviewer._id.toString(),
+                        fullName: interviewer.fullName,
+                        about: interviewer.about,
+                        email: interviewer.email,
+                        dateOfBirth: interviewer.dateOfBirth,
+                        address: interviewer.address,
+                        phone: interviewer.phone,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    };
+                }
+                catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            }));
+            return mappedInterviewers.filter(interviewer => interviewer !== null);
+        };
+        returnInterviewerList().then(mappedInterviewers => {
+            res.status(200).json({ success: true, message: 'Successfully', result: mappedInterviewers });
         });
-        res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewerList });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -776,9 +826,42 @@ const GetSingleInterviewer = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        const educationList = await education_1.Education.find({ candidateId: interviewer._id.toString() });
+        const returnEducationList = educationList.map(e => {
+            return {
+                school: e.school,
+                major: e.major,
+                graduatedYead: e.graduatedYear
+            };
+        });
+        const experienceList = await experience_1.Experience.find({ candidateId: interviewer._id.toString() });
+        const returnExperienceList = experienceList.map(e => {
+            return {
+                companyName: e.companyName,
+                position: e.position,
+                dateFrom: e.dateFrom,
+                dateTo: e.dateTo
+            };
+        });
+        const certificateList = await certificate_1.Certificate.find({ candidateId: interviewer._id.toString() });
+        const returnCertificateList = certificateList.map(c => {
+            return {
+                name: c.name,
+                receivedDate: c.receivedDate,
+                url: c.url
+            };
+        });
+        const projectList = await project_1.Project.find({ candidateId: interviewer._id.toString() });
+        const returnProjectList = projectList.map(p => {
+            return {
+                name: p.name,
+                description: p.description,
+                url: p.url
+            };
+        });
         let listSkill = [];
         for (let i = 0; i < interviewer.skills.length; i++) {
-            listSkill.push(interviewer.skills[i].skillId.name);
+            listSkill.push({ label: interviewer.skills[i].skillId.name, value: i });
         }
         const returnInterviewer = {
             fullName: interviewer.fullName,
@@ -787,7 +870,14 @@ const GetSingleInterviewer = async (req, res, next) => {
             dateOfBirth: interviewer.dateOfBirth,
             address: interviewer.address,
             phone: interviewer.phone,
-            skills: listSkill
+            skills: listSkill,
+            information: {
+                education: returnEducationList,
+                experience: returnExperienceList,
+                certificate: returnCertificateList,
+                project: returnProjectList,
+                skills: listSkill
+            }
         };
         res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewer });
     }
@@ -820,8 +910,6 @@ const GetAllApplicants = async (req, res, next) => {
             error.result = null;
             throw error;
         }
-        const recruiterId = '651935ff08c696d277adcc55';
-        const recruiterObjectId = new mongoose_1.default.Types.ObjectId(recruiterId);
         const ListApplicants = await jobApply_1.JobApply.find()
             .populate({
             path: 'jobAppliedId',
