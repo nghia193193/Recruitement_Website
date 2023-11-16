@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node Recruitment_website/api/v1/app.js",
     "start-server": "node Recruitment_website/api/v1/app.js",
-    "start:dev": "nodemon Recruitment_website/api/v1/app.js"
+    "start:dev": "concurrently \"tsc -w\" \"nodemon Recruitment_website/api/v1/app.js\""
   },
   "author": "Nghia",
   "license": "ISC",
@@ -42,6 +42,7 @@
     "@types/sanitize-html": "^2.9.0",
     "@types/swagger-jsdoc": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.5",
+    "concurrently": "^8.2.2",
     "nodemon": "^3.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
