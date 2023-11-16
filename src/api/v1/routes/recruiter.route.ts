@@ -457,5 +457,8 @@ router.get('/interviewers/:interviewerId', isAuth, [
 ], recruiterController.GetSingleInterviewer);
 
 router.get('/applied-candidates', isAuth, [], recruiterController.GetAllApplicants);
+router.get('/applied-candidates/:userId', isAuth, [
+    param('userId').trim().isMongoId().withMessage('Id không hợp lệ')
+], recruiterController.GetSingleApplicants);
 
 export default router;

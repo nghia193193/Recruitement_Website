@@ -479,4 +479,7 @@ router.get('/interviewers/:interviewerId', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleInterviewer);
 router.get('/applied-candidates', middleware_1.isAuth, [], recruiterController.GetAllApplicants);
+router.get('/applied-candidates/:userId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('Id không hợp lệ')
+], recruiterController.GetSingleApplicants);
 exports.default = router;
