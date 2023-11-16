@@ -722,6 +722,7 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             const skillId = await Skill.findOne({name: req.query['skill']});
             query['skills.skillId'] = skillId;
         }
+        const interviewerLength = await User.find(query).countDocuments();
         const interviewerList = await User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
@@ -792,7 +793,13 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             return mappedInterviewers.filter(interviewer => interviewer !== null);
         };
         returnInterviewerList().then(mappedInterviewers => {
-            res.status(200).json({success: true, message: 'Successfully', result: mappedInterviewers});
+            res.status(200).json({success: true, message: 'Successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviewerLength/limit),
+                limit: limit,
+                totalElements: interviewerLength,
+                content: mappedInterviewers
+            }});
         });
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -909,7 +916,8 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
             error.result = null;
             throw error;
         };
-        const {name, skill} = req.query;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
@@ -944,6 +952,9 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                     model: Skill,
                 }
             })
+            .skip((page - 1) * limit)
+            .limit(limit);
+        
         ListApplicants.forEach(app => {
             console.log((app.candidateId as any).skills);
         })

@@ -718,6 +718,7 @@ const GetAllInterviewers = async (req, res, next) => {
             const skillId = await skill_1.Skill.findOne({ name: req.query['skill'] });
             query['skills.skillId'] = skillId;
         }
+        const interviewerLength = await user_1.User.find(query).countDocuments();
         const interviewerList = await user_1.User.find(query).populate('roleId skills.skillId')
             .skip((page - 1) * limit)
             .limit(limit);
@@ -786,7 +787,13 @@ const GetAllInterviewers = async (req, res, next) => {
             return mappedInterviewers.filter(interviewer => interviewer !== null);
         };
         returnInterviewerList().then(mappedInterviewers => {
-            res.status(200).json({ success: true, message: 'Successfully', result: mappedInterviewers });
+            res.status(200).json({ success: true, message: 'Successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(interviewerLength / limit),
+                    limit: limit,
+                    totalElements: interviewerLength,
+                    content: mappedInterviewers
+                } });
         });
     }
     catch (err) {
@@ -903,7 +910,8 @@ const GetAllApplicants = async (req, res, next) => {
             throw error;
         }
         ;
-        const { name, skill } = req.query;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
@@ -938,7 +946,9 @@ const GetAllApplicants = async (req, res, next) => {
                 path: 'skills.skillId',
                 model: skill_1.Skill,
             }
-        });
+        })
+            .skip((page - 1) * limit)
+            .limit(limit);
         ListApplicants.forEach(app => {
             console.log(app.candidateId.skills);
         });
