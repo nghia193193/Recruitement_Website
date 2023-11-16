@@ -764,6 +764,7 @@ const GetAllInterviewers = async (req, res, next) => {
                     }
                     return {
                         interviewerId: interviewer._id.toString(),
+                        avatar: interviewer.avatar?.url,
                         fullName: interviewer.fullName,
                         about: interviewer.about,
                         email: interviewer.email,
@@ -872,6 +873,7 @@ const GetSingleInterviewer = async (req, res, next) => {
         }
         const returnInterviewer = {
             fullName: interviewer.fullName,
+            avatar: interviewer.avatar?.url,
             about: interviewer.about,
             email: interviewer.email,
             dateOfBirth: interviewer.dateOfBirth,

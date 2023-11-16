@@ -770,6 +770,7 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
                         }
                         return {
                             interviewerId: interviewer._id.toString(),
+                            avatar: interviewer.avatar?.url,
                             fullName: interviewer.fullName,
                             about: interviewer.about,
                             email: interviewer.email,
@@ -878,6 +879,7 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
         }
         const returnInterviewer = {
             fullName: interviewer.fullName,
+            avatar: interviewer.avatar?.url,
             about: interviewer.about,
             email: interviewer.email,
             dateOfBirth: interviewer.dateOfBirth,
