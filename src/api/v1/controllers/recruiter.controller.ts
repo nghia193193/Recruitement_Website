@@ -21,10 +21,9 @@ import { Project } from '../models/project';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -117,12 +116,12 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
 };
 
 export const CreateJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    const { name, jobType, quantity, benefit, salaryRange, 
-        requirement, location, description, deadline, position, skillRequired } = req.body;
-    const errors = validationResult(req);
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const { name, jobType, quantity, benefit, salaryRange, 
+            requirement, location, description, deadline, position, skillRequired } = req.body;
+        const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -174,11 +173,11 @@ export const CreateJob = async (req: Request, res: Response, next: NextFunction)
 };
 
 export const GetSingleJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    const jobId = req.params.jobId;
-    const errors = validationResult(req);
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const jobId = req.params.jobId;
+        const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -228,13 +227,13 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const UpdateJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    const jobId = req.params.jobId;
-    const { name, jobType, quantity, benefit, salaryRange, 
-        requirement, location, description, deadline, position, skillRequired } = req.body;
-    const errors = validationResult(req);
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const jobId = req.params.jobId;
+        const { name, jobType, quantity, benefit, salaryRange, 
+            requirement, location, description, deadline, position, skillRequired } = req.body;
+        const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -289,11 +288,11 @@ export const UpdateJob = async (req: Request, res: Response, next: NextFunction)
 };
 
 export const DeleteJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    const jobId = req.params.jobId;
-    const errors = validationResult(req);
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const jobId = req.params.jobId;
+        const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
@@ -333,10 +332,9 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
 };
 
 export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -410,10 +408,9 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const GetSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
@@ -468,10 +465,9 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
 };
 
 export const CreateEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
@@ -549,10 +545,9 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const UpdateEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
@@ -634,10 +629,9 @@ export const UpdateEvent = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const DeleteEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
@@ -685,10 +679,9 @@ export const DeleteEvent = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const GetAllInterviewers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -812,10 +805,9 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
 };
 
 export const GetSingleInterviewer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -906,10 +898,9 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
 };
 
 export const GetAllApplicants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -1040,10 +1031,9 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
 };
 
 export const GetSingleApplicants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {

@@ -109,7 +109,7 @@ router.post('/job',isAuth , [
         }),
     body('quantity').trim()
         .notEmpty().withMessage('Vui lòng nhập số lượng')
-        .isNumeric().withMessage('Số lượng phải là số'),
+        .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     body('benefit').trim()
         .isLength({min: 5, max:200}).withMessage('Benefit trong khoảng 5-200 ký tự')
         .custom((value, {req}) => {
@@ -210,7 +210,7 @@ router.put('/jobs/:jobId',isAuth , [
         }),
     body('quantity').trim()
         .notEmpty().withMessage('Vui lòng nhập số lượng')
-        .isNumeric().withMessage('Số lượng phải là số'),
+        .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     body('benefit').trim()
         .isLength({min: 5, max:200}).withMessage('Benefit trong khoảng 5-200 ký tự')
         .custom((value, {req}) => {
