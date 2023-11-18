@@ -511,4 +511,9 @@ router.get('/jobs/:jobId/candidates', isAuth, [
         }),
 ], recruiterController.getApplicantsJob);
 
+router.get('/jobs/:jobId/candidates/:candidateId', isAuth, [
+    param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
+    param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
+], recruiterController.getSingleApplicantsJob);
+
 export default router;

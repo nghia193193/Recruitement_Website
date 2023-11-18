@@ -533,4 +533,8 @@ router.get('/jobs/:jobId/candidates', middleware_1.isAuth, [
         return true;
     }),
 ], recruiterController.getApplicantsJob);
+router.get('/jobs/:jobId/candidates/:candidateId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
+    (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
+], recruiterController.getSingleApplicantsJob);
 exports.default = router;

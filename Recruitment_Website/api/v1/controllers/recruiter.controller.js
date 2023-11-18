@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -1257,3 +1257,106 @@ const getApplicantsJob = async (req, res, next) => {
     }
 };
 exports.getApplicantsJob = getApplicantsJob;
+const getSingleApplicantsJob = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const { jobId, candidateId } = req.params;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const applicant = await jobApply_1.JobApply.findOne({ jobAppliedId: jobId, candidateId: candidateId })
+            .populate({
+            path: 'candidateId',
+            model: user_1.User,
+            populate: {
+                path: 'skills.skillId',
+                model: skill_1.Skill
+            }
+        });
+        if (!applicant) {
+            const error = new Error('Không thể tìm thấy ứng viên');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const educationList = await education_1.Education.find({ candidateId: applicant.candidateId._id.toString() });
+        const returnEducationList = educationList.map(e => {
+            return {
+                school: e.school,
+                major: e.major,
+                graduatedYead: e.graduatedYear
+            };
+        });
+        const experienceList = await experience_1.Experience.find({ candidateId: applicant.candidateId._id.toString() });
+        const returnExperienceList = experienceList.map(e => {
+            return {
+                companyName: e.companyName,
+                position: e.position,
+                dateFrom: e.dateFrom,
+                dateTo: e.dateTo
+            };
+        });
+        const certificateList = await certificate_1.Certificate.find({ candidateId: applicant.candidateId._id.toString() });
+        const returnCertificateList = certificateList.map(c => {
+            return {
+                name: c.name,
+                receivedDate: c.receivedDate,
+                url: c.url
+            };
+        });
+        const projectList = await project_1.Project.find({ candidateId: applicant.candidateId._id.toString() });
+        const returnProjectList = projectList.map(p => {
+            return {
+                name: p.name,
+                description: p.description,
+                url: p.url
+            };
+        });
+        let listSkill = [];
+        for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
+            listSkill.push({ label: applicant.get('candidateId.skills')[i].skillId.name, value: i });
+        }
+        const returnApplicant = {
+            candidateId: applicant.candidateId._id.toString(),
+            avatar: applicant.get('candidateId.avatar.url'),
+            fullName: applicant.get('candidateId.fullName'),
+            about: applicant.get('candidateId.about'),
+            email: applicant.get('candidateId.email'),
+            dateOfBirth: applicant.get('candidateId.dateOfBirth'),
+            address: applicant.get('candidateId.address'),
+            phone: applicant.get('candidateId.phone'),
+            information: {
+                education: returnEducationList,
+                experience: returnExperienceList,
+                certificate: returnCertificateList,
+                project: returnProjectList,
+                skills: listSkill
+            }
+        };
+        res.status(200).json({ success: true, message: 'Successfully', result: returnApplicant });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getSingleApplicantsJob = getSingleApplicantsJob;
