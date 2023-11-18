@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -176,8 +176,6 @@ const GetSingleJob = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const jobId = req.params.jobId;
-        const errors = (0, express_validator_1.validationResult)(req);
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
@@ -187,6 +185,8 @@ const GetSingleJob = async (req, res, next) => {
             throw error;
         }
         ;
+        const jobId = req.params.jobId;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -194,7 +194,8 @@ const GetSingleJob = async (req, res, next) => {
             throw error;
         }
         ;
-        const job = await job_1.Job.findOne({ authorId: recruiter._id, _id: jobId }).populate('positionId locationId typeId skills.skillId');
+        const job = await job_1.Job.findOne({ authorId: recruiter._id, _id: jobId })
+            .populate('positionId locationId typeId skills.skillId');
         if (!job) {
             const error = new Error('Không tìm thấy job');
             error.statusCode = 409;
@@ -996,6 +997,7 @@ const GetAllApplicants = async (req, res, next) => {
                     }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
+                        avatar: applicant.get('candidateId.avatar.url'),
                         fullName: applicant.get('candidateId.fullName'),
                         about: applicant.get('candidateId.about'),
                         email: applicant.get('candidateId.email'),
@@ -1098,6 +1100,7 @@ const GetSingleApplicants = async (req, res, next) => {
             listSkill.push({ label: applicant.skills[i].skillId.name, value: i });
         }
         const returnApplicant = {
+            avatar: applicant.avatar?.url,
             fullName: applicant.fullName,
             about: applicant.about,
             email: applicant.email,
@@ -1124,3 +1127,133 @@ const GetSingleApplicants = async (req, res, next) => {
     }
 };
 exports.GetSingleApplicants = GetSingleApplicants;
+const getApplicantsJob = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const jobId = req.params.jobId;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const applicantsJobLength = await jobApply_1.JobApply.find({ jobAppliedId: jobId }).countDocuments();
+        if (applicantsJobLength === 0) {
+            const error = new Error('Chưa có ứng viên nào apply vào công việc này');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const ListApplicantsJob = await jobApply_1.JobApply.find({ jobAppliedId: jobId })
+            .populate({
+            path: 'candidateId',
+            model: user_1.User,
+            populate: {
+                path: 'skills.skillId',
+                model: skill_1.Skill
+            }
+        })
+            .skip((page - 1) * limit)
+            .limit(limit);
+        console.log(ListApplicantsJob);
+        const returnListApplicants = async () => {
+            const mappedApplicants = await Promise.all(ListApplicantsJob.map(async (applicant) => {
+                try {
+                    const educationList = await education_1.Education.find({ candidateId: applicant.candidateId._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        };
+                    });
+                    const experienceList = await experience_1.Experience.find({ candidateId: applicant.candidateId._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        };
+                    });
+                    const certificateList = await certificate_1.Certificate.find({ candidateId: applicant.candidateId._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        };
+                    });
+                    const projectList = await project_1.Project.find({ candidateId: applicant.candidateId._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        };
+                    });
+                    let listSkill = [];
+                    for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
+                        listSkill.push({ label: applicant.get('candidateId.skills')[i].skillId.name, value: i });
+                    }
+                    return {
+                        candidateId: applicant.candidateId._id.toString(),
+                        avatar: applicant.get('candidateId.avatar.url'),
+                        fullName: applicant.get('candidateId.fullName'),
+                        about: applicant.get('candidateId.about'),
+                        email: applicant.get('candidateId.email'),
+                        dateOfBirth: applicant.get('candidateId.dateOfBirth'),
+                        address: applicant.get('candidateId.address'),
+                        phone: applicant.get('candidateId.phone'),
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    };
+                }
+                catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            }));
+            return mappedApplicants.filter(applicant => applicant !== null);
+        };
+        returnListApplicants().then(mappedApplicants => {
+            res.status(200).json({ success: true, message: 'Successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(applicantsJobLength / limit),
+                    limit: limit,
+                    totalElements: applicantsJobLength,
+                    content: mappedApplicants
+                } });
+        });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getApplicantsJob = getApplicantsJob;

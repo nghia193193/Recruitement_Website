@@ -71,6 +71,10 @@ router.get('/jobs',isAuth , [
                 if (!regex.test(value)) {
                     throw new Error('page không hợp lệ');
                 };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
                 return true;
             }
             return true;
@@ -82,6 +86,10 @@ router.get('/jobs',isAuth , [
                 if (!regex.test(value)) {
                     throw new Error('limit không hợp lệ');
                 };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
                 return true;
             }
             return true;
@@ -297,6 +305,10 @@ router.get('/events', isAuth,[
                 if (!regex.test(value)) {
                     throw new Error('page không hợp lệ');
                 };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
                 return true;
             }
             return true;
@@ -308,6 +320,10 @@ router.get('/events', isAuth,[
                 if (!regex.test(value)) {
                     throw new Error('limit không hợp lệ');
                 };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
                 return true;
             }
             return true;
@@ -460,5 +476,39 @@ router.get('/applied-candidates', isAuth, [], recruiterController.GetAllApplican
 router.get('/applied-candidates/:userId', isAuth, [
     param('userId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleApplicants);
+
+router.get('/jobs/:jobId/candidates', isAuth, [
+    param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
+    query('page').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('page không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
+                return true;
+            }
+            return true;
+        }),
+    query('limit').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('limit không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
+                return true;
+            }
+            return true;
+        }),
+], recruiterController.getApplicantsJob);
 
 export default router;
