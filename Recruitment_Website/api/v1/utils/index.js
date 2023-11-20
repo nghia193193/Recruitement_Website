@@ -23,12 +23,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CheckRoleRecruiter = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.CheckRoleRecruiter = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.clientSecret = exports.tenantId = exports.clientId = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 exports.ApplyStatus = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+exports.clientId = '242ba16c-6922-4303-956c-7b3c7dd9d073';
+exports.tenantId = '2220568f-d40f-476e-9dd6-191edfe35999';
+exports.clientSecret = 'PVO8Q~iWfVi7WzJht1YB.rqM9glrCgoupLGR7b~D';
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',

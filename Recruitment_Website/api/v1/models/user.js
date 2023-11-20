@@ -40,6 +40,7 @@ const userSchema = new Schema({
             }
         }
     ],
+    blackList: Boolean,
     isVerifiedEmail: Boolean,
     address: String,
     dateOfBirth: Date,

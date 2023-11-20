@@ -50,7 +50,8 @@ export const Signup = async (req: Request, res: Response, next: NextFunction): P
             password: hashedPw,
             phone: phone,
             isVerifiedEmail: false,
-            isActive: false,
+            isActive: true,
+            blackList: false,
             roleId: role ? role._id : undefined,
             otp: otp,
             otpExpired: otpExpired
@@ -174,7 +175,6 @@ export const Login = async (req: Request, res: Response, next: NextFunction): Pr
             error.result = null;
             throw error;
         };
-        user.isActive = true;
         const payload = {
             userId: user._id.toString()
         };

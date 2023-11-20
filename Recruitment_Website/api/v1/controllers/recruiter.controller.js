@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -997,10 +997,14 @@ const GetAllApplicants = async (req, res, next) => {
                     }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
+                        blackList: applicant.get('candidateId.blackList'),
                         avatar: applicant.get('candidateId.avatar.url'),
-                        fullName: applicant.get('candidateId.fullName'),
+                        candidateFullName: applicant.get('candidateId.fullName'),
+                        candidateEmail: applicant.get('candidateId.email'),
+                        interviewerFullNames: [],
+                        score: null,
+                        state: 'NOT_RECEIVED',
                         about: applicant.get('candidateId.about'),
-                        email: applicant.get('candidateId.email'),
                         dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                         address: applicant.get('candidateId.address'),
                         phone: applicant.get('candidateId.phone'),
@@ -1100,14 +1104,18 @@ const GetSingleApplicants = async (req, res, next) => {
             listSkill.push({ label: applicant.skills[i].skillId.name, value: i });
         }
         const returnApplicant = {
-            avatar: applicant.avatar?.url,
-            fullName: applicant.fullName,
+            candidateId: applicant._id.toString(),
+            blackList: applicant.blackList,
+            avatar: applicant.get('avatar.url'),
+            candidateFullName: applicant.fullName,
+            candidateEmail: applicant.email,
+            interviewerFullNames: [],
+            score: null,
+            state: 'NOT_RECEIVED',
             about: applicant.about,
-            email: applicant.email,
             dateOfBirth: applicant.dateOfBirth,
             address: applicant.address,
             phone: applicant.phone,
-            skills: listSkill,
             information: {
                 education: returnEducationList,
                 experience: returnExperienceList,
@@ -1215,10 +1223,13 @@ const getApplicantsJob = async (req, res, next) => {
                     }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
+                        blackList: applicant.get('candidateId.blackList'),
                         avatar: applicant.get('candidateId.avatar.url'),
-                        fullName: applicant.get('candidateId.fullName'),
-                        about: applicant.get('candidateId.about'),
-                        email: applicant.get('candidateId.email'),
+                        candidateFullName: applicant.get('candidateId.fullName'),
+                        candidateEmail: applicant.get('candidateId.email'),
+                        interviewerFullNames: [],
+                        score: null,
+                        state: 'NOT_RECEIVED',
                         dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                         address: applicant.get('candidateId.address'),
                         phone: applicant.get('candidateId.phone'),
@@ -1334,10 +1345,13 @@ const getSingleApplicantsJob = async (req, res, next) => {
         }
         const returnApplicant = {
             candidateId: applicant.candidateId._id.toString(),
+            blackList: applicant.get('candidateId.blackList'),
             avatar: applicant.get('candidateId.avatar.url'),
-            fullName: applicant.get('candidateId.fullName'),
-            about: applicant.get('candidateId.about'),
-            email: applicant.get('candidateId.email'),
+            candidateFullName: applicant.get('candidateId.fullName'),
+            candidateEmail: applicant.get('candidateId.email'),
+            interviewerFullNames: [],
+            score: null,
+            state: 'NOT_RECEIVED',
             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
             address: applicant.get('candidateId.address'),
             phone: applicant.get('candidateId.phone'),
@@ -1360,3 +1374,35 @@ const getSingleApplicantsJob = async (req, res, next) => {
     }
 };
 exports.getSingleApplicantsJob = getSingleApplicantsJob;
+const createMeeting = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.createMeeting = createMeeting;

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken, transporter } from '../utils';
+import { secretKey, verifyToken, transporter, clientId, tenantId, clientSecret } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -18,6 +18,7 @@ import { Education } from '../models/education';
 import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
+import axios from 'axios';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -995,10 +996,14 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                         }
                         return {
                             candidateId: applicant.candidateId._id.toString(),
+                            blackList: applicant.get('candidateId.blackList'),
                             avatar: applicant.get('candidateId.avatar.url'),
-                            fullName: applicant.get('candidateId.fullName'),
+                            candidateFullName: applicant.get('candidateId.fullName'),
+                            candidateEmail: applicant.get('candidateId.email'),
+                            interviewerFullNames: [],
+                            score: null,
+                            state: 'NOT_RECEIVED',
                             about: applicant.get('candidateId.about'),
-                            email: applicant.get('candidateId.email'),
                             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                             address: applicant.get('candidateId.address'),
                             phone: applicant.get('candidateId.phone'),
@@ -1098,14 +1103,18 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
             listSkill.push({label: (applicant.skills[i].skillId as any).name, value: i});
         }
         const returnApplicant = {
-            avatar: applicant.avatar?.url,
-            fullName: applicant.fullName,
+            candidateId: applicant._id.toString(),
+            blackList: applicant.blackList,
+            avatar: applicant.get('avatar.url'),
+            candidateFullName: applicant.fullName,
+            candidateEmail: applicant.email,
+            interviewerFullNames: [],
+            score: null,
+            state: 'NOT_RECEIVED',
             about: applicant.about,
-            email: applicant.email,
             dateOfBirth: applicant.dateOfBirth,
             address: applicant.address,
             phone: applicant.phone,
-            skills: listSkill,
             information: {
                 education: returnEducationList,
                 experience: returnExperienceList,
@@ -1212,10 +1221,13 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                         }
                         return {
                             candidateId: applicant.candidateId._id.toString(),
+                            blackList: applicant.get('candidateId.blackList'),
                             avatar: applicant.get('candidateId.avatar.url'),
-                            fullName: applicant.get('candidateId.fullName'),
-                            about: applicant.get('candidateId.about'),
-                            email: applicant.get('candidateId.email'),
+                            candidateFullName: applicant.get('candidateId.fullName'),
+                            candidateEmail: applicant.get('candidateId.email'),
+                            interviewerFullNames: [],
+                            score: null,
+                            state: 'NOT_RECEIVED',
                             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                             address: applicant.get('candidateId.address'),
                             phone: applicant.get('candidateId.phone'),
@@ -1330,10 +1342,13 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
         }
         const returnApplicant = {
             candidateId: applicant.candidateId._id.toString(),
+            blackList: applicant.get('candidateId.blackList'),
             avatar: applicant.get('candidateId.avatar.url'),
-            fullName: applicant.get('candidateId.fullName'),
-            about: applicant.get('candidateId.about'),
-            email: applicant.get('candidateId.email'),
+            candidateFullName: applicant.get('candidateId.fullName'),
+            candidateEmail: applicant.get('candidateId.email'),
+            interviewerFullNames: [],
+            score: null,
+            state: 'NOT_RECEIVED',
             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
             address: applicant.get('candidateId.address'),
             phone: applicant.get('candidateId.phone'),
@@ -1346,6 +1361,37 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
             }
         }
         res.status(200).json({success: true, message: 'Successfully', result: returnApplicant});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const createMeeting = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;

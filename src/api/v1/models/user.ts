@@ -35,6 +35,7 @@ const userSchema = new Schema(
                     ref: 'Skill',
                 }
         }],
+        blackList: Boolean,
         isVerifiedEmail: Boolean,
         address: String,
         dateOfBirth: Date,

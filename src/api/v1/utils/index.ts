@@ -5,6 +5,9 @@ import * as nodemailer from 'nodemailer';
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 export const ApplyStatus: string[] = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+export const clientId = '242ba16c-6922-4303-956c-7b3c7dd9d073';
+export const tenantId = '2220568f-d40f-476e-9dd6-191edfe35999';
+export const clientSecret = 'PVO8Q~iWfVi7WzJht1YB.rqM9glrCgoupLGR7b~D';
 
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
