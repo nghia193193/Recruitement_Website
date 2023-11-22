@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
@@ -17,6 +40,10 @@ const education_1 = require("../models/education");
 const experience_1 = require("../models/experience");
 const certificate_1 = require("../models/certificate");
 const project_1 = require("../models/project");
+const identity_1 = require("@azure/identity");
+const GraphClient = __importStar(require("@microsoft/microsoft-graph-client"));
+const interview_1 = require("../models/interview");
+const interviewerInterview_1 = require("../models/interviewerInterview");
 const GetAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -1387,6 +1414,7 @@ const createMeeting = async (req, res, next) => {
             throw error;
         }
         ;
+        const { interviewersId, time, jobApplyId } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
@@ -1396,6 +1424,55 @@ const createMeeting = async (req, res, next) => {
             };
             throw error;
         }
+        const clientId = 'ef86ecc5-3294-4b4d-986e-d0377dc29b20';
+        const tenantId = '1f74f109-07f6-4291-81bc-64bc4acbd48a';
+        const clientSecret = 'lSJ8Q~2ZODyaLROwQ6ZBaNEb057oUR7nNUkdiaea';
+        const scopes = ["https://graph.microsoft.com/.default"];
+        const credentialOptions = {
+            authorityHost: "https://login.microsoftonline.com",
+        };
+        const credential = new identity_1.ClientSecretCredential(tenantId, clientId, clientSecret, credentialOptions);
+        const graphClient = GraphClient.Client.init({
+            authProvider: (done) => {
+                credential
+                    .getToken(scopes)
+                    .then((tokenResponse) => {
+                    const token = tokenResponse?.token;
+                    if (token) {
+                        done(null, token);
+                    }
+                    else {
+                        done(new Error("Failed to retrieve access token"), null);
+                    }
+                })
+                    .catch((error) => done(error, null));
+            },
+        });
+        const startDateTime = new Date(time);
+        const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+        const onlineMeeting = {
+            startDateTime: startDateTime.toISOString(),
+            endDateTime: endDateTime.toISOString(),
+            subject: 'Interview',
+        };
+        const result = await graphClient
+            .api(`/users/021e095b-02f2-4e67-9ea8-a1fbe63d77ae/onlineMeetings`)
+            .post(onlineMeeting);
+        console.log(result);
+        const meetingUrl = result.joinWebUrl;
+        const interview = new interview_1.Interview({
+            jobApplyId: jobApplyId,
+            time: startDateTime.toISOString(),
+            interviewLink: meetingUrl,
+            state: 'Start soon'
+        });
+        await interview.save();
+        const interviewerInterview = new interviewerInterview_1.InterviewerInterview({
+            interviewerId: interviewersId,
+            interviewId: interview._id.toString()
+        });
+        await interviewerInterview.save();
+        res.status(200).json({ success: true, message: 'Successfully', result: null });
     }
     catch (err) {
         if (!err.statusCode) {

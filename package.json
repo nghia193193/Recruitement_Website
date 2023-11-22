@@ -12,6 +12,8 @@
   "author": "Nghia",
   "license": "ISC",
   "dependencies": {
+    "@azure/identity": "^4.0.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/cors": "^2.8.13",
     "@types/express-fileupload": "^1.4.1",
     "@types/node-schedule": "^2.1.0",

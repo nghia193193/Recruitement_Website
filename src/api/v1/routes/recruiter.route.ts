@@ -516,7 +516,7 @@ router.get('/jobs/:jobId/candidates/:candidateId', isAuth, [
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
 ], recruiterController.getSingleApplicantsJob);
 
-
+router.post('/interviews', isAuth, [], recruiterController.createMeeting);
 
 
 export default router;

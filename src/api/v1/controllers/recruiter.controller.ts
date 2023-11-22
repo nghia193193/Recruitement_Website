@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken, transporter, clientId, tenantId, clientSecret } from '../utils';
+import { secretKey, verifyToken, transporter } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -18,7 +18,11 @@ import { Education } from '../models/education';
 import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
+import { ClientSecretCredential, ClientSecretCredentialOptions } from "@azure/identity";
+import * as GraphClient from "@microsoft/microsoft-graph-client";
 import axios from 'axios';
+import { Interview } from '../models/interview';
+import { InterviewerInterview } from '../models/interviewerInterview';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -1382,7 +1386,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             error.result = null;
             throw error;
         };
-        
+        const {interviewersId, time, jobApplyId} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
@@ -1392,6 +1396,57 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             };
             throw error;
         }
+
+        const clientId = 'ef86ecc5-3294-4b4d-986e-d0377dc29b20';
+        const tenantId = '1f74f109-07f6-4291-81bc-64bc4acbd48a';
+        const clientSecret = 'lSJ8Q~2ZODyaLROwQ6ZBaNEb057oUR7nNUkdiaea';
+        const scopes = ["https://graph.microsoft.com/.default"];
+        const credentialOptions: ClientSecretCredentialOptions = {
+            authorityHost: "https://login.microsoftonline.com",
+        };
+        const credential = new ClientSecretCredential(tenantId, clientId, clientSecret, credentialOptions);
+        const graphClient = GraphClient.Client.init({
+            authProvider: (done) => {
+                credential
+                  .getToken(scopes)
+                  .then((tokenResponse) => {
+                    const token = tokenResponse?.token;
+                    if (token) {
+                      done(null, token);
+                    } else {
+                      done(new Error("Failed to retrieve access token"), null);
+                    }
+                  })
+                  .catch((error) => done(error, null));
+              },
+        });
+        const startDateTime = new Date(time);
+        const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+        const onlineMeeting = {
+            startDateTime: startDateTime.toISOString(),
+            endDateTime: endDateTime.toISOString(),
+            subject: 'Interview',
+        };
+
+        const result = await graphClient
+            .api(`/users/021e095b-02f2-4e67-9ea8-a1fbe63d77ae/onlineMeetings`)
+            .post(onlineMeeting);
+
+        console.log(result);
+        const meetingUrl = result.joinWebUrl;
+        const interview = new Interview({
+            jobApplyId: jobApplyId,
+            time: startDateTime.toISOString(),
+            interviewLink: meetingUrl,
+            state: 'Start soon'
+        })
+        await interview.save();
+        const interviewerInterview = new InterviewerInterview({
+            interviewerId: interviewersId,
+            interviewId: interview._id.toString()
+        })
+        await interviewerInterview.save();
+        res.status(200).json({success: true, message: 'Successfully', result: null});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
