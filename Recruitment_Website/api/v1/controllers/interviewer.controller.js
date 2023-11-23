@@ -181,7 +181,7 @@ const createQuestion = async (req, res, next) => {
             throw error;
         }
         ;
-        const { content, type, skill } = req.body;
+        const { content, type, skill, note } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
@@ -194,7 +194,8 @@ const createQuestion = async (req, res, next) => {
             interviewerId: interviewer._id.toString(),
             content: content,
             typeQuestion: type,
-            skillId: questionSKill?._id.toString()
+            skillId: questionSKill?._id.toString(),
+            note: note
         });
         await question.save();
         res.status(200).json({ success: true, message: 'Create question successfully.', result: null });
@@ -264,7 +265,8 @@ const getAllQuestions = async (req, res, next) => {
                 questionId: question._id.toString(),
                 content: question.content,
                 typeQuestion: question.typeQuestion,
-                skill: question.get('skillId.name')
+                skill: question.get('skillId.name'),
+                note: question.note
             };
         });
         res.status(200).json({ success: true, message: 'Get list questions successfully.', result: {
@@ -316,7 +318,8 @@ const getSingleQuestion = async (req, res, next) => {
             questionId: question._id.toString(),
             content: question.content,
             typeQuestion: question.typeQuestion,
-            skill: question.get('skillId.name')
+            skill: question.get('skillId.name'),
+            note: question.note
         };
         res.status(200).json({ success: true, message: 'Get question successfully.', result: returnQuestion });
     }
@@ -343,7 +346,7 @@ const updateQuestion = async (req, res, next) => {
         }
         ;
         const questionId = req.params.questionId;
-        const { content, type, skill } = req.body;
+        const { content, type, skill, note } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
@@ -362,6 +365,7 @@ const updateQuestion = async (req, res, next) => {
         question.content = content;
         question.typeQuestion = type;
         question.skillId = questionSKill._id;
+        question.note = note;
         await question.save();
         res.status(200).json({ success: true, message: 'Update question successfully.', result: null });
     }

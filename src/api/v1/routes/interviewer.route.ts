@@ -19,9 +19,9 @@ router.post('/interview-questions', isAuth, [
     body('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value: string) => {
-            const regex = /^[\p{L} ,.?()\/0-9]+$/u;
+            const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
             if (!regex.test(value)) {
-                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
             };
             return true;
         }),
@@ -41,7 +41,18 @@ router.post('/interview-questions', isAuth, [
                 throw new Error(`Skill: '${value}' không hợp lệ`);
             }
             return true;
-        })
+        }),
+    body('note').trim()
+        .custom((value: string) => {
+            if (value) {
+                const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
+                };
+                return true;
+            }
+            return true;
+        }),
 ], interviewerController.createQuestion);
 
 router.get('/question', isAuth, [
@@ -128,7 +139,18 @@ router.put('/interview-questions/:questionId', isAuth, [
                 throw new Error(`Skill: '${value}' không hợp lệ`);
             }
             return true;
-        })
+        }),
+    body('note').trim()
+        .custom((value: string) => {
+            if (value) {
+                const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
+                };
+                return true;
+            }
+            return true;
+        }),
 ], interviewerController.updateQuestion);
 
 router.delete('/interview-questions/:questionId', isAuth, [

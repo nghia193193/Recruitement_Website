@@ -185,7 +185,7 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             error.result = null;
             throw error;
         };
-        const {content, type, skill} = req.body;
+        const {content, type, skill, note} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
@@ -198,7 +198,8 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             interviewerId: interviewer._id.toString(),
             content: content,
             typeQuestion: type,
-            skillId: questionSKill?._id.toString()
+            skillId: questionSKill?._id.toString(),
+            note: note
         });
         await question.save();
         res.status(200).json({success: true, message: 'Create question successfully.', result: null});
@@ -267,7 +268,8 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
                 questionId: question._id.toString(),
                 content: question.content,
                 typeQuestion: question.typeQuestion,
-                skill: question.get('skillId.name')
+                skill: question.get('skillId.name'),
+                note: question.note
             }
         })
         res.status(200).json({success: true, message: 'Get list questions successfully.', result: {
@@ -317,7 +319,8 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
             questionId: question._id.toString(),
             content: question.content,
             typeQuestion: question.typeQuestion,
-            skill: question.get('skillId.name')
+            skill: question.get('skillId.name'),
+            note: question.note
         }
         res.status(200).json({success: true, message: 'Get question successfully.', result: returnQuestion});
     } catch (err) {
@@ -342,7 +345,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
             throw error;
         };
         const questionId = req.params.questionId;
-        const {content, type, skill} = req.body;
+        const {content, type, skill, note} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
@@ -361,6 +364,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
         question.content = content;
         question.typeQuestion = type;
         question.skillId = (questionSKill as any)._id;
+        question.note = note;
         await question.save();
         res.status(200).json({success: true, message: 'Update question successfully.', result: null});
     } catch (err) {

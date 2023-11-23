@@ -484,3 +484,5 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+
+
