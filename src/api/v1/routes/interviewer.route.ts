@@ -135,4 +135,7 @@ router.delete('/interview-questions/:questionId', isAuth, [
     param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
 ], interviewerController.deleteQuestion);
 
+router.get('/skills', isAuth, interviewerController.getSkillQuestion);
+router.get('/type', isAuth, interviewerController.getTypeQuestion);
+
 export default router;

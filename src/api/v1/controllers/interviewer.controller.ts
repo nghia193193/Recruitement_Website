@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken, transporter } from '../utils';
+import { secretKey, verifyToken, transporter, questionType } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -201,7 +201,7 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             skillId: questionSKill?._id.toString()
         });
         await question.save();
-        res.status(200).json({success: true, message: 'Create question successfully.', reslult: null});
+        res.status(200).json({success: true, message: 'Create question successfully.', result: null});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -270,7 +270,7 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
                 skill: question.get('skillId.name')
             }
         })
-        res.status(200).json({success: true, message: 'Get list questions successfully.', reslult: {
+        res.status(200).json({success: true, message: 'Get list questions successfully.', result: {
             pageNumber: page,
             totalPages: Math.ceil(questionLength/limit),
             limit: limit,
@@ -319,7 +319,7 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
             typeQuestion: question.typeQuestion,
             skill: question.get('skillId.name')
         }
-        res.status(200).json({success: true, message: 'Get question successfully.', reslult: returnQuestion});
+        res.status(200).json({success: true, message: 'Get question successfully.', result: returnQuestion});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -362,7 +362,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
         question.typeQuestion = type;
         question.skillId = (questionSKill as any)._id;
         await question.save();
-        res.status(200).json({success: true, message: 'Update question successfully.', reslult: null});
+        res.status(200).json({success: true, message: 'Update question successfully.', result: null});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -400,7 +400,7 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
             throw error;
         }
         await Question.findByIdAndDelete(questionId);
-        res.status(200).json({success: true, message: 'Delete question successfully.', reslult: null});
+        res.status(200).json({success: true, message: 'Delete question successfully.', result: null});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -409,4 +409,55 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
         next(err);
     }
 };
+
+export const getSkillQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const skills = await Skill.find();
+        const returnSkills = skills.map(skill => {
+            return skill.name;
+        })
+        res.status(200).json({success: true, message: 'Get question skills successfully.', result: returnSkills});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+
+export const getTypeQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const returnType = questionType;
+        res.status(200).json({success: true, message: 'Get question type successfully.', result: returnType});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
 

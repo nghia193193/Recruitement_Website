@@ -151,4 +151,6 @@ router.put('/interview-questions/:questionId', middleware_1.isAuth, [
 router.delete('/interview-questions/:questionId', middleware_1.isAuth, [
     (0, express_validator_1.param)('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
 ], interviewerController.deleteQuestion);
+router.get('/skills', middleware_1.isAuth, interviewerController.getSkillQuestion);
+router.get('/type', middleware_1.isAuth, interviewerController.getTypeQuestion);
 exports.default = router;
