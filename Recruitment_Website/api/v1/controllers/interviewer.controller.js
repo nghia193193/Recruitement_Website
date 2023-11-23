@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllQuestions = exports.createQuestion = exports.getInformation = exports.saveInformation = void 0;
+exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -284,3 +284,133 @@ const getAllQuestions = async (req, res, next) => {
     }
 };
 exports.getAllQuestions = getAllQuestions;
+const getSingleQuestion = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const questionId = req.params.questionId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const question = await question_1.Question.findById(questionId).populate('skillId');
+        if (!question) {
+            const error = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const returnQuestion = {
+            questionId: question._id.toString(),
+            content: question.content,
+            typeQuestion: question.typeQuestion,
+            skill: question.get('skillId.name')
+        };
+        res.status(200).json({ success: true, message: 'Get question successfully.', reslult: returnQuestion });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getSingleQuestion = getSingleQuestion;
+const updateQuestion = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const questionId = req.params.questionId;
+        const { content, type, skill } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionSKill = await skill_1.Skill.findOne({ name: skill });
+        const question = await question_1.Question.findById(questionId);
+        if (!question) {
+            const error = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        question.content = content;
+        question.typeQuestion = type;
+        question.skillId = questionSKill._id;
+        await question.save();
+        res.status(200).json({ success: true, message: 'Update question successfully.', reslult: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.updateQuestion = updateQuestion;
+const deleteQuestion = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const questionId = req.params.questionId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const question = await question_1.Question.findById(questionId);
+        if (!question) {
+            const error = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        await question_1.Question.findByIdAndDelete(questionId);
+        res.status(200).json({ success: true, message: 'Delete question successfully.', reslult: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.deleteQuestion = deleteQuestion;

@@ -97,4 +97,42 @@ router.get('/question', isAuth, [
         }),
 ], interviewerController.getAllQuestions);
 
+router.get('/interview-questions/:questionId', isAuth, [
+    param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
+], interviewerController.getSingleQuestion);
+
+router.put('/interview-questions/:questionId', isAuth, [
+    param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ'),
+    body('content').trim()
+        .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
+        .custom((value: string) => {
+            const regex = /^[\p{L} ,.?()\/0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+            };
+            return true;
+        }),
+    body('type').trim()
+        .notEmpty().withMessage('Vui lòng chọn loại câu hỏi')
+        .custom((value: string) => {
+            if (!questionType.includes(value)) {
+                throw new Error('Loại câu hỏi không hợp lệ');
+            }
+            return true
+        }),
+    body('skill').trim()
+        .notEmpty().withMessage('Vui lòng chọn loại câu hỏi')
+        .custom( async (value) => {
+            const skill = await Skill.findOne({ name: value });
+            if (!skill) {
+                throw new Error(`Skill: '${value}' không hợp lệ`);
+            }
+            return true;
+        })
+], interviewerController.updateQuestion);
+
+router.delete('/interview-questions/:questionId', isAuth, [
+    param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
+], interviewerController.deleteQuestion);
+
 export default router;

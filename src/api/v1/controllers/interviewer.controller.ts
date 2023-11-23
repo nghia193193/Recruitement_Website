@@ -285,3 +285,128 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
         next(err);
     }
 };
+
+export const getSingleQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const questionId = req.params.questionId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const question = await Question.findById(questionId).populate('skillId')
+        if(!question) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const returnQuestion = {
+            questionId: question._id.toString(),
+            content: question.content,
+            typeQuestion: question.typeQuestion,
+            skill: question.get('skillId.name')
+        }
+        res.status(200).json({success: true, message: 'Get question successfully.', reslult: returnQuestion});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const updateQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const questionId = req.params.questionId;
+        const {content, type, skill} = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionSKill = await Skill.findOne({name: skill});
+        const question = await Question.findById(questionId);
+        if(!question) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        question.content = content;
+        question.typeQuestion = type;
+        question.skillId = (questionSKill as any)._id;
+        await question.save();
+        res.status(200).json({success: true, message: 'Update question successfully.', reslult: null});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const deleteQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const questionId = req.params.questionId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const question = await Question.findById(questionId);
+        if (!question) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        await Question.findByIdAndDelete(questionId);
+        res.status(200).json({success: true, message: 'Delete question successfully.', reslult: null});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
