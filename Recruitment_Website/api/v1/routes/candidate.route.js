@@ -64,6 +64,6 @@ router.get('/jobs/applicants', middleware_1.isAuth, [
         return true;
     })
 ], candidateController.GetAppliedJobs);
-router.put('/information', middleware_1.isAuth, candidateController.saveInformation);
-router.get('/information', middleware_1.isAuth, candidateController.getInformation);
+router.put('/information', middleware_1.isAuth, [], candidateController.saveInformation);
+router.get('/information', middleware_1.isAuth, [], candidateController.getInformation);
 exports.default = router;

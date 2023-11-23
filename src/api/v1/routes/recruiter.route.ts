@@ -392,6 +392,7 @@ router.post('/events', isAuth, [
 router.put('/events/:eventId', isAuth, [
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     body('title').trim()
+        .notEmpty().withMessage('Vui lòng nhập title')
         .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
@@ -400,6 +401,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('name').trim()
+        .notEmpty().withMessage('Vui lòng nhập tên')
         .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
@@ -408,6 +410,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('description').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
         .custom((value: string, {req}) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
@@ -416,6 +419,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('time').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian')
         .custom((value: string, {req}) => {
             if (!isValidTimeFormat(value)) {
                 throw new Error('Thời gian không hợp lệ.');
@@ -423,6 +427,7 @@ router.put('/events/:eventId', isAuth, [
             return true;
         }),
     body('location').trim()
+        .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value: string, {req}) => {
             return JobLocation.findOne({name: value})
                 .then(job => {

@@ -19,5 +19,7 @@ const interviewerInterviewSchema = new Schema({
         ref: 'Interview',
         required: true
     }
+}, {
+    timestamps: true
 });
 exports.InterviewerInterview = mongoose_1.default.model('InterviewerInterview', interviewerInterviewSchema);

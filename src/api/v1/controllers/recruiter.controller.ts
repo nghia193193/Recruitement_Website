@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { secretKey, verifyToken, transporter } from '../utils';
+import { secretKey, verifyToken, transporter, formatDateToJSDateObject } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -13,16 +12,15 @@ import {UploadedFile} from 'express-fileupload';
 import {v2 as cloudinary} from 'cloudinary';
 import { Role } from '../models/role';
 import { JobApply } from '../models/jobApply';
-import mongoose from 'mongoose';
 import { Education } from '../models/education';
 import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
 import { ClientSecretCredential, ClientSecretCredentialOptions } from "@azure/identity";
 import * as GraphClient from "@microsoft/microsoft-graph-client";
-import axios from 'axios';
 import { Interview } from '../models/interview';
 import { InterviewerInterview } from '../models/interviewerInterview';
+import { ResumeUpload } from '../models/resumeUpload';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -1386,7 +1384,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             error.result = null;
             throw error;
         };
-        const {interviewersId, time, jobApplyId} = req.body;
+        const {candidateId, interviewersId, time, jobApplyId} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
@@ -1435,7 +1433,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         console.log(result);
         const meetingUrl = result.joinWebUrl;
         const interview = new Interview({
-            jobApplyId: jobApplyId,
+            jobApplyId: jobApplyId, 
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
             state: 'Start soon'
@@ -1446,6 +1444,65 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             interviewId: interview._id.toString()
         })
         await interviewerInterview.save();
+        const candidate = await User.findById(candidateId);
+        const candidateCV = await ResumeUpload.findOne({candidateId: candidateId});
+        let interviewersMail = [];
+        let interviewersName = [] as string[];
+        for (let i=0; i<interviewersId.length; i++) {
+            const interviewer = await User.findById(interviewersId[i].toString());
+            interviewersMail.push(interviewer?.email);
+            interviewersName.push(interviewer?.fullName as string);
+        }
+        let attendees = interviewersMail.concat(candidate?.email) as string[];
+        let mailDetails = {
+            from: 'nguyennghia193913@gmail.com',
+            cc: attendees.join(','),
+            subject: 'Interview Information',
+            html: ` 
+            <div style="display: flex; justify-content: space-around">
+                <div>
+                    <div style="display: flex; justify-content: center">
+                        <h2 style="color:blue; text-align: center;">Interview Information</h2>
+                    </div>
+                    <p>Dear ${candidate?.fullName}</p>
+                    <p>Thank you for applying to Job Port.</p>
+                    <p>We've reviewed your application materials and we're excited to invite you to interview for the role.</p>
+                    <p>Your interview will be conducted via online meeting with ${recruiter.fullName} (Recruiter).</p>
+                    <p>The interview time is on ${formatDateToJSDateObject(startDateTime)}.</p>
+                    <p>If you have any questions, please don't hesitate to contact us.</p>
+                    <p>Regard, ${recruiter.fullName}.</p>
+                    <p><b>Start Date:</b> ${formatDateToJSDateObject(startDateTime)}</p>
+                    <p><b>Candidate:</b> ${candidate?.fullName} (${candidate?.email})</p>
+                    <p><b>Recruiter:</b> ${recruiter.fullName} (${recruiter.email})</p>
+                    <b>Interviewer:</b>
+                    ${interviewersMail.map((email, index) => `
+                        <p>${interviewersName[index]} (${email})</p>
+                    `).join('')}
+                </div>
+                
+                <div>
+                    <h2 style="color:blue; text-align: center;">Join the Meeting</h2>
+                    <div style="text-align: center">
+                        <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none;"><a href="${meetingUrl
+                        }" style="font-size: 15px;color: white; text-decoration: none">Join Now</a></button>
+                    </div>
+                    <p><b>Description:</b> Job: N&T</p>
+                    <p><b>Link applicant CV:</b> <a href="${candidateCV?.resumeUpload}">Download CV</a></p>
+                </div>
+            </div>
+            `,
+            attachments: [
+                {
+                    filename: 'invitation.ics',
+                    content: createICalEvent(startDateTime,endDateTime,attendees),
+                    encoding: 'base64'
+                }
+            ]
+        };
+        transporter.sendMail(mailDetails, err => {
+            const error: Error = new Error('Gửi mail thất bại');
+            throw error;
+        });
         res.status(200).json({success: true, message: 'Successfully', result: null});
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -1455,3 +1512,22 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         next(err);
     }
 };
+
+function createICalEvent(startTime: Date, endTime: Date, attendees: string[]): string {
+    const startISOString = startTime.toISOString();
+    const endISOString = endTime.toISOString();
+    const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
+    const iCalString = 
+    `
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        BEGIN:VEVENT
+        DTSTART:${startISOString}
+        DTEND:${endISOString}
+        ${attendeesString}
+        END:VEVENT
+        END:VCALENDAR
+    `;
+
+    return iCalString;
+}

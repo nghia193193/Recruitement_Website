@@ -44,6 +44,7 @@ const identity_1 = require("@azure/identity");
 const GraphClient = __importStar(require("@microsoft/microsoft-graph-client"));
 const interview_1 = require("../models/interview");
 const interviewerInterview_1 = require("../models/interviewerInterview");
+const resumeUpload_1 = require("../models/resumeUpload");
 const GetAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -1414,7 +1415,7 @@ const createMeeting = async (req, res, next) => {
             throw error;
         }
         ;
-        const { interviewersId, time, jobApplyId } = req.body;
+        const { candidateId, interviewersId, time, jobApplyId } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
@@ -1472,6 +1473,64 @@ const createMeeting = async (req, res, next) => {
             interviewId: interview._id.toString()
         });
         await interviewerInterview.save();
+        const candidate = await user_1.User.findById(candidateId);
+        const candidateCV = await resumeUpload_1.ResumeUpload.findOne({ candidateId: candidateId });
+        let interviewersMail = [];
+        let interviewersName = [];
+        for (let i = 0; i < interviewersId.length; i++) {
+            const interviewer = await user_1.User.findById(interviewersId[i].toString());
+            interviewersMail.push(interviewer?.email);
+            interviewersName.push(interviewer?.fullName);
+        }
+        let attendees = interviewersMail.concat(candidate?.email);
+        let mailDetails = {
+            from: 'nguyennghia193913@gmail.com',
+            cc: attendees.join(','),
+            subject: 'Interview Information',
+            html: ` 
+            <div style="display: flex; justify-content: space-around">
+                <div>
+                    <div style="display: flex; justify-content: center">
+                        <h2 style="color:blue; text-align: center;">Interview Information</h2>
+                    </div>
+                    <p>Dear ${candidate?.fullName}</p>
+                    <p>Thank you for applying to Job Port.</p>
+                    <p>We've reviewed your application materials and we're excited to invite you to interview for the role.</p>
+                    <p>Your interview will be conducted via online meeting with ${recruiter.fullName} (Recruiter).</p>
+                    <p>The interview time is on ${(0, utils_1.formatDateToJSDateObject)(startDateTime)}.</p>
+                    <p>If you have any questions, please don't hesitate to contact us.</p>
+                    <p>Regard, ${recruiter.fullName}.</p>
+                    <p><b>Start Date:</b> ${(0, utils_1.formatDateToJSDateObject)(startDateTime)}</p>
+                    <p><b>Candidate:</b> ${candidate?.fullName} (${candidate?.email})</p>
+                    <p><b>Recruiter:</b> ${recruiter.fullName} (${recruiter.email})</p>
+                    <b>Interviewer:</b>
+                    ${interviewersMail.map((email, index) => `
+                        <p>${interviewersName[index]} (${email})</p>
+                    `).join('')}
+                </div>
+                
+                <div>
+                    <h2 style="color:blue; text-align: center;">Join the Meeting</h2>
+                    <div style="text-align: center">
+                        <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none;"><a href="${meetingUrl}" style="font-size: 15px;color: white; text-decoration: none">Join Now</a></button>
+                    </div>
+                    <p><b>Description:</b> Job: N&T</p>
+                    <p><b>Link applicant CV:</b> <a href="${candidateCV?.resumeUpload}">Download CV</a></p>
+                </div>
+            </div>
+            `,
+            attachments: [
+                {
+                    filename: 'invitation.ics',
+                    content: createICalEvent(startDateTime, endDateTime, attendees),
+                    encoding: 'base64'
+                }
+            ]
+        };
+        utils_1.transporter.sendMail(mailDetails, err => {
+            const error = new Error('Gửi mail thất bại');
+            throw error;
+        });
         res.status(200).json({ success: true, message: 'Successfully', result: null });
     }
     catch (err) {
@@ -1483,3 +1542,19 @@ const createMeeting = async (req, res, next) => {
     }
 };
 exports.createMeeting = createMeeting;
+function createICalEvent(startTime, endTime, attendees) {
+    const startISOString = startTime.toISOString();
+    const endISOString = endTime.toISOString();
+    const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
+    const iCalString = `
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        BEGIN:VEVENT
+        DTSTART:${startISOString}
+        DTEND:${endISOString}
+        ${attendeesString}
+        END:VEVENT
+        END:VCALENDAR
+    `;
+    return iCalString;
+}

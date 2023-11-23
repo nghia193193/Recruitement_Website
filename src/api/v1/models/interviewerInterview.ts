@@ -14,6 +14,8 @@ const interviewerInterviewSchema = new Schema({
         ref: 'Interview',
         required: true
     }
+},{
+    timestamps: true
 });
     
 

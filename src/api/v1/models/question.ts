@@ -11,10 +11,7 @@ const questionSchema = new Schema({
         type: String,
         required: true
     },
-    note: {
-        type: String,
-        required: true
-    },
+    note: String,
     typeQuestion: {
         type: String,
         required: true
@@ -23,10 +20,6 @@ const questionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Skill',
         required: true
-    },
-    isDeleted: {
-        type: Boolean,
-        default: false
     }
 });
 

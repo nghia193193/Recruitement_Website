@@ -5,6 +5,7 @@ import * as nodemailer from 'nodemailer';
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 export const ApplyStatus: string[] = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+export const questionType: string[] = ['Technical', 'SoftSkill', 'English'];
 
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -58,6 +59,17 @@ export function isValidTimeFormat(timeString: string) {
   return timePattern.test(timeString);
 }
 
-export function CheckRoleRecruiter() {
-
+export function formatDateToJSDateObject(inputDate: Date): string {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    timeZoneName: 'short',
+  };
+  const vietnameseDate: string = inputDate.toLocaleString('vi-VN', options);
+  return vietnameseDate;
 }

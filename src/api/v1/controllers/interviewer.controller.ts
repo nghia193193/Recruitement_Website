@@ -17,11 +17,12 @@ import { Education } from '../models/education';
 import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
+import { Question } from '../models/question';
 
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -102,9 +103,9 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
 };
 
 export const getInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -122,7 +123,6 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
                 major: e.major,
                 graduatedYead: e.graduatedYear
             }
-            
         })
         const experienceList = await Experience.find({candidateId: interviewer._id.toString()});
         const returnExperienceList = experienceList.map(e => {
@@ -163,6 +163,119 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
             certificate: returnCertificateList,
             project: returnProjectList,
             skills: skills
+        }});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const createQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const {content, type, skill} = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionSKill = await Skill.findOne({name: skill});
+        const question = new Question({
+            interviewerId: interviewer._id.toString(),
+            content: content,
+            typeQuestion: type,
+            skillId: questionSKill?._id.toString()
+        });
+        await question.save();
+        res.status(200).json({success: true, message: 'Create question successfully.', reslult: null});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+
+export const getAllQuestions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const {skill, type} = req.query;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const query: any = {
+            interviewerId: interviewer._id.toString()
+        }
+        if(skill) {
+            const skillId = await Skill.findOne({name: skill});
+            query['skillId'] = skillId?._id;
+        }
+        if(type) {
+            query['typeQuestion'] = type;
+        }
+        const questionLength = await Question.find(query).countDocuments();
+        if (questionLength === 0) {
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const listQuestions = await Question.find(query).populate('skillId')
+            .skip((page-1)*limit)
+            .limit(limit);
+        
+        const returnListQuestions = listQuestions.map(question => {
+            return {
+                questionId: question._id.toString(),
+                content: question.content,
+                typeQuestion: question.typeQuestion,
+                skill: question.get('skillId.name')
+            }
+        })
+        res.status(200).json({success: true, message: 'Get list questions successfully.', reslult: {
+            pageNumber: page,
+            totalPages: Math.ceil(questionLength/limit),
+            limit: limit,
+            totalElements: questionLength,
+            content: returnListQuestions
         }});
     } catch (err) {
         if (!(err as any).statusCode) {

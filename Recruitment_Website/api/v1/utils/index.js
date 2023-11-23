@@ -23,12 +23,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CheckRoleRecruiter = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
 exports.ApplyStatus = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+exports.questionType = ['Technical', 'SoftSkill', 'English'];
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
@@ -83,6 +84,18 @@ function isValidTimeFormat(timeString) {
     return timePattern.test(timeString);
 }
 exports.isValidTimeFormat = isValidTimeFormat;
-function CheckRoleRecruiter() {
+function formatDateToJSDateObject(inputDate) {
+    const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        timeZoneName: 'short',
+    };
+    const vietnameseDate = inputDate.toLocaleString('vi-VN', options);
+    return vietnameseDate;
 }
-exports.CheckRoleRecruiter = CheckRoleRecruiter;
+exports.formatDateToJSDateObject = formatDateToJSDateObject;

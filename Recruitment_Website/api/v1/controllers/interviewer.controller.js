@@ -1,17 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInformation = exports.saveInformation = void 0;
+exports.getAllQuestions = exports.createQuestion = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
+const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const skill_1 = require("../models/skill");
 const education_1 = require("../models/education");
 const experience_1 = require("../models/experience");
 const certificate_1 = require("../models/certificate");
 const project_1 = require("../models/project");
+const question_1 = require("../models/question");
 const saveInformation = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -94,9 +96,9 @@ const saveInformation = async (req, res, next) => {
 };
 exports.saveInformation = saveInformation;
 const getInformation = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -166,3 +168,119 @@ const getInformation = async (req, res, next) => {
     }
 };
 exports.getInformation = getInformation;
+const createQuestion = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const { content, type, skill } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionSKill = await skill_1.Skill.findOne({ name: skill });
+        const question = new question_1.Question({
+            interviewerId: interviewer._id.toString(),
+            content: content,
+            typeQuestion: type,
+            skillId: questionSKill?._id.toString()
+        });
+        await question.save();
+        res.status(200).json({ success: true, message: 'Create question successfully.', reslult: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.createQuestion = createQuestion;
+const getAllQuestions = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const { skill, type } = req.query;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const query = {
+            interviewerId: interviewer._id.toString()
+        };
+        if (skill) {
+            const skillId = await skill_1.Skill.findOne({ name: skill });
+            query['skillId'] = skillId?._id;
+        }
+        if (type) {
+            query['typeQuestion'] = type;
+        }
+        const questionLength = await question_1.Question.find(query).countDocuments();
+        if (questionLength === 0) {
+            const error = new Error('Không tìm thấy câu hỏi');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const listQuestions = await question_1.Question.find(query).populate('skillId')
+            .skip((page - 1) * limit)
+            .limit(limit);
+        const returnListQuestions = listQuestions.map(question => {
+            return {
+                questionId: question._id.toString(),
+                content: question.content,
+                typeQuestion: question.typeQuestion,
+                skill: question.get('skillId.name')
+            };
+        });
+        res.status(200).json({ success: true, message: 'Get list questions successfully.', reslult: {
+                pageNumber: page,
+                totalPages: Math.ceil(questionLength / limit),
+                limit: limit,
+                totalElements: questionLength,
+                content: returnListQuestions
+            } });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getAllQuestions = getAllQuestions;

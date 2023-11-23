@@ -416,6 +416,7 @@ router.post('/events', middleware_1.isAuth, [
 router.put('/events/:eventId', middleware_1.isAuth, [
     (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.body)('title').trim()
+        .notEmpty().withMessage('Vui lòng nhập title')
         .custom((value, { req }) => {
         const regex = /^[\p{L} .,\/:0-9]+$/u;
         if (!regex.test(value)) {
@@ -425,6 +426,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('name').trim()
+        .notEmpty().withMessage('Vui lòng nhập tên')
         .custom((value, { req }) => {
         const regex = /^[\p{L} .,\/:0-9]+$/u;
         if (!regex.test(value)) {
@@ -434,6 +436,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('description').trim()
+        .notEmpty().withMessage('Vui lòng nhập description')
         .custom((value, { req }) => {
         const regex = /^[\p{L} .,\/:0-9]+$/u;
         if (!regex.test(value)) {
@@ -443,6 +446,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('time').trim()
+        .notEmpty().withMessage('Vui lòng nhập thời gian')
         .custom((value, { req }) => {
         if (!(0, utils_1.isValidTimeFormat)(value)) {
             throw new Error('Thời gian không hợp lệ.');
@@ -450,6 +454,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('location').trim()
+        .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value, { req }) => {
         return jobLocation_1.JobLocation.findOne({ name: value })
             .then(job => {
