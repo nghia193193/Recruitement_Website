@@ -9,6 +9,7 @@ import { JobLocation } from "../models/jobLocation";
 import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
 import { isValidTimeFormat } from "../utils";
+import { User } from "../models/user";
 
 
 const router = Router();
@@ -521,7 +522,22 @@ router.get('/jobs/:jobId/candidates/:candidateId', isAuth, [
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
 ], recruiterController.getSingleApplicantsJob);
 
-router.post('/interviews', isAuth, [], recruiterController.createMeeting);
+router.post('/interviews', isAuth, [
+    body('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    body('jobApplyId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    body('interviewersId').trim()
+        .custom(async (value) => {
+            for(let interviewerId of value) {
+                const interviewer = await User.findById(interviewerId).populate('roleId');
+                if (!interviewer || !(interviewer.get('roleId.roleName') === "INTERVIEWER")) {
+                    throw new Error(`InterviewerId: '${interviewerId}' không hợp lệ hoặc không có quyền`);
+                }
+            }
+            return true
+        }),
+    body('time').trim()
+        .isISO8601().toDate().withMessage('Thời gian không hợp lệ')
+], recruiterController.createMeeting);
 
 
 export default router;

@@ -1433,6 +1433,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         console.log(result);
         const meetingUrl = result.joinWebUrl;
         const interview = new Interview({
+            candidateId: candidateId,
             jobApplyId: jobApplyId, 
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,

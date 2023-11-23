@@ -32,6 +32,7 @@ const jobLocation_1 = require("../models/jobLocation");
 const skill_1 = require("../models/skill");
 const middleware_1 = require("../middleware");
 const utils_1 = require("../utils");
+const user_1 = require("../models/user");
 const router = (0, express_1.Router)();
 router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
@@ -542,5 +543,20 @@ router.get('/jobs/:jobId/candidates/:candidateId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
 ], recruiterController.getSingleApplicantsJob);
-router.post('/interviews', middleware_1.isAuth, [], recruiterController.createMeeting);
+router.post('/interviews', middleware_1.isAuth, [
+    (0, express_validator_1.body)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    (0, express_validator_1.body)('jobApplyId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    (0, express_validator_1.body)('interviewersId').trim()
+        .custom(async (value) => {
+        for (let interviewerId of value) {
+            const interviewer = await user_1.User.findById(interviewerId).populate('roleId');
+            if (!interviewer || !(interviewer.get('roleId.roleName') === "INTERVIEWER")) {
+                throw new Error(`InterviewerId: '${interviewerId}' không hợp lệ hoặc không có quyền`);
+            }
+        }
+        return true;
+    }),
+    (0, express_validator_1.body)('time').trim()
+        .isISO8601().toDate().withMessage('Thời gian không hợp lệ')
+], recruiterController.createMeeting);
 exports.default = router;

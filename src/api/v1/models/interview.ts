@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const interviewSchema = new Schema({
+    candidateId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     jobApplyId: {
         type: Schema.Types.ObjectId,
         ref: 'JobApply',

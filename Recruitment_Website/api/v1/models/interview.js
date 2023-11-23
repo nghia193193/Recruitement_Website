@@ -7,6 +7,11 @@ exports.Interview = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const interviewSchema = new Schema({
+    candidateId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     jobApplyId: {
         type: Schema.Types.ObjectId,
         ref: 'JobApply',
