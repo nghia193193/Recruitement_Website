@@ -48,11 +48,15 @@ router.get('/jobs/applicants', isAuth, [
 
 router.put('/information', isAuth, [
 
-],candidateController.saveInformation);
+], candidateController.saveInformation);
 
 router.get('/information', isAuth, [
 
-],candidateController.getInformation);
+], candidateController.getInformation);
+
+router.get('/interviews', isAuth, [
+
+], candidateController.getAllInterviews)
 
 
 export default router;

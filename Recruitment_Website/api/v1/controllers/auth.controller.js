@@ -31,9 +31,9 @@ const utils_1 = require("../utils");
 const bcrypt = __importStar(require("bcryptjs"));
 const jwt = __importStar(require("jsonwebtoken"));
 const Signup = async (req, res, next) => {
-    const { fullName, email, phone, password, confirmPassword } = req.body;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const { fullName, email, phone, password, confirmPassword } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -122,9 +122,9 @@ const Signup = async (req, res, next) => {
 };
 exports.Signup = Signup;
 const VerifyOTP = async (req, res, next) => {
-    const { email, otp } = req.body;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const { email, otp } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -164,10 +164,10 @@ const VerifyOTP = async (req, res, next) => {
 };
 exports.VerifyOTP = VerifyOTP;
 const Login = async (req, res, next) => {
-    const { credentialId, password } = req.body;
-    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const { credentialId, password } = req.body;
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;

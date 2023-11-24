@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const interviewerInterviewSchema = new Schema({
-    interviewerId: [
+    interviewersId: [
         {
             type: Schema.Types.ObjectId,
             ref: 'User',

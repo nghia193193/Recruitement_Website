@@ -7,10 +7,10 @@ const express_validator_1 = require("express-validator");
 const jobLocation_1 = require("../models/jobLocation");
 const jobType_1 = require("../models/jobType");
 const GetJobs = async (req, res, next) => {
-    const page = req.query.page ? +req.query.page : 1;
-    const limit = req.query.limit ? +req.query.limit : 10;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -155,9 +155,9 @@ const GetType = async (req, res, next) => {
 };
 exports.GetType = GetType;
 const GetSingleJob = async (req, res, next) => {
-    const jobId = req.params.jobId;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const jobId = req.params.jobId;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;

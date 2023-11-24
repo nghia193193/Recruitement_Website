@@ -9,7 +9,7 @@ const interviewSchema = new Schema({
     },
     jobApplyId: {
         type: Schema.Types.ObjectId,
-        ref: 'JobApply',
+        ref: 'Job',
         required: true
     },
     time: {

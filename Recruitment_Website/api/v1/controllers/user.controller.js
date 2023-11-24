@@ -31,9 +31,9 @@ const bcrypt = __importStar(require("bcryptjs"));
 const cloudinary_1 = require("cloudinary");
 const crypto_1 = require("crypto");
 const GetProfile = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findById(decodedToken.userId).populate('roleId');
         res.status(200).json({
@@ -69,9 +69,9 @@ const GetProfile = async (req, res, next) => {
 };
 exports.GetProfile = GetProfile;
 const UpdateProfile = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const updateUser = await user_1.User.findById(decodedToken.userId);
         if (!updateUser) {
@@ -84,7 +84,6 @@ const UpdateProfile = async (req, res, next) => {
         const { fullName, address, dateOfBirth, about } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
-            console.log(errors.array());
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
@@ -129,9 +128,9 @@ const UpdateProfile = async (req, res, next) => {
 };
 exports.UpdateProfile = UpdateProfile;
 const ChangePassword = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findOne(decodedToken.userId);
         const currentPassword = req.body.currentPassword;
@@ -169,9 +168,9 @@ const ChangePassword = async (req, res, next) => {
 };
 exports.ChangePassword = ChangePassword;
 const ChangeAvatar = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const user = await user_1.User.findById(decodedToken.userId);
         if (!req.files || !req.files.avatarFile) {
@@ -221,9 +220,9 @@ const ChangeAvatar = async (req, res, next) => {
 };
 exports.ChangeAvatar = ChangeAvatar;
 const ForgotPassword = async (req, res, next) => {
-    const email = req.body.email;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const email = req.body.email;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -276,9 +275,9 @@ const ForgotPassword = async (req, res, next) => {
 };
 exports.ForgotPassword = ForgotPassword;
 const ResetPassword = async (req, res, next) => {
-    const { newPassword, confirmPassword, token } = req.body;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const { newPassword, confirmPassword, token } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;

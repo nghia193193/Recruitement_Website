@@ -8,9 +8,9 @@ import * as jwt from 'jsonwebtoken';
 
 
 export const Signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { fullName, email, phone, password, confirmPassword } = req.body;
-    const errors = validationResult(req);
     try {
+        const { fullName, email, phone, password, confirmPassword } = req.body;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -92,9 +92,9 @@ export const Signup = async (req: Request, res: Response, next: NextFunction): P
 };
 
 export const VerifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { email, otp } = req.body;
-    const errors = validationResult(req);
     try {
+        const { email, otp } = req.body;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -128,10 +128,10 @@ export const VerifyOTP = async (req: Request, res: Response, next: NextFunction)
 };
 
 export const Login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { credentialId, password } = req.body;
-    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    const errors = validationResult(req);
     try {
+        const { credentialId, password } = req.body;
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;

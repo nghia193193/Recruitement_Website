@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInformation = exports.saveInformation = exports.GetInformation = exports.GetAppliedJobs = exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
+exports.getAllInterviews = exports.getInformation = exports.saveInformation = exports.GetInformation = exports.GetAppliedJobs = exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const utils_1 = require("../utils");
@@ -13,10 +16,13 @@ const experience_1 = require("../models/experience");
 const certificate_1 = require("../models/certificate");
 const project_1 = require("../models/project");
 const skill_1 = require("../models/skill");
+const interview_1 = require("../models/interview");
+const interviewerInterview_1 = require("../models/interviewerInterview");
+const mongoose_1 = __importDefault(require("mongoose"));
 const GetResumes = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -49,9 +55,9 @@ const GetResumes = async (req, res, next) => {
 };
 exports.GetResumes = GetResumes;
 const UploadResume = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -111,10 +117,9 @@ const UploadResume = async (req, res, next) => {
 };
 exports.UploadResume = UploadResume;
 const DeleteResume = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -124,6 +129,7 @@ const DeleteResume = async (req, res, next) => {
             throw error;
         }
         ;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -161,9 +167,9 @@ const DeleteResume = async (req, res, next) => {
 };
 exports.DeleteResume = DeleteResume;
 const CheckApply = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -201,9 +207,9 @@ const CheckApply = async (req, res, next) => {
 };
 exports.CheckApply = CheckApply;
 const ApplyJob = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -255,9 +261,9 @@ const ApplyJob = async (req, res, next) => {
 };
 exports.ApplyJob = ApplyJob;
 const GetAppliedJobs = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -320,9 +326,9 @@ const GetAppliedJobs = async (req, res, next) => {
 };
 exports.GetAppliedJobs = GetAppliedJobs;
 const GetInformation = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -345,9 +351,9 @@ const GetInformation = async (req, res, next) => {
 };
 exports.GetInformation = GetInformation;
 const saveInformation = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -430,9 +436,9 @@ const saveInformation = async (req, res, next) => {
 };
 exports.saveInformation = saveInformation;
 const getInformation = async (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -502,3 +508,96 @@ const getInformation = async (req, res, next) => {
     }
 };
 exports.getInformation = getInformation;
+const getAllInterviews = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const listInterviews = await interviewerInterview_1.InterviewerInterview.aggregate([
+            {
+                $lookup: {
+                    from: "interviews",
+                    localField: "interviewId",
+                    foreignField: "_id",
+                    as: "interviews"
+                }
+            },
+            {
+                $match: {
+                    "interviews.candidateId": new mongoose_1.default.Types.ObjectId(candidate._id.toString())
+                }
+            }
+        ]).skip((page - 1) * limit).limit(limit);
+        const populateInterviewers = await interviewerInterview_1.InterviewerInterview.populate(listInterviews, {
+            path: 'interviewersId',
+            model: user_1.User
+        });
+        const populateInterviews = await interviewerInterview_1.InterviewerInterview.populate(populateInterviewers, {
+            path: 'interviewId',
+            model: interview_1.Interview,
+            populate: {
+                path: 'jobApplyId',
+                model: job_1.Job,
+            }
+        });
+        console.log('populate: ', populateInterviews);
+        const interviewLength = populateInterviews.length;
+        if (interviewLength === 0) {
+            const error = new Error('Bạn chưa có buổi phỏng vấn nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const returnListInterview = populateInterviews.map(interview => {
+            let interviewersName = [];
+            for (let interviewer of interview.interviewersId) {
+                interviewersName.push(interviewer.fullName);
+            }
+            return {
+                jobName: interview.interviewId.jobApplyId.name,
+                time: interview.interviewId.time,
+                interviewersName: interviewersName,
+                interviewLink: interview.interviewId.interviewLink
+            };
+        });
+        res.status(200).json({ success: true, message: "Successfully!", result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviewLength / limit),
+                limit: limit,
+                totalElements: interviewLength,
+                content: returnListInterview
+            } });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getAllInterviews = getAllInterviews;

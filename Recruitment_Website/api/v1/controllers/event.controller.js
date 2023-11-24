@@ -4,10 +4,10 @@ exports.GetSingleEvent = exports.GetAllEvents = void 0;
 const event_1 = require("../models/event");
 const express_validator_1 = require("express-validator");
 const GetAllEvents = async (req, res, next) => {
-    const name = req.query.name;
-    const page = req.query.page ? +req.query.page : 1;
-    const limit = req.query.limit ? +req.query.limit : 10;
     try {
+        const name = req.query.name;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
         const query = {};
         if (name) {
             query['name'] = name;
@@ -57,9 +57,9 @@ const GetAllEvents = async (req, res, next) => {
 };
 exports.GetAllEvents = GetAllEvents;
 const GetSingleEvent = async (req, res, next) => {
-    const eventId = req.params.eventId;
-    const errors = (0, express_validator_1.validationResult)(req);
     try {
+        const eventId = req.params.eventId;
+        const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;

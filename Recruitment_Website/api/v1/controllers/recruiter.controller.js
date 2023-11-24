@@ -1470,7 +1470,7 @@ const createMeeting = async (req, res, next) => {
         });
         await interview.save();
         const interviewerInterview = new interviewerInterview_1.InterviewerInterview({
-            interviewerId: interviewersId,
+            interviewersId: interviewersId,
             interviewId: interview._id.toString()
         });
         await interviewerInterview.save();

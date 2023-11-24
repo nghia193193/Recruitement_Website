@@ -6,10 +6,10 @@ import { JobLocation } from '../models/jobLocation';
 import { JobType } from '../models/jobType';
 
 export const GetJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const page: number = req.query.page ? +req.query.page : 1;
-    const limit: number = req.query.limit ? +req.query.limit : 10;
-    const errors = validationResult(req);
     try {
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -140,9 +140,9 @@ export const GetType = async (req: Request, res: Response, next: NextFunction): 
 };
 
 export const GetSingleJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const jobId = req.params.jobId;
-    const errors = validationResult(req);
     try {
+        const jobId = req.params.jobId;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;

@@ -7,7 +7,7 @@ exports.InterviewerInterview = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const interviewerInterviewSchema = new Schema({
-    interviewerId: [
+    interviewersId: [
         {
             type: Schema.Types.ObjectId,
             ref: 'User',

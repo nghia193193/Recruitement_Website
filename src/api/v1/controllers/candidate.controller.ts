@@ -12,13 +12,15 @@ import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
 import { Skill } from '../models/skill';
+import { Interview } from '../models/interview';
+import { InterviewerInterview } from '../models/interviewerInterview';
+import mongoose from 'mongoose';
 
 
 export const GetResumes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -48,10 +50,9 @@ export const GetResumes = async (req: Request, res: Response, next: NextFunction
 };
 
 export const UploadResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -111,10 +112,9 @@ export const UploadResume = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const DeleteResume = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-    const errors = validationResult(req);
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -123,7 +123,7 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
             error.result = null;
             throw error;
         };
-
+        const errors = validationResult(req);
         if(!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -156,9 +156,9 @@ export const DeleteResume = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const CheckApply = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -193,9 +193,9 @@ export const CheckApply = async (req: Request, res: Response, next: NextFunction
 }
 
 export const ApplyJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -244,9 +244,9 @@ export const ApplyJob = async (req: Request, res: Response, next: NextFunction):
 };
 
 export const GetAppliedJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -307,9 +307,9 @@ export const GetAppliedJobs = async (req: Request, res: Response, next: NextFunc
 };
 
 export const GetInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -330,9 +330,9 @@ export const GetInformation = async (req: Request, res: Response, next: NextFunc
 };
 
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -413,9 +413,9 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
 };
 
 export const getInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const candidate = await User.findById(decodedToken.userId).populate('roleId');
         if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
@@ -484,5 +484,97 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+export const getAllInterviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const candidate = await User.findById(decodedToken.userId).populate('roleId');
+        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
+            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        
+        const listInterviews = await InterviewerInterview.aggregate([
+            {
+              $lookup: {
+                from: "interviews",
+                localField: "interviewId",
+                foreignField: "_id",
+                as: "interviews"
+              }
+            },
+            {
+              $match: {
+                "interviews.candidateId": new mongoose.Types.ObjectId(candidate._id.toString())
+              }
+            }
+        ]).skip((page-1)*limit).limit(limit);
+
+        const populateInterviewers = await InterviewerInterview.populate(listInterviews, {
+            path: 'interviewersId',
+            model: User
+        })
+        const populateInterviews = await InterviewerInterview.populate(populateInterviewers, {
+            path: 'interviewId',
+            model: Interview,
+            populate: {
+                path: 'jobApplyId',
+                model: Job,
+            }
+        })
+        console.log('populate: ', populateInterviews);
+        const interviewLength = populateInterviews.length;
+        if (interviewLength === 0) {
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const returnListInterview = populateInterviews.map(interview => {
+            let interviewersName = [];
+            for (let interviewer of interview.interviewersId) {
+                interviewersName.push((interviewer as any).fullName)
+            }
+            return {
+                jobName: (interview.interviewId as any).jobApplyId.name,
+                time: (interview.interviewId as any).time,
+                interviewersName: interviewersName,
+                interviewLink: (interview.interviewId as any).interviewLink
+            }
+        })
+        res.status(200).json({success: true, message: "Successfully!", result: {
+            pageNumber: page,
+            totalPages: Math.ceil(interviewLength/limit),
+            limit: limit,
+            totalElements: interviewLength,
+            content: returnListInterview
+        }});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
 
 

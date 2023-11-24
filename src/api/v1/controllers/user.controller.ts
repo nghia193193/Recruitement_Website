@@ -9,10 +9,9 @@ import {v2 as cloudinary} from 'cloudinary';
 import {randomBytes} from 'crypto';
 
 export const GetProfile = async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findById(decodedToken.userId).populate('roleId') as any;
         res.status(200).json({ 
@@ -45,10 +44,9 @@ export const GetProfile = async (req: Request, res: Response, next: NextFunction
 };
 
 export const UpdateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const updateUser = await User.findById(decodedToken.userId);
         if (!updateUser) {
@@ -60,7 +58,6 @@ export const UpdateProfile = async (req: Request, res: Response, next: NextFunct
         const { fullName, address, dateOfBirth, about} = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            console.log(errors.array());
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
@@ -101,10 +98,9 @@ export const UpdateProfile = async (req: Request, res: Response, next: NextFunct
 };
 
 export const ChangePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findOne(decodedToken.userId) as any;
         const currentPassword: string = req.body.currentPassword;
@@ -138,10 +134,9 @@ export const ChangePassword = async (req: Request, res: Response, next: NextFunc
 };
 
 export const ChangeAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.get('Authorization') as string;
-    const accessToken = authHeader.split(' ')[1];
-      
     try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];  
         const decodedToken: any = await verifyToken(accessToken);
         const user = await User.findById(decodedToken.userId) as any;
         if (!req.files || !req.files.avatarFile) {
@@ -190,9 +185,9 @@ export const ChangeAvatar = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const ForgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const email: string = req.body.email;
-    const errors = validationResult(req);
     try {
+        const email: string = req.body.email;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;
@@ -242,9 +237,9 @@ export const ForgotPassword = async (req: Request, res: Response, next: NextFunc
 };
 
 export const ResetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { newPassword, confirmPassword, token } = req.body;
-    const errors = validationResult(req);
     try {
+        const { newPassword, confirmPassword, token } = req.body;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & {statusCode?: number, result?: any} = new Error(errors.array()[0].msg);
             error.statusCode = 400;

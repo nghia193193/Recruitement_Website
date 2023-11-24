@@ -1441,7 +1441,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         })
         await interview.save();
         const interviewerInterview = new InterviewerInterview({
-            interviewerId: interviewersId,
+            interviewersId: interviewersId,
             interviewId: interview._id.toString()
         })
         await interviewerInterview.save();

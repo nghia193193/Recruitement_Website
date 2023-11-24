@@ -3,10 +3,10 @@ import { Event } from "../models/event";
 import { validationResult } from "express-validator";
 
 export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const name = req.query.name;
-    const page: number = req.query.page ? +req.query.page : 1; 
-    const limit: number = req.query.limit ? +req.query.limit : 10;
     try {
+        const name = req.query.name;
+        const page: number = req.query.page ? +req.query.page : 1; 
+        const limit: number = req.query.limit ? +req.query.limit : 10;
         const query: any = {};
         if (name) {
             query['name'] = name;
@@ -56,9 +56,9 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const GetSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const eventId = req.params.eventId;
-    const errors = validationResult(req);
     try {
+        const eventId = req.params.eventId;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
