@@ -50,12 +50,31 @@ router.put('/information', isAuth, [
 
 ], candidateController.saveInformation);
 
-router.get('/information', isAuth, [
-
-], candidateController.getInformation);
+router.get('/information', isAuth, candidateController.getInformation);
 
 router.get('/interviews', isAuth, [
-
+    query('page').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('page không hợp lệ');
+                };
+                return true;
+            }
+            return true;
+        }),
+    query('limit').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('limit không hợp lệ');
+                };
+                return true;
+            }
+            return true;
+        })
 ], candidateController.getAllInterviews)
 
 
