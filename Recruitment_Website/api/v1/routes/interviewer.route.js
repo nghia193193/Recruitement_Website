@@ -36,7 +36,7 @@ router.post('/interview-questions', middleware_1.isAuth, [
     (0, express_validator_1.body)('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value) => {
-        const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+        const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
         if (!regex.test(value)) {
             throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
         }
@@ -63,7 +63,7 @@ router.post('/interview-questions', middleware_1.isAuth, [
     (0, express_validator_1.body)('note').trim()
         .custom((value) => {
         if (value) {
-            const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+            const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
             }
@@ -200,6 +200,18 @@ router.get('/question', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('content').trim()
+        .custom((value) => {
+        if (value) {
+            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+            }
+            ;
+            return true;
+        }
+        return true;
+    })
 ], interviewerController.getAllQuestions);
 router.get('/interview-questions/:questionId', middleware_1.isAuth, [
     (0, express_validator_1.param)('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
@@ -209,7 +221,7 @@ router.put('/interview-questions/:questionId', middleware_1.isAuth, [
     (0, express_validator_1.body)('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value) => {
-        const regex = /^[\p{L} ,.?()\/0-9]+$/u;
+        const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
         if (!regex.test(value)) {
             throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
         }
@@ -236,7 +248,7 @@ router.put('/interview-questions/:questionId', middleware_1.isAuth, [
     (0, express_validator_1.body)('note').trim()
         .custom((value) => {
         if (value) {
-            const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+            const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
             }

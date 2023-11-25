@@ -686,7 +686,7 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
             };
             throw error;
         };
-        const { skill, type } = req.query;
+        const { skill, type, content } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
@@ -708,6 +708,10 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
         if (type) {
             query['typeQuestion'] = type;
         }
+        if (content) {
+            query['content'] = new RegExp((content as any), 'i');
+        }
+        
         const questionLength = await Question.find(query).countDocuments();
         if (questionLength === 0) {
             const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy câu hỏi');

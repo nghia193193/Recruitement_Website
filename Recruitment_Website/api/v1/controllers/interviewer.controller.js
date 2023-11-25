@@ -685,7 +685,7 @@ const getAllQuestions = async (req, res, next) => {
             throw error;
         }
         ;
-        const { skill, type } = req.query;
+        const { skill, type, content } = req.query;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -706,6 +706,9 @@ const getAllQuestions = async (req, res, next) => {
         }
         if (type) {
             query['typeQuestion'] = type;
+        }
+        if (content) {
+            query['content'] = new RegExp(content, 'i');
         }
         const questionLength = await question_1.Question.find(query).countDocuments();
         if (questionLength === 0) {

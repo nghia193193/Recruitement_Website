@@ -17,7 +17,7 @@ router.post('/interview-questions', isAuth, [
     body('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value: string) => {
-            const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+            const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
             };
@@ -43,7 +43,7 @@ router.post('/interview-questions', isAuth, [
     body('note').trim()
         .custom((value: string) => {
             if (value) {
-                const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+                const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
                 if (!regex.test(value)) {
                     throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
                 };
@@ -178,6 +178,17 @@ router.get('/question', isAuth, [
             }
             return true;
         }),
+    query('content').trim()
+        .custom((value) => {
+            if (value) {
+                const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+                };
+                return true;
+            }
+            return true;
+        })
 ], interviewerController.getAllQuestions);
 
 router.get('/interview-questions/:questionId', isAuth, [
@@ -189,7 +200,7 @@ router.put('/interview-questions/:questionId', isAuth, [
     body('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value: string) => {
-            const regex = /^[\p{L} ,.?()\/0-9]+$/u;
+            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
             };
@@ -215,7 +226,7 @@ router.put('/interview-questions/:questionId', isAuth, [
     body('note').trim()
         .custom((value: string) => {
             if (value) {
-                const regex = /^[\p{L} ,.?()%\/0-9]+$/u;
+                const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
                 if (!regex.test(value)) {
                     throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
                 };
