@@ -11,5 +11,7 @@ const jobPosSchema = new Schema({
         type: String,
         required: true
     }
+}, {
+    timestamps: true
 });
 exports.JobPosition = mongoose_1.default.model('JobPosition', jobPosSchema);

@@ -31,7 +31,7 @@ const utils_1 = require("../utils");
 const skill_1 = require("../models/skill");
 const router = (0, express_1.Router)();
 router.put('/information', middleware_1.isAuth, [], interviewerController.saveInformation);
-router.get('/information', middleware_1.isAuth, [], interviewerController.getInformation);
+router.get('/information', middleware_1.isAuth, interviewerController.getInformation);
 router.post('/interview-questions', middleware_1.isAuth, [
     (0, express_validator_1.body)('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
@@ -73,6 +73,40 @@ router.post('/interview-questions', middleware_1.isAuth, [
         return true;
     }),
 ], interviewerController.createQuestion);
+router.get('/candidates', middleware_1.isAuth, [
+    (0, express_validator_1.query)('page').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('page không hợp lệ');
+            }
+            ;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('page phải là số nguyên lớn hơn 0');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('limit').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('limit không hợp lệ');
+            }
+            ;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('limit phải là số nguyên lớn hơn 0');
+            }
+            return true;
+        }
+        return true;
+    }),
+], interviewerController.getAllApplicants);
 router.get('/question', middleware_1.isAuth, [
     (0, express_validator_1.query)('skill').trim()
         .custom(async (value, { req }) => {

@@ -9,8 +9,8 @@ import { JobType } from '../models/jobType';
 import { JobLocation } from '../models/jobLocation';
 import { Skill } from '../models/skill';
 import { Event } from '../models/event';
-import {UploadedFile} from 'express-fileupload';
-import {v2 as cloudinary} from 'cloudinary';
+import { UploadedFile } from 'express-fileupload';
+import { v2 as cloudinary } from 'cloudinary';
 import { Role } from '../models/role';
 import { JobApply } from '../models/jobApply';
 import { Education } from '../models/education';
@@ -18,6 +18,9 @@ import { Experience } from '../models/experience';
 import { Certificate } from '../models/certificate';
 import { Project } from '../models/project';
 import { Question } from '../models/question';
+import { InterviewerInterview } from '../models/interviewerInterview';
+import { Interview } from '../models/interview';
+import { ResumeUpload } from '../models/resumeUpload';
 
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -26,22 +29,22 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
             };
             throw error;
         };
-        const {education, experience, certificate, project, skills} = req.body;
-        await Education.deleteMany({candidateId: interviewer._id.toString()});
-        await Experience.deleteMany({candidateId: interviewer._id.toString()});
-        await Certificate.deleteMany({candidateId: interviewer._id.toString()});
-        await Project.deleteMany({candidateId: interviewer._id.toString()});
+        const { education, experience, certificate, project, skills } = req.body;
+        await Education.deleteMany({ candidateId: interviewer._id.toString() });
+        await Experience.deleteMany({ candidateId: interviewer._id.toString() });
+        await Certificate.deleteMany({ candidateId: interviewer._id.toString() });
+        await Project.deleteMany({ candidateId: interviewer._id.toString() });
         interviewer.skills = [];
         await interviewer.save();
         if (education.length !== 0) {
-            for (let i=0; i<education.length; i++) {
+            for (let i = 0; i < education.length; i++) {
                 let e = new Education({
                     candidateId: interviewer._id.toString(),
                     school: education[i].school,
@@ -52,7 +55,7 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
             }
         }
         if (experience.length !== 0) {
-            for (let i=0; i<experience.length; i++) {
+            for (let i = 0; i < experience.length; i++) {
                 let e = new Experience({
                     candidateId: interviewer._id.toString(),
                     companyName: experience[i].companyName,
@@ -64,7 +67,7 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
             }
         }
         if (certificate.length !== 0) {
-            for (let i=0; i<certificate.length; i++) {
+            for (let i = 0; i < certificate.length; i++) {
                 let c = new Certificate({
                     candidateId: interviewer._id.toString(),
                     name: certificate[i].name,
@@ -75,7 +78,7 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
             }
         }
         if (project.length !== 0) {
-            for (let i=0; i<project.length; i++) {
+            for (let i = 0; i < project.length; i++) {
                 let p = new Project({
                     candidateId: interviewer._id.toString(),
                     name: project[i].name,
@@ -86,13 +89,13 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
             }
         }
         if (skills.length !== 0) {
-            for (let i=0; i<skills.length; i++) {
-                let skill = await Skill.findOne({name: skills[i].label});
-                interviewer.skills.push({skillId: (skill as any)._id});
+            for (let i = 0; i < skills.length; i++) {
+                let skill = await Skill.findOne({ name: skills[i].label });
+                interviewer.skills.push({ skillId: (skill as any)._id });
             }
             await interviewer.save();
         }
-        res.status(200).json({success: true, message: "Successfully!", result: null});
+        res.status(200).json({ success: true, message: "Successfully!", result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -109,14 +112,14 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
             };
             throw error;
         };
-        const educationList = await Education.find({candidateId: interviewer._id.toString()});
+        const educationList = await Education.find({ candidateId: interviewer._id.toString() });
         const returnEducationList = educationList.map(e => {
             return {
                 school: e.school,
@@ -124,7 +127,7 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
                 graduatedYead: e.graduatedYear
             }
         })
-        const experienceList = await Experience.find({candidateId: interviewer._id.toString()});
+        const experienceList = await Experience.find({ candidateId: interviewer._id.toString() });
         const returnExperienceList = experienceList.map(e => {
             return {
                 companyName: e.companyName,
@@ -133,7 +136,7 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
                 dateTo: e.dateTo
             }
         })
-        const certificateList = await Certificate.find({candidateId: interviewer._id.toString()});
+        const certificateList = await Certificate.find({ candidateId: interviewer._id.toString() });
         const returnCertificateList = certificateList.map(c => {
             return {
                 name: c.name,
@@ -141,7 +144,7 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
                 url: c.url
             }
         })
-        const projectList = await Project.find({candidateId: interviewer._id.toString()});
+        const projectList = await Project.find({ candidateId: interviewer._id.toString() });
         const returnProjectList = projectList.map(p => {
             return {
                 name: p.name,
@@ -150,20 +153,279 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
             }
         })
         let skills = [];
-        for (let i=0; i<interviewer.skills.length; i++) {
+        for (let i = 0; i < interviewer.skills.length; i++) {
             let skill = await Skill.findById(interviewer.skills[i].skillId);
             skills.push({
                 skillId: skill?._id.toString(),
                 name: skill?.name
             });
-        } 
-        res.status(200).json({success: true, message: "Successfully!", result: {
-            education: returnEducationList,
-            experience: returnExperienceList,
-            certificate: returnCertificateList,
-            project: returnProjectList,
-            skills: skills
-        }});
+        }
+        res.status(200).json({
+            success: true, message: "Successfully!", result: {
+                education: returnEducationList,
+                experience: returnExperienceList,
+                certificate: returnCertificateList,
+                project: returnProjectList,
+                skills: skills
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const getAllApplicants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const applicantLength = await InterviewerInterview.find({ interviewersId: interviewer._id.toString() }).countDocuments();
+        if (applicantLength === 0) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Chưa có ứng viên nào ');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const listInterviews = await InterviewerInterview.find({ interviewersId: interviewer._id.toString() })
+            .populate({
+                path: 'interviewId',
+                model: Interview,
+                populate: {
+                    path: 'candidateId',
+                    model: User,
+                    populate: {
+                        path: 'skills.skillId',
+                        model: Skill
+                    }
+                }
+            })
+            .populate({
+                path: 'interviewId',
+                model: Interview,
+                populate: {
+                    path: 'jobApplyId',
+                    model: Job,
+                    populate: {
+                        path: 'positionId',
+                        model: JobPosition
+                    }
+                }
+            })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const returnListApplicants = async () => {
+            const mappedApplicants = await Promise.all(
+                listInterviews.map(async (interview) => {
+                    try {
+                        const cv = await ResumeUpload.findOne({ candidateId: interview.get('interviewId.candidateId._id') });
+                        const educationList = await Education.find({ candidateId: interview.get('interviewId.candidateId._id') });
+                        const returnEducationList = educationList.map(e => {
+                            return {
+                                school: e.school,
+                                major: e.major,
+                                graduatedYead: e.graduatedYear
+                            }
+                        })
+                        const experienceList = await Experience.find({ candidateId: interview.get('interviewId.candidateId._id') });
+                        const returnExperienceList = experienceList.map(e => {
+                            return {
+                                companyName: e.companyName,
+                                position: e.position,
+                                dateFrom: e.dateFrom,
+                                dateTo: e.dateTo
+                            }
+                        })
+                        const certificateList = await Certificate.find({ candidateId: interview.get('interviewId.candidateId._id') });
+                        const returnCertificateList = certificateList.map(c => {
+                            return {
+                                name: c.name,
+                                receivedDate: c.receivedDate,
+                                url: c.url
+                            }
+                        })
+                        const projectList = await Project.find({ candidateId: interview.get('interviewId.candidateId._id') });
+                        const returnProjectList = projectList.map(p => {
+                            return {
+                                name: p.name,
+                                description: p.description,
+                                url: p.url
+                            }
+                        })
+                        let listSkill = [];
+                        for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
+                            listSkill.push({ label: (interview.get('interviewId.candidateId.skills')[i].skillId as any).name, value: i });
+                        }
+                        return {
+                            candidateId: interview.get('interviewId.candidateId._id'),
+                            candidateName: interview.get('interviewId.candidateId.fullName'),
+                            position: interview.get('interviewId.jobApplyId.positionId.name'),
+                            interviewId: interview.interviewId._id.toString(),
+                            date: interview.get('interviewId.time'),
+                            state: interview.get('interviewId.state'),
+                            jobName: interview.get('interviewId.jobApplyId.name'),
+                            avatar: interview.get('interviewId.candidateId.avatar.url'),
+                            address: interview.get('interviewId.candidateId.address'),
+                            about: interview.get('interviewId.candidateId.about'),
+                            dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
+                            phone: interview.get('interviewId.candidateId.phone'),
+                            email: interview.get('interviewId.candidateId.email'),
+                            cv: cv?.resumeUpload,
+                            information: {
+                                education: returnEducationList,
+                                experience: returnExperienceList,
+                                certificate: returnCertificateList,
+                                project: returnProjectList,
+                                skills: listSkill
+                            }
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        return null;
+                    }
+                })
+            )
+            return mappedApplicants.filter(applicant => applicant !== null);
+        }
+        returnListApplicants().then(mappedApplicants => {
+            res.status(200).json({
+                success: true, message: "Successfully!", result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(applicantLength / limit),
+                    limit: limit,
+                    totalElements: applicantLength,
+                    content: mappedApplicants
+                }
+            });
+        })
+
+
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const getSingleApplicants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        };
+        const candidateId = req.params.candidateId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        // const candidate = await User.findById(candidateId).populate('pos');
+        // if (!candidate) {
+        //     const error: Error & {statusCode?: any, result?: any} = new Error('Ứng viên không tồn tại');
+        //     error.statusCode = 409;
+        //     error.result = null;
+        //     throw error;
+        // }
+        // const cv = await ResumeUpload.findOne({ candidateId: candidate._id.toString() });
+        // const educationList = await Education.find({ candidateId: candidate._id.toString() });
+        // const returnEducationList = educationList.map(e => {
+        //     return {
+        //         school: e.school,
+        //         major: e.major,
+        //         graduatedYead: e.graduatedYear
+        //     }
+        // })
+        // const experienceList = await Experience.find({ candidateId: candidate._id.toString() });
+        // const returnExperienceList = experienceList.map(e => {
+        //     return {
+        //         companyName: e.companyName,
+        //         position: e.position,
+        //         dateFrom: e.dateFrom,
+        //         dateTo: e.dateTo
+        //     }
+        // })
+        // const certificateList = await Certificate.find({ candidateId: candidate._id.toString() });
+        // const returnCertificateList = certificateList.map(c => {
+        //     return {
+        //         name: c.name,
+        //         receivedDate: c.receivedDate,
+        //         url: c.url
+        //     }
+        // })
+        // const projectList = await Project.find({ candidateId: candidate._id.toString() });
+        // const returnProjectList = projectList.map(p => {
+        //     return {
+        //         name: p.name,
+        //         description: p.description,
+        //         url: p.url
+        //     }
+        // })
+        // let listSkill = [];
+        // for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
+        //     listSkill.push({ label: (interview.get('interviewId.candidateId.skills')[i].skillId as any).name, value: i });
+        // }
+        // return {
+        //     candidateId: interview.get('interviewId.candidateId._id'),
+        //     candidateName: interview.get('interviewId.candidateId.fullName'),
+        //     position: interview.get('interviewId.jobApplyId.positionId.name'),
+        //     interviewId: interview.interviewId._id.toString(),
+        //     jobName: interview.get('interviewId.jobApplyId.name'),
+        //     avatar: interview.get('interviewId.candidateId.avatar.url'),
+        //     address: interview.get('interviewId.candidateId.address'),
+        //     about: interview.get('interviewId.candidateId.about'),
+        //     dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
+        //     phone: interview.get('interviewId.candidateId.phone'),
+        //     email: interview.get('interviewId.candidateId.email'),
+        //     cv: cv?.resumeUpload,
+        //     information: {
+        //         education: returnEducationList,
+        //         experience: returnExperienceList,
+        //         certificate: returnCertificateList,
+        //         project: returnProjectList,
+        //         skills: listSkill
+        //     }
+        // }
+
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -180,20 +442,20 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
-        const {content, type, skill, note} = req.body;
+        const { content, type, skill, note } = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        const questionSKill = await Skill.findOne({name: skill});
+        const questionSKill = await Skill.findOne({ name: skill });
         const question = new Question({
             interviewerId: interviewer._id.toString(),
             content: content,
@@ -202,7 +464,7 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             note: note
         });
         await question.save();
-        res.status(200).json({success: true, message: 'Create question successfully.', result: null});
+        res.status(200).json({ success: true, message: 'Create question successfully.', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -220,19 +482,19 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
             };
             throw error;
         };
-        const {skill, type} = req.query;
+        const { skill, type } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
@@ -242,11 +504,11 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
         const query: any = {
             interviewerId: interviewer._id.toString()
         }
-        if(skill) {
-            const skillId = await Skill.findOne({name: skill});
+        if (skill) {
+            const skillId = await Skill.findOne({ name: skill });
             query['skillId'] = skillId?._id;
         }
-        if(type) {
+        if (type) {
             query['typeQuestion'] = type;
         }
         const questionLength = await Question.find(query).countDocuments();
@@ -260,9 +522,9 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
             throw error;
         };
         const listQuestions = await Question.find(query).populate('skillId')
-            .skip((page-1)*limit)
+            .skip((page - 1) * limit)
             .limit(limit);
-        
+
         const returnListQuestions = listQuestions.map(question => {
             return {
                 questionId: question._id.toString(),
@@ -272,13 +534,15 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
                 note: question.note
             }
         })
-        res.status(200).json({success: true, message: 'Get list questions successfully.', result: {
-            pageNumber: page,
-            totalPages: Math.ceil(questionLength/limit),
-            limit: limit,
-            totalElements: questionLength,
-            content: returnListQuestions
-        }});
+        res.status(200).json({
+            success: true, message: 'Get list questions successfully.', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(questionLength / limit),
+                limit: limit,
+                totalElements: questionLength,
+                content: returnListQuestions
+            }
+        });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -295,7 +559,7 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -303,13 +567,13 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
         const questionId = req.params.questionId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
         const question = await Question.findById(questionId).populate('skillId')
-        if(!question) {
+        if (!question) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
             error.statusCode = 409;
             error.result = null;
@@ -322,7 +586,7 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
             skill: question.get('skillId.name'),
             note: question.note
         }
-        res.status(200).json({success: true, message: 'Get question successfully.', result: returnQuestion});
+        res.status(200).json({ success: true, message: 'Get question successfully.', result: returnQuestion });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -339,23 +603,23 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
         const questionId = req.params.questionId;
-        const {content, type, skill, note} = req.body;
+        const { content, type, skill, note } = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        const questionSKill = await Skill.findOne({name: skill});
+        const questionSKill = await Skill.findOne({ name: skill });
         const question = await Question.findById(questionId);
-        if(!question) {
+        if (!question) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi');
             error.statusCode = 409;
             error.result = null;
@@ -366,7 +630,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
         question.skillId = (questionSKill as any)._id;
         question.note = note;
         await question.save();
-        res.status(200).json({success: true, message: 'Update question successfully.', result: null});
+        res.status(200).json({ success: true, message: 'Update question successfully.', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -383,7 +647,7 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -391,7 +655,7 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
         const questionId = req.params.questionId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
@@ -404,7 +668,7 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
             throw error;
         }
         await Question.findByIdAndDelete(questionId);
-        res.status(200).json({success: true, message: 'Delete question successfully.', result: null});
+        res.status(200).json({ success: true, message: 'Delete question successfully.', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -421,7 +685,7 @@ export const getSkillQuestion = async (req: Request, res: Response, next: NextFu
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -430,7 +694,7 @@ export const getSkillQuestion = async (req: Request, res: Response, next: NextFu
         const returnSkills = skills.map(skill => {
             return skill.name;
         })
-        res.status(200).json({success: true, message: 'Get question skills successfully.', result: returnSkills});
+        res.status(200).json({ success: true, message: 'Get question skills successfully.', result: returnSkills });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -448,13 +712,13 @@ export const getTypeQuestion = async (req: Request, res: Response, next: NextFun
         const decodedToken: any = await verifyToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
         const returnType = questionType;
-        res.status(200).json({success: true, message: 'Get question type successfully.', result: returnType});
+        res.status(200).json({ success: true, message: 'Get question type successfully.', result: returnType });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;

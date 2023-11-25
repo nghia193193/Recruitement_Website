@@ -6,6 +6,8 @@ const jobPosSchema = new Schema({
         type: String,
         required: true
     }
+},{
+    timestamps: true
 });
 
 export const JobPosition = mongoose.model('JobPosition', jobPosSchema);

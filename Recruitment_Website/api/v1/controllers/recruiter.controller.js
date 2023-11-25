@@ -1466,7 +1466,7 @@ const createMeeting = async (req, res, next) => {
             jobApplyId: jobApplyId,
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'Start soon'
+            state: 'Pending'
         });
         await interview.save();
         const interviewerInterview = new interviewerInterview_1.InterviewerInterview({

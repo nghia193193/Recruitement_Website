@@ -1437,7 +1437,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             jobApplyId: jobApplyId, 
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'Start soon'
+            state: 'Pending'
         })
         await interview.save();
         const interviewerInterview = new InterviewerInterview({
