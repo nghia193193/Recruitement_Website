@@ -21,6 +21,7 @@ import { Question } from '../models/question';
 import { InterviewerInterview } from '../models/interviewerInterview';
 import { Interview } from '../models/interview';
 import { ResumeUpload } from '../models/resumeUpload';
+import mongoose from 'mongoose';
 
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -496,6 +497,132 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
             totalElements: interviewLength,
             content: returnListInterviews
         }});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const getSingleInterview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const interviewId = req.params.interviewId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+
+        const interview = await InterviewerInterview.findOne({interviewersId: interviewer._id.toString(), interviewId: interviewId})
+            .populate({
+                path: 'interviewId',
+                model: Interview,
+                populate: {
+                    path: 'jobApplyId',
+                    model: Job,
+                    populate: {
+                        path: 'positionId',
+                        model: JobPosition
+                    }
+                }
+            })
+            .populate({
+                path: 'interviewId',
+                model: Interview,
+                populate: {
+                    path: 'candidateId',
+                    model: User,
+                    populate: {
+                        path: 'skills.skillId',
+                        model: Skill
+                    }
+                }
+            });
+
+        if (!interview) {
+            const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy interview');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        const cv = await ResumeUpload.findOne({ candidateId: interview.get('interviewId.candidateId._id') });
+        const educationList = await Education.find({ candidateId: interview.get('interviewId.candidateId._id') });
+        const returnEducationList = educationList.map(e => {
+            return {
+                school: e.school,
+                major: e.major,
+                graduatedYead: e.graduatedYear
+            }
+        })
+        const experienceList = await Experience.find({ candidateId: interview.get('interviewId.candidateId._id') });
+        const returnExperienceList = experienceList.map(e => {
+            return {
+                companyName: e.companyName,
+                position: e.position,
+                dateFrom: e.dateFrom,
+                dateTo: e.dateTo
+            }
+        })
+        const certificateList = await Certificate.find({ candidateId: interview.get('interviewId.candidateId._id') });
+        const returnCertificateList = certificateList.map(c => {
+            return {
+                name: c.name,
+                receivedDate: c.receivedDate,
+                url: c.url
+            }
+        })
+        const projectList = await Project.find({ candidateId: interview.get('interviewId.candidateId._id') });
+        const returnProjectList = projectList.map(p => {
+            return {
+                name: p.name,
+                description: p.description,
+                url: p.url
+            }
+        })
+        let listSkill = [];
+        for (let i = 0; i < interview.get('interviewId.candidateId').skills.length; i++) {
+            listSkill.push({ label: (interview.get('interviewId.candidateId').skills[i].skillId as any).name, value: i });
+        }
+        const returnInterview = {
+            interviewId: interview.interviewId._id.toString(),
+            jobName: interview.get('interviewId.jobApplyId.name'),
+            position: interview.get('interviewId.jobApplyId.positionId.name'),
+            Date: interview.get('interviewId.time'),
+            interviewLink: interview.get('interviewId.interviewLink'),
+            questions: [],
+            candidate: {
+                candidateId: interview.get('interviewId.candidateId._id'),
+                candidateName: interview.get('interviewId.candidateId.fullName'),
+                email: interview.get('interviewId.candidateId.email'),
+                phone: interview.get('interviewId.candidateId.phone'),
+                about: interview.get('interviewId.candidateId.about'),
+                address: interview.get('interviewId.candidateId.address'),
+                dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
+                information: {
+                    education: returnEducationList,
+                    experience: returnExperienceList,
+                    certificate: returnCertificateList,
+                    project: returnProjectList,
+                    skills: listSkill
+                }
+            }
+        }
+        console.log(interview);
+        res.status(200).json({success: true, message: "Get interview Successfully!", result: returnInterview});
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;

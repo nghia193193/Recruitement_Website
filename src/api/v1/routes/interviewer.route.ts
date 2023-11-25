@@ -123,6 +123,10 @@ router.get('/interviews', isAuth, [
         }),
 ], interviewerController.getAllInterviews)
 
+router.get('/interviews/:interviewId', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ')
+], interviewerController.getSingleInterview);
+
 router.get('/question', isAuth, [
     query('skill').trim()
         .custom( async (value, {req}) => {

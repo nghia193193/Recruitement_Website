@@ -144,6 +144,9 @@ router.get('/interviews', middleware_1.isAuth, [
         return true;
     }),
 ], interviewerController.getAllInterviews);
+router.get('/interviews/:interviewId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ')
+], interviewerController.getSingleInterview);
 router.get('/question', middleware_1.isAuth, [
     (0, express_validator_1.query)('skill').trim()
         .custom(async (value, { req }) => {
