@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getAllInterviews = exports.getSingleApplicants = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -331,7 +331,7 @@ const getAllApplicants = async (req, res, next) => {
     }
 };
 exports.getAllApplicants = getAllApplicants;
-const getSingleApplicants = async (req, res, next) => {
+const getSingleApplicant = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
@@ -340,9 +340,7 @@ const getSingleApplicants = async (req, res, next) => {
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
-            error.result = {
-                content: []
-            };
+            error.result = null;
             throw error;
         }
         ;
@@ -351,77 +349,73 @@ const getSingleApplicants = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
-            error.result = {
-                content: []
-            };
+            error.result = null;
             throw error;
         }
-        // const candidate = await User.findById(candidateId).populate('pos');
-        // if (!candidate) {
-        //     const error: Error & {statusCode?: any, result?: any} = new Error('Ứng viên không tồn tại');
-        //     error.statusCode = 409;
-        //     error.result = null;
-        //     throw error;
-        // }
-        // const cv = await ResumeUpload.findOne({ candidateId: candidate._id.toString() });
-        // const educationList = await Education.find({ candidateId: candidate._id.toString() });
-        // const returnEducationList = educationList.map(e => {
-        //     return {
-        //         school: e.school,
-        //         major: e.major,
-        //         graduatedYead: e.graduatedYear
-        //     }
-        // })
-        // const experienceList = await Experience.find({ candidateId: candidate._id.toString() });
-        // const returnExperienceList = experienceList.map(e => {
-        //     return {
-        //         companyName: e.companyName,
-        //         position: e.position,
-        //         dateFrom: e.dateFrom,
-        //         dateTo: e.dateTo
-        //     }
-        // })
-        // const certificateList = await Certificate.find({ candidateId: candidate._id.toString() });
-        // const returnCertificateList = certificateList.map(c => {
-        //     return {
-        //         name: c.name,
-        //         receivedDate: c.receivedDate,
-        //         url: c.url
-        //     }
-        // })
-        // const projectList = await Project.find({ candidateId: candidate._id.toString() });
-        // const returnProjectList = projectList.map(p => {
-        //     return {
-        //         name: p.name,
-        //         description: p.description,
-        //         url: p.url
-        //     }
-        // })
-        // let listSkill = [];
-        // for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
-        //     listSkill.push({ label: (interview.get('interviewId.candidateId.skills')[i].skillId as any).name, value: i });
-        // }
-        // return {
-        //     candidateId: interview.get('interviewId.candidateId._id'),
-        //     candidateName: interview.get('interviewId.candidateId.fullName'),
-        //     position: interview.get('interviewId.jobApplyId.positionId.name'),
-        //     interviewId: interview.interviewId._id.toString(),
-        //     jobName: interview.get('interviewId.jobApplyId.name'),
-        //     avatar: interview.get('interviewId.candidateId.avatar.url'),
-        //     address: interview.get('interviewId.candidateId.address'),
-        //     about: interview.get('interviewId.candidateId.about'),
-        //     dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
-        //     phone: interview.get('interviewId.candidateId.phone'),
-        //     email: interview.get('interviewId.candidateId.email'),
-        //     cv: cv?.resumeUpload,
-        //     information: {
-        //         education: returnEducationList,
-        //         experience: returnExperienceList,
-        //         certificate: returnCertificateList,
-        //         project: returnProjectList,
-        //         skills: listSkill
-        //     }
-        // }
+        const candidate = await user_1.User.findById(candidateId).populate('skills.skillId');
+        if (!candidate) {
+            const error = new Error('Không tìm thấy ứng viên.');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const cv = await resumeUpload_1.ResumeUpload.findOne({ candidateId: candidate._id.toString() });
+        const educationList = await education_1.Education.find({ candidateId: candidate._id.toString() });
+        const returnEducationList = educationList.map(e => {
+            return {
+                school: e.school,
+                major: e.major,
+                graduatedYead: e.graduatedYear
+            };
+        });
+        const experienceList = await experience_1.Experience.find({ candidateId: candidate._id.toString() });
+        const returnExperienceList = experienceList.map(e => {
+            return {
+                companyName: e.companyName,
+                position: e.position,
+                dateFrom: e.dateFrom,
+                dateTo: e.dateTo
+            };
+        });
+        const certificateList = await certificate_1.Certificate.find({ candidateId: candidate._id.toString() });
+        const returnCertificateList = certificateList.map(c => {
+            return {
+                name: c.name,
+                receivedDate: c.receivedDate,
+                url: c.url
+            };
+        });
+        const projectList = await project_1.Project.find({ candidateId: candidate._id.toString() });
+        const returnProjectList = projectList.map(p => {
+            return {
+                name: p.name,
+                description: p.description,
+                url: p.url
+            };
+        });
+        let listSkill = [];
+        for (let i = 0; i < candidate.skills.length; i++) {
+            listSkill.push({ label: candidate.skills[i].skillId.name, value: i });
+        }
+        const returnCandidate = {
+            candidateId: candidate._id.toString(),
+            candidateName: candidate.fullName,
+            avatar: candidate.avatar?.url,
+            address: candidate.address,
+            about: candidate.about,
+            dateOfBirth: candidate.dateOfBirth,
+            phone: candidate.phone,
+            email: candidate.email,
+            cv: cv?.resumeUpload,
+            information: {
+                education: returnEducationList,
+                experience: returnExperienceList,
+                certificate: returnCertificateList,
+                project: returnProjectList,
+                skills: listSkill
+            }
+        };
+        res.status(200).json({ success: true, message: 'Get applicant successfully.', result: returnCandidate });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -431,7 +425,7 @@ const getSingleApplicants = async (req, res, next) => {
         next(err);
     }
 };
-exports.getSingleApplicants = getSingleApplicants;
+exports.getSingleApplicant = getSingleApplicant;
 const getAllInterviews = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');

@@ -86,6 +86,10 @@ router.get('/candidates', isAuth, [
         }),
 ], interviewerController.getAllApplicants);
 
+router.get('/candidates/:candidateId', isAuth, [
+    param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
+], interviewerController.getSingleApplicant);
+
 router.get('/interviews', isAuth, [
     query('page').trim()
         .custom((value, {req}) => {
