@@ -30,7 +30,7 @@ export const GetResumes = async (req: Request, res: Response, next: NextFunction
             throw error;
         };
         const resumesLength = await ResumeUpload.find({candidateId: candidate._id}).countDocuments();
-        const resumes = await ResumeUpload.find({candidateId: candidate.id});
+        const resumes = await ResumeUpload.find({candidateId: candidate.id}).sort({updatedAt: -1});
         const listResumes = resumes.map(resume => {
             return {
                 resumeId: resume._id.toString(),
@@ -279,6 +279,7 @@ export const GetAppliedJobs = async (req: Request, res: Response, next: NextFunc
             throw error;
         };
         const appliedJobs = await JobApply.find({candidateId: candidate._id.toString()}).populate('jobAppliedId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
 
@@ -524,7 +525,7 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
                 "interviews.candidateId": new mongoose.Types.ObjectId(candidate._id.toString())
               }
             }
-        ]).skip((page-1)*limit).limit(limit);
+        ]).sort({updatedAt: -1}).skip((page-1)*limit).limit(limit);
 
         const populateInterviewers = await InterviewerInterview.populate(listInterviews, {
             path: 'interviewersId',

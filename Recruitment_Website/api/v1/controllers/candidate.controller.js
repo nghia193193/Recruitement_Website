@@ -33,7 +33,7 @@ const GetResumes = async (req, res, next) => {
         }
         ;
         const resumesLength = await resumeUpload_1.ResumeUpload.find({ candidateId: candidate._id }).countDocuments();
-        const resumes = await resumeUpload_1.ResumeUpload.find({ candidateId: candidate.id });
+        const resumes = await resumeUpload_1.ResumeUpload.find({ candidateId: candidate.id }).sort({ updatedAt: -1 });
         const listResumes = resumes.map(resume => {
             return {
                 resumeId: resume._id.toString(),
@@ -298,6 +298,7 @@ const GetAppliedJobs = async (req, res, next) => {
         }
         ;
         const appliedJobs = await jobApply_1.JobApply.find({ candidateId: candidate._id.toString() }).populate('jobAppliedId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const retunAppliedJobs = appliedJobs.map(job => {
@@ -548,7 +549,7 @@ const getAllInterviews = async (req, res, next) => {
                     "interviews.candidateId": new mongoose_1.default.Types.ObjectId(candidate._id.toString())
                 }
             }
-        ]).skip((page - 1) * limit).limit(limit);
+        ]).sort({ updatedAt: -1 }).skip((page - 1) * limit).limit(limit);
         const populateInterviewers = await interviewerInterview_1.InterviewerInterview.populate(listInterviews, {
             path: 'interviewersId',
             model: user_1.User

@@ -25,6 +25,7 @@ const GetAllEvents = async (req, res, next) => {
         ;
         const events = await event_1.Event.find(query)
             .populate('authorId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const listEvents = events.map(e => {

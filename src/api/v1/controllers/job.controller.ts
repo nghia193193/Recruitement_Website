@@ -49,6 +49,7 @@ export const GetJobs = async (req: Request, res: Response, next: NextFunction): 
         };
 
         const jobs = await Job.find(query).populate('positionId locationId typeId skills.skillId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
         

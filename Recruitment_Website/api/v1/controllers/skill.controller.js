@@ -4,7 +4,7 @@ exports.GetAllSkills = void 0;
 const skill_1 = require("../models/skill");
 const GetAllSkills = async (req, res, next) => {
     try {
-        const skills = await skill_1.Skill.find();
+        const skills = await skill_1.Skill.find().sort({ updatedAt: -1 });
         const listSkills = skills.map(skill => {
             return {
                 skillId: skill._id,

@@ -105,6 +105,7 @@ const GetAllJobs = async (req, res, next) => {
         }
         ;
         const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const listjobs = jobs.map(job => {
@@ -415,6 +416,7 @@ const GetAllEvents = async (req, res, next) => {
         }
         ;
         const events = await event_1.Event.find(query).populate('authorId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const listEvents = events.map(e => {
@@ -749,6 +751,7 @@ const GetAllInterviewers = async (req, res, next) => {
         }
         const interviewerLength = await user_1.User.find(query).countDocuments();
         const interviewerList = await user_1.User.find(query).populate('roleId skills.skillId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const returnInterviewerList = async () => {
@@ -978,6 +981,7 @@ const GetAllApplicants = async (req, res, next) => {
                 model: skill_1.Skill,
             }
         })
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         ListApplicants.forEach(app => {

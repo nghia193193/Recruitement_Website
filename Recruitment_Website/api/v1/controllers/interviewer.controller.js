@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleApplicants = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getAllInterviews = exports.getSingleApplicants = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -235,6 +235,7 @@ const getAllApplicants = async (req, res, next) => {
                 }
             }
         })
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const returnListApplicants = async () => {
@@ -431,6 +432,83 @@ const getSingleApplicants = async (req, res, next) => {
     }
 };
 exports.getSingleApplicants = getSingleApplicants;
+const getAllInterviews = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        ;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const interviewLength = await interviewerInterview_1.InterviewerInterview.find({ interviewersId: interviewer._id.toString() }).countDocuments();
+        if (interviewLength === 0) {
+            const error = new Error('Chưa có buổi phỏng vấn nào.');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const listInterviews = await interviewerInterview_1.InterviewerInterview.find({ interviewersId: interviewer._id.toString() })
+            .populate({
+            path: 'interviewId',
+            model: interview_1.Interview,
+            populate: {
+                path: 'jobApplyId',
+                model: job_1.Job,
+                populate: {
+                    path: 'positionId',
+                    model: jobPosition_1.JobPosition
+                }
+            }
+        })
+            .sort({ updatedAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+        const returnListInterviews = listInterviews.map(interview => {
+            return {
+                interviewId: interview.interviewId._id.toString(),
+                interviewLink: interview.get('interviewId.interviewLink'),
+                date: interview.get('interviewId.time'),
+                position: interview.get('interviewId.jobApplyId.positionId.name'),
+                state: interview.get('interviewId.state')
+            };
+        });
+        res.status(200).json({ success: true, message: "Get list interview Successfully!", result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviewLength / limit),
+                limit: limit,
+                totalElements: interviewLength,
+                content: returnListInterviews
+            } });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getAllInterviews = getAllInterviews;
 const createQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -521,6 +599,7 @@ const getAllQuestions = async (req, res, next) => {
         }
         ;
         const listQuestions = await question_1.Question.find(query).populate('skillId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const returnListQuestions = listQuestions.map(question => {

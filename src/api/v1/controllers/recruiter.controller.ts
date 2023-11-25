@@ -78,6 +78,7 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
         };
 
         const jobs = await Job.find(query).populate('positionId locationId typeId skills.skillId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
         
@@ -380,6 +381,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         };
 
         const events = await Event.find(query).populate('authorId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
 
@@ -721,6 +723,7 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
         }
         const interviewerLength = await User.find(query).countDocuments();
         const interviewerList = await User.find(query).populate('roleId skills.skillId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
         const returnInterviewerList = async () => {
@@ -949,6 +952,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                     model: Skill,
                 }
             })
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
         

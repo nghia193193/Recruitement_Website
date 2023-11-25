@@ -54,6 +54,7 @@ const GetJobs = async (req, res, next) => {
         }
         ;
         const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId')
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const listjobs = jobs.map(job => {

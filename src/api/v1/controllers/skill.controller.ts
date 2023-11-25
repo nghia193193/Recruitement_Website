@@ -3,7 +3,7 @@ import { Skill } from '../models/skill';
 
 export const GetAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const skills = await Skill.find();
+        const skills = await Skill.find().sort({updatedAt: -1});
         const listSkills = skills.map(skill => {
             return {
                 skillId: skill._id,

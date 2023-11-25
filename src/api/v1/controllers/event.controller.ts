@@ -24,6 +24,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
 
         const events = await Event.find(query)
             .populate('authorId')
+            .sort({updatedAt: -1})
             .skip((page - 1) * limit)
             .limit(limit);
         
