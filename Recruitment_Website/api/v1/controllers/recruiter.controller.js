@@ -1480,6 +1480,10 @@ const createMeeting = async (req, res, next) => {
             startDateTime: startDateTime.toISOString(),
             endDateTime: endDateTime.toISOString(),
             subject: 'Interview',
+            lobbyBypassSettings: {
+                scope: 'everyone',
+                isDialInBypassEnabled: true,
+            },
         };
         const result = await graphClient
             .api(`/users/021e095b-02f2-4e67-9ea8-a1fbe63d77ae/onlineMeetings`)

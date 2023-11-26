@@ -1449,6 +1449,10 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             startDateTime: startDateTime.toISOString(),
             endDateTime: endDateTime.toISOString(),
             subject: 'Interview',
+            lobbyBypassSettings: {
+                scope: 'everyone', 
+                isDialInBypassEnabled: true,
+            },
         };
 
         const result = await graphClient
