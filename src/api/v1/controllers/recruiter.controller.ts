@@ -1422,7 +1422,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
 
         const clientId = 'ef86ecc5-3294-4b4d-986e-d0377dc29b20';
         const tenantId = '1f74f109-07f6-4291-81bc-64bc4acbd48a';
-        const clientSecret = 'lSJ8Q~2ZODyaLROwQ6ZBaNEb057oUR7nNUkdiaea';
+        const clientSecret = `${process.env.CLIENT_SECRET}`;
         const scopes = ["https://graph.microsoft.com/.default"];
         const credentialOptions: ClientSecretCredentialOptions = {
             authorityHost: "https://login.microsoftonline.com",
