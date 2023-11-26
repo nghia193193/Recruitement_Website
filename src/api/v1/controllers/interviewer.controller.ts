@@ -484,8 +484,9 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
         const returnListInterviews = listInterviews.map(interview => {
             return {
                 interviewId: interview.interviewId._id.toString(),
+                jobName: interview.get('interviewId.jobApplyId.name'),
                 interviewLink: interview.get('interviewId.interviewLink'),
-                date: interview.get('interviewId.time'),
+                time: interview.get('interviewId.time'),
                 position: interview.get('interviewId.jobApplyId.positionId.name'),
                 state: interview.get('interviewId.state')
             }

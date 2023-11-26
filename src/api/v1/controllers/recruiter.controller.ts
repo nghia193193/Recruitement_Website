@@ -1398,6 +1398,27 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             };
             throw error;
         }
+        const candidate = await User.findById(candidateId);
+        if (!candidate) {
+            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy candidate');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobId = await Job.findById(jobApplyId);
+        if (!jobId) {
+            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy Job');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = await JobApply.findOne({candidateId: candidateId, jobAppliedId: jobApplyId});
+        if (!jobApply) {
+            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy Job Apply');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
 
         const clientId = 'ef86ecc5-3294-4b4d-986e-d0377dc29b20';
         const tenantId = '1f74f109-07f6-4291-81bc-64bc4acbd48a';
@@ -1441,7 +1462,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             jobApplyId: jobApplyId, 
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'Pending'
+            state: 'PENDING'
         })
         await interview.save();
         const interviewerInterview = new InterviewerInterview({
@@ -1449,16 +1470,23 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             interviewId: interview._id.toString()
         })
         await interviewerInterview.save();
-        const candidate = await User.findById(candidateId);
+        jobApply.status = "REVIEWING";
+        await jobApply.save();
         const candidateCV = await ResumeUpload.findOne({candidateId: candidateId});
         let interviewersMail = [];
         let interviewersName = [] as string[];
         for (let i=0; i<interviewersId.length; i++) {
             const interviewer = await User.findById(interviewersId[i].toString());
-            interviewersMail.push(interviewer?.email);
-            interviewersName.push(interviewer?.fullName as string);
+            if (!interviewer) {
+                const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy interviewer');
+                error.statusCode = 409;
+                error.result = null;
+                throw error;
+            }
+            interviewersMail.push(interviewer.email);
+            interviewersName.push(interviewer.fullName as string);
         }
-        let attendees = interviewersMail.concat(candidate?.email) as string[];
+        let attendees = interviewersMail.concat(candidate.email) as string[];
         let mailDetails = {
             from: 'nguyennghia193913@gmail.com',
             cc: attendees.join(','),
@@ -1469,7 +1497,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
                     <div style="display: flex; justify-content: center">
                         <h2 style="color:blue; text-align: center;">Interview Information</h2>
                     </div>
-                    <p>Dear ${candidate?.fullName}</p>
+                    <p>Dear ${candidate.fullName}</p>
                     <p>Thank you for applying to Job Port.</p>
                     <p>We've reviewed your application materials and we're excited to invite you to interview for the role.</p>
                     <p>Your interview will be conducted via online meeting with ${recruiter.fullName} (Recruiter).</p>
@@ -1477,7 +1505,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
                     <p>If you have any questions, please don't hesitate to contact us.</p>
                     <p>Regard, ${recruiter.fullName}.</p>
                     <p><b>Start Date:</b> ${formatDateToJSDateObject(startDateTime)}</p>
-                    <p><b>Candidate:</b> ${candidate?.fullName} (${candidate?.email})</p>
+                    <p><b>Candidate:</b> ${candidate.fullName} (${candidate.email})</p>
                     <p><b>Recruiter:</b> ${recruiter.fullName} (${recruiter.email})</p>
                     <b>Interviewer:</b>
                     ${interviewersMail.map((email, index) => `

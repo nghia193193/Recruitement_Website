@@ -1429,6 +1429,27 @@ const createMeeting = async (req, res, next) => {
             };
             throw error;
         }
+        const candidate = await user_1.User.findById(candidateId);
+        if (!candidate) {
+            const error = new Error('Không tìm thấy candidate');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobId = await job_1.Job.findById(jobApplyId);
+        if (!jobId) {
+            const error = new Error('Không tìm thấy Job');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = await jobApply_1.JobApply.findOne({ candidateId: candidateId, jobAppliedId: jobApplyId });
+        if (!jobApply) {
+            const error = new Error('Không tìm thấy Job Apply');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
         const clientId = 'ef86ecc5-3294-4b4d-986e-d0377dc29b20';
         const tenantId = '1f74f109-07f6-4291-81bc-64bc4acbd48a';
         const clientSecret = 'lSJ8Q~2ZODyaLROwQ6ZBaNEb057oUR7nNUkdiaea';
@@ -1470,7 +1491,7 @@ const createMeeting = async (req, res, next) => {
             jobApplyId: jobApplyId,
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'Pending'
+            state: 'PENDING'
         });
         await interview.save();
         const interviewerInterview = new interviewerInterview_1.InterviewerInterview({
@@ -1478,16 +1499,23 @@ const createMeeting = async (req, res, next) => {
             interviewId: interview._id.toString()
         });
         await interviewerInterview.save();
-        const candidate = await user_1.User.findById(candidateId);
+        jobApply.status = "REVIEWING";
+        await jobApply.save();
         const candidateCV = await resumeUpload_1.ResumeUpload.findOne({ candidateId: candidateId });
         let interviewersMail = [];
         let interviewersName = [];
         for (let i = 0; i < interviewersId.length; i++) {
             const interviewer = await user_1.User.findById(interviewersId[i].toString());
-            interviewersMail.push(interviewer?.email);
-            interviewersName.push(interviewer?.fullName);
+            if (!interviewer) {
+                const error = new Error('Không tìm thấy interviewer');
+                error.statusCode = 409;
+                error.result = null;
+                throw error;
+            }
+            interviewersMail.push(interviewer.email);
+            interviewersName.push(interviewer.fullName);
         }
-        let attendees = interviewersMail.concat(candidate?.email);
+        let attendees = interviewersMail.concat(candidate.email);
         let mailDetails = {
             from: 'nguyennghia193913@gmail.com',
             cc: attendees.join(','),
@@ -1498,7 +1526,7 @@ const createMeeting = async (req, res, next) => {
                     <div style="display: flex; justify-content: center">
                         <h2 style="color:blue; text-align: center;">Interview Information</h2>
                     </div>
-                    <p>Dear ${candidate?.fullName}</p>
+                    <p>Dear ${candidate.fullName}</p>
                     <p>Thank you for applying to Job Port.</p>
                     <p>We've reviewed your application materials and we're excited to invite you to interview for the role.</p>
                     <p>Your interview will be conducted via online meeting with ${recruiter.fullName} (Recruiter).</p>
@@ -1506,7 +1534,7 @@ const createMeeting = async (req, res, next) => {
                     <p>If you have any questions, please don't hesitate to contact us.</p>
                     <p>Regard, ${recruiter.fullName}.</p>
                     <p><b>Start Date:</b> ${(0, utils_1.formatDateToJSDateObject)(startDateTime)}</p>
-                    <p><b>Candidate:</b> ${candidate?.fullName} (${candidate?.email})</p>
+                    <p><b>Candidate:</b> ${candidate.fullName} (${candidate.email})</p>
                     <p><b>Recruiter:</b> ${recruiter.fullName} (${recruiter.email})</p>
                     <b>Interviewer:</b>
                     ${interviewersMail.map((email, index) => `

@@ -236,6 +236,13 @@ const ApplyJob = async (req, res, next) => {
             error.result = null;
             throw error;
         }
+        const jobApplied = await jobApply_1.JobApply.findOne({ candidateId: candidate._id.toString(), jobAppliedId: jobId });
+        if (jobApplied) {
+            const error = new Error('Bạn đã apply vào job này');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
         const jobApply = new jobApply_1.JobApply({
             jobAppliedId: jobId.toString(),
             candidateId: candidate._id.toString(),

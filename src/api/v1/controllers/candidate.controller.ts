@@ -220,6 +220,13 @@ export const ApplyJob = async (req: Request, res: Response, next: NextFunction):
             error.result = null;
             throw error;
         }
+        const jobApplied = await JobApply.findOne({candidateId: candidate._id.toString(), jobAppliedId: jobId});
+        if (jobApplied) {
+            const error: Error & {statusCode?: number, result?: any} = new Error('Bạn đã apply vào job này');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
         const jobApply = new JobApply({
             jobAppliedId: jobId.toString(),
             candidateId: candidate._id.toString(),
