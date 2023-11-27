@@ -291,6 +291,7 @@ export const getAllApplicants = async (req: Request, res: Response, next: NextFu
                             interviewId: interview.interviewId._id.toString(),
                             date: interview.get('interviewId.time'),
                             state: interview.get('interviewId.state'),
+                            score: null,
                             jobName: interview.get('interviewId.jobApplyId.name'),
                             avatar: interview.get('interviewId.candidateId.avatar.url'),
                             address: interview.get('interviewId.candidateId.address'),
