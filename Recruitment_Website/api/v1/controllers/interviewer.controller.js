@@ -475,17 +475,25 @@ const getAllInterviews = async (req, res, next) => {
                 }
             }
         })
+            .populate({
+            path: 'interviewersId',
+            model: user_1.User
+        })
             .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const returnListInterviews = listInterviews.map(interview => {
+            const listInterviewers = interview.interviewersId.map(interviewer => {
+                return interviewer.fullName;
+            });
             return {
                 interviewId: interview.interviewId._id.toString(),
                 jobName: interview.get('interviewId.jobApplyId.name'),
                 interviewLink: interview.get('interviewId.interviewLink'),
                 time: interview.get('interviewId.time'),
                 position: interview.get('interviewId.jobApplyId.positionId.name'),
-                state: interview.get('interviewId.state')
+                state: interview.get('interviewId.state'),
+                interviewersFullName: listInterviewers
             };
         });
         res.status(200).json({ success: true, message: "Get list interview Successfully!", result: {
