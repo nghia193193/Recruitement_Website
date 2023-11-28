@@ -972,7 +972,7 @@ const getAssignQuestions = async (req, res, next) => {
         }
         const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() })
             .populate({
-            path: 'questionsId',
+            path: 'questions.questionId',
             model: question_1.Question,
             populate: {
                 path: 'skillId',
@@ -985,12 +985,12 @@ const getAssignQuestions = async (req, res, next) => {
             error.result = null;
             throw error;
         }
-        const returnQuestions = questionCandidate.questionsId.map(question => {
+        const returnQuestions = questionCandidate.questions.map(question => {
             return {
-                questionId: question._id.toString(),
-                content: question.content,
-                typeQuestion: question.typeQuestion,
-                skill: question.skillId.name,
+                questionId: question.questionId._id.toString(),
+                content: question.questionId.content,
+                typeQuestion: question.questionId.typeQuestion,
+                skill: question.questionId.skillId.name,
                 note: question.note ? question.note : null,
                 score: question.score ? question.score : null
             };
@@ -1028,21 +1028,18 @@ const assignQuestions = async (req, res, next) => {
             error.result = null;
             throw error;
         }
-        const questionsId = questions.map((question) => {
-            return question.questionId;
-        });
         const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() });
         if (!questionCandidate) {
             const questionCandidate = new questionCandidate_1.QuestionCandidate({
                 interviewId: interviewId,
-                questionsId: questionsId,
+                questions: questions,
                 owner: interviewer._id.toString(),
             });
             await questionCandidate.save();
         }
         else {
-            for (let i = 0; i < questionsId.length; i++) {
-                questionCandidate.questionsId.push(questionsId[i]);
+            for (let i = 0; i < questions.length; i++) {
+                questionCandidate.questions.push(questions[i]);
             }
             await questionCandidate.save();
         }
@@ -1086,8 +1083,8 @@ const deleteAssignQuestion = async (req, res, next) => {
             error.result = null;
             throw error;
         }
-        questionCandidate.questionsId = questionCandidate.questionsId.filter(question => {
-            return question.toString() !== questionId;
+        questionCandidate.questions = questionCandidate.questions.filter(question => {
+            return question.questionId?.toString() !== questionId;
         });
         await questionCandidate.save();
         res.status(200).json({ success: true, message: 'Delete assign question successfully.', result: null });

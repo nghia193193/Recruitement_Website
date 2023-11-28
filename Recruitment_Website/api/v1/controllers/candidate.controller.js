@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllInterviews = exports.getInformation = exports.saveInformation = exports.GetInformation = exports.GetAppliedJobs = exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
+exports.getAllInterviews = exports.getInformation = exports.saveInformation = exports.GetAppliedJobs = exports.ApplyJob = exports.CheckApply = exports.DeleteResume = exports.UploadResume = exports.GetResumes = void 0;
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
 const utils_1 = require("../utils");
@@ -333,31 +333,6 @@ const GetAppliedJobs = async (req, res, next) => {
     }
 };
 exports.GetAppliedJobs = GetAppliedJobs;
-const GetInformation = async (req, res, next) => {
-    try {
-        const authHeader = req.get('Authorization');
-        const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const candidate = await user_1.User.findById(decodedToken.userId).populate('roleId');
-        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
-            const error = new Error('UnAuthorized');
-            error.statusCode = 401;
-            error.result = {
-                content: []
-            };
-            throw error;
-        }
-        ;
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
-        }
-        next(err);
-    }
-};
-exports.GetInformation = GetInformation;
 const saveInformation = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');

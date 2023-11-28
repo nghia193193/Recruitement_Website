@@ -314,29 +314,6 @@ export const GetAppliedJobs = async (req: Request, res: Response, next: NextFunc
     }
 };
 
-export const GetInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const authHeader = req.get('Authorization') as string;
-        const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
-        const candidate = await User.findById(decodedToken.userId).populate('roleId');
-        if (candidate?.get('roleId.roleName') !== 'CANDIDATE') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
-            error.statusCode = 401;
-            error.result = {
-                content: []
-            };
-            throw error;
-        };
-    } catch (err) {
-        if (!(err as any).statusCode) {
-            (err as any).statusCode = 500;
-            (err as any).result = null;
-        }
-        next(err);
-    }
-};
-
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const authHeader = req.get('Authorization') as string;

@@ -7,17 +7,19 @@ const questionCandidateSchema = new Schema({
         ref: 'Interview',
         required: true
     },
-    questionsId: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Question',
+    questions: [{
+        questionId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Question'
+        },
+        score: Number,
+        note: String
     }],
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    },
-    score: Number,
-    note: String
+    }
 });
 
 export const QuestionCandidate = mongoose.model('QuestionCandidate', questionCandidateSchema);

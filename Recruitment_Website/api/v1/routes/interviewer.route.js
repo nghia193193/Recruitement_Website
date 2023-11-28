@@ -267,15 +267,15 @@ router.get('/type', middleware_1.isAuth, interviewerController.getTypeQuestion);
 router.get('/interview/:interviewId/questions', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ')
 ], interviewerController.getAssignQuestions);
-router.put('/interview/:interviewId/questions', middleware_1.isAuth, [
+router.post('/interview/:interviewId/questions', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
     (0, express_validator_1.body)('questions').custom(async (value, { req }) => {
         for (let i = 0; i < value.length; i++) {
             const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({
-                interviewId: req.params.interviewId, questionsId: value[i].questionId
+                interviewId: req.params.interviewId, 'questions.questionId': value[i].questionId
             });
             if (questionCandidate) {
-                throw new Error(`Question: '${value[i].content}' đã tồn tại`);
+                throw new Error(`QuestionId: '${value[i].questionId}' đã tồn tại`);
             }
         }
         return true;
