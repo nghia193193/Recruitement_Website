@@ -29,6 +29,7 @@ const middleware_1 = require("../middleware");
 const express_validator_1 = require("express-validator");
 const utils_1 = require("../utils");
 const skill_1 = require("../models/skill");
+const questionCandidate_1 = require("../models/questionCandidate");
 const router = (0, express_1.Router)();
 router.put('/information', middleware_1.isAuth, [], interviewerController.saveInformation);
 router.get('/information', middleware_1.isAuth, interviewerController.getInformation);
@@ -263,4 +264,25 @@ router.delete('/interview-questions/:questionId', middleware_1.isAuth, [
 ], interviewerController.deleteQuestion);
 router.get('/skills', middleware_1.isAuth, interviewerController.getSkillQuestion);
 router.get('/type', middleware_1.isAuth, interviewerController.getTypeQuestion);
+router.get('/interview/:interviewId/questions', middleware_1.isAuth, [
+    (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ')
+], interviewerController.getAssignQuestions);
+router.put('/interview/:interviewId/questions', middleware_1.isAuth, [
+    (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+    (0, express_validator_1.body)('questions').custom(async (value, { req }) => {
+        for (let i = 0; i < value.length; i++) {
+            const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({
+                interviewId: req.params.interviewId, questionsId: value[i].questionId
+            });
+            if (questionCandidate) {
+                throw new Error(`Question: '${value[i].content}' đã tồn tại`);
+            }
+        }
+        return true;
+    })
+], interviewerController.assignQuestions);
+router.delete('/interview/:interviewId/questions/:questionId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+    (0, express_validator_1.param)('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
+], interviewerController.deleteAssignQuestion);
 exports.default = router;

@@ -22,6 +22,7 @@ import { InterviewerInterview } from '../models/interviewerInterview';
 import { Interview } from '../models/interview';
 import { ResumeUpload } from '../models/resumeUpload';
 import mongoose from 'mongoose';
+import { QuestionCandidate } from '../models/questionCandidate';
 
 export const saveInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -940,4 +941,149 @@ export const getTypeQuestion = async (req: Request, res: Response, next: NextFun
     }
 };
 
+export const getAssignQuestions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const interviewId = req.params.interviewId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionCandidate = await QuestionCandidate.findOne({interviewId: interviewId, owner: interviewer._id.toString()})
+            .populate({
+                path: 'questionsId',
+                model: Question,
+                populate: {
+                    path: 'skillId',
+                    model: Skill
+                }
+            });
+        if (!questionCandidate) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi đã đặt');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const returnQuestions = questionCandidate.questionsId.map(question => {
+            return {
+                questionId: question._id.toString(),
+                content: (question as any).content,
+                typeQuestion: (question as any).typeQuestion,
+                skill: (question as any).skillId.name,
+                note: (question as any).note ? (question as any).note : null,
+                score: (question as any).score ? (question as any).score : null
+            }
+        })
+        
+        res.status(200).json({ success: true, message: 'Get assigned questions successfully.', result: returnQuestions });
+        } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
 
+export const assignQuestions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const questions = req.body.questions;
+        const interviewId = req.params.interviewId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionsId = questions.map((question: any) => {
+            return question.questionId;
+        })
+        const questionCandidate = await QuestionCandidate.findOne({interviewId: interviewId, owner: interviewer._id.toString()});
+        if (!questionCandidate) {
+            const questionCandidate = new QuestionCandidate({
+                interviewId: interviewId,
+                questionsId: questionsId,
+                owner: interviewer._id.toString(),
+            })
+            await questionCandidate.save();
+        } else {
+            for (let i=0; i<questionsId.length; i++) {
+                questionCandidate.questionsId.push(questionsId[i]);
+            }
+            await questionCandidate.save();
+        }
+        res.status(200).json({ success: true, message: 'Assign questions successfully.', result: null });
+        } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+
+export const deleteAssignQuestion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewer = await User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const questionId = req.params.questionId;
+        const interviewId = req.params.interviewId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionCandidate = await QuestionCandidate.findOne({interviewId: interviewId, owner: interviewer._id.toString()});
+        if (!questionCandidate) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi đã đặt');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        questionCandidate.questionsId = questionCandidate.questionsId.filter(question => {
+            return question.toString() !== questionId;
+        })
+        await questionCandidate.save();
+        res.status(200).json({ success: true, message: 'Delete assign question successfully.', result: null });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};

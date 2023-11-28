@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.deleteAssignQuestion = exports.assignQuestions = exports.getAssignQuestions = exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -15,6 +15,7 @@ const question_1 = require("../models/question");
 const interviewerInterview_1 = require("../models/interviewerInterview");
 const interview_1 = require("../models/interview");
 const resumeUpload_1 = require("../models/resumeUpload");
+const questionCandidate_1 = require("../models/questionCandidate");
 const saveInformation = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -948,3 +949,155 @@ const getTypeQuestion = async (req, res, next) => {
     }
 };
 exports.getTypeQuestion = getTypeQuestion;
+const getAssignQuestions = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const interviewId = req.params.interviewId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() })
+            .populate({
+            path: 'questionsId',
+            model: question_1.Question,
+            populate: {
+                path: 'skillId',
+                model: skill_1.Skill
+            }
+        });
+        if (!questionCandidate) {
+            const error = new Error('Không tìm thấy câu hỏi đã đặt');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        const returnQuestions = questionCandidate.questionsId.map(question => {
+            return {
+                questionId: question._id.toString(),
+                content: question.content,
+                typeQuestion: question.typeQuestion,
+                skill: question.skillId.name,
+                note: question.note ? question.note : null,
+                score: question.score ? question.score : null
+            };
+        });
+        res.status(200).json({ success: true, message: 'Get assigned questions successfully.', result: returnQuestions });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.getAssignQuestions = getAssignQuestions;
+const assignQuestions = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const questions = req.body.questions;
+        const interviewId = req.params.interviewId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionsId = questions.map((question) => {
+            return question.questionId;
+        });
+        const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() });
+        if (!questionCandidate) {
+            const questionCandidate = new questionCandidate_1.QuestionCandidate({
+                interviewId: interviewId,
+                questionsId: questionsId,
+                owner: interviewer._id.toString(),
+            });
+            await questionCandidate.save();
+        }
+        else {
+            for (let i = 0; i < questionsId.length; i++) {
+                questionCandidate.questionsId.push(questionsId[i]);
+            }
+            await questionCandidate.save();
+        }
+        res.status(200).json({ success: true, message: 'Assign questions successfully.', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.assignQuestions = assignQuestions;
+const deleteAssignQuestion = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const questionId = req.params.questionId;
+        const interviewId = req.params.interviewId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() });
+        if (!questionCandidate) {
+            const error = new Error('Không tìm thấy câu hỏi đã đặt');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        questionCandidate.questionsId = questionCandidate.questionsId.filter(question => {
+            return question.toString() !== questionId;
+        });
+        await questionCandidate.save();
+        res.status(200).json({ success: true, message: 'Delete assign question successfully.', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.deleteAssignQuestion = deleteAssignQuestion;

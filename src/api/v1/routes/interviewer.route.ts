@@ -4,6 +4,7 @@ import { isAuth } from '../middleware';
 import { body, param, query } from "express-validator";
 import { questionType } from "../utils";
 import { Skill } from "../models/skill";
+import { QuestionCandidate } from "../models/questionCandidate";
 
 const router = Router();
 
@@ -243,6 +244,27 @@ router.delete('/interview-questions/:questionId', isAuth, [
 router.get('/skills', isAuth, interviewerController.getSkillQuestion);
 router.get('/type', isAuth, interviewerController.getTypeQuestion);
 
+router.get('/interview/:interviewId/questions', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ')
+], interviewerController.getAssignQuestions);
 
+router.put('/interview/:interviewId/questions', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+    body('questions').custom( async (value, {req}) => {
+        for (let i=0; i<value.length; i++) {
+            const questionCandidate = await QuestionCandidate.findOne({
+                interviewId: (req.params as any).interviewId, questionsId: value[i].questionId});
+            if (questionCandidate) {
+                throw new Error(`Question: '${value[i].content}' đã tồn tại`);
+            }
+        }
+        return true;
+    })
+], interviewerController.assignQuestions);
+
+router.delete('/interview/:interviewId/questions/:questionId', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+    param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
+], interviewerController.deleteAssignQuestion);
 
 export default router;
