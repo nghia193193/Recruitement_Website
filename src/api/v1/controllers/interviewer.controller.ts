@@ -672,7 +672,13 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             note: note
         });
         await question.save();
-        res.status(200).json({ success: true, message: 'Create question successfully.', result: null });
+        res.status(200).json({ success: true, message: 'Create question successfully.', result: {
+            questionId: question._id.toString(),
+            content: content,
+            typeQuestion: type,
+            skill: skill,
+            note: note
+        } });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
