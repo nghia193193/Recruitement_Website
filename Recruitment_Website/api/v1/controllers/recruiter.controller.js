@@ -45,6 +45,7 @@ const GraphClient = __importStar(require("@microsoft/microsoft-graph-client"));
 const interview_1 = require("../models/interview");
 const interviewerInterview_1 = require("../models/interviewerInterview");
 const resumeUpload_1 = require("../models/resumeUpload");
+const questionCandidate_1 = require("../models/questionCandidate");
 const GetAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -1253,15 +1254,32 @@ const getApplicantsJob = async (req, res, next) => {
                     for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
                         listSkill.push({ label: applicant.get('candidateId.skills')[i].skillId.name, value: i });
                     }
+                    const interview = await interview_1.Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
+                    const interviewers = await interviewerInterview_1.InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
+                    const interviewerFullNames = interviewers?.interviewersId.map(interviewer => {
+                        return interviewer.fullName;
+                    });
+                    const scoreInterviewer = await questionCandidate_1.QuestionCandidate.find({ interviewId: interview?._id.toString() });
+                    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
+                        return (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer.totalScore);
+                    }, "0/0");
+                    const [numerator, denominator] = score.split('/').map(Number);
+                    let totalScore;
+                    if (denominator === 0) {
+                        totalScore = null;
+                    }
+                    else {
+                        totalScore = `${numerator * 100 / denominator}/100`;
+                    }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
                         blackList: applicant.get('candidateId.blackList'),
                         avatar: applicant.get('candidateId.avatar.url'),
                         candidateFullName: applicant.get('candidateId.fullName'),
                         candidateEmail: applicant.get('candidateId.email'),
-                        interviewerFullNames: [],
-                        score: null,
-                        state: 'NOT_RECEIVED',
+                        interviewerFullNames: interviewerFullNames,
+                        score: totalScore,
+                        state: applicant.status,
                         dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                         address: applicant.get('candidateId.address'),
                         phone: applicant.get('candidateId.phone'),

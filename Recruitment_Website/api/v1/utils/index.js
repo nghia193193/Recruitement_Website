@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.addFractionStrings = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
@@ -99,3 +99,11 @@ function formatDateToJSDateObject(inputDate) {
     return vietnameseDate;
 }
 exports.formatDateToJSDateObject = formatDateToJSDateObject;
+function addFractionStrings(x1, x2) {
+    const [numerator1, denominator1] = x1.split('/').map(Number);
+    const [numerator2, denominator2] = x2.split('/').map(Number);
+    const newNumerator = numerator1 + numerator2;
+    const newDenominator = denominator1 + denominator2;
+    return `${newNumerator}/${newDenominator}`;
+}
+exports.addFractionStrings = addFractionStrings;

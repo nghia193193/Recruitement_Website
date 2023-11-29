@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { secretKey, verifyToken, transporter, formatDateToJSDateObject } from '../utils';
+import { secretKey, verifyToken, transporter, formatDateToJSDateObject, addFractionStrings } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -21,6 +21,7 @@ import * as GraphClient from "@microsoft/microsoft-graph-client";
 import { Interview } from '../models/interview';
 import { InterviewerInterview } from '../models/interviewerInterview';
 import { ResumeUpload } from '../models/resumeUpload';
+import { QuestionCandidate } from '../models/questionCandidate';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -1225,15 +1226,31 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                         for (let i=0;i<applicant.get('candidateId.skills').length;i++) {
                             listSkill.push({label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i});
                         }
+                        const interview = await Interview.findOne({jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString()});
+                        const interviewers = await InterviewerInterview.findOne({interviewId: interview?._id.toString()}).populate('interviewersId');
+                        const interviewerFullNames = interviewers?.interviewersId.map(interviewer => {
+                            return (interviewer as any).fullName;
+                        })
+                        const scoreInterviewer = await QuestionCandidate.find({interviewId: interview?._id.toString()});
+                        const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
+                            return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
+                        }, "0/0")
+                        const [numerator, denominator] = score.split('/').map(Number);
+                        let totalScore;
+                        if (denominator === 0) {
+                            totalScore = null;
+                        } else {
+                            totalScore = `${numerator*100/denominator}/100`;
+                        }
                         return {
                             candidateId: applicant.candidateId._id.toString(),
                             blackList: applicant.get('candidateId.blackList'),
                             avatar: applicant.get('candidateId.avatar.url'),
                             candidateFullName: applicant.get('candidateId.fullName'),
                             candidateEmail: applicant.get('candidateId.email'),
-                            interviewerFullNames: [],
-                            score: null,
-                            state: 'NOT_RECEIVED',
+                            interviewerFullNames: interviewerFullNames,
+                            score: totalScore,
+                            state: applicant.status,
                             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                             address: applicant.get('candidateId.address'),
                             phone: applicant.get('candidateId.phone'),
