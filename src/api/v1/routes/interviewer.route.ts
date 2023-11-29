@@ -257,10 +257,69 @@ router.post('/interview/:interviewId/questions', isAuth, [
             if (questionCandidate) {
                 throw new Error(`QuestionId: '${value[i].questionId}' đã tồn tại`);
             }
+            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            if (!regex.test(value[i].content)) {
+                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+            }
+            if (!questionType.includes(value[i].typeQuestion)) {
+                throw new Error(`typeQuestion: ${value[i].typeQuestion} không hợp lệ`);
+            }
+            const skill = await Skill.findOne({name: value[i].skill});
+            if (!skill) {
+                throw new Error(`skill: ${value[i].skill} không hợp lệ`);
+            }
+            if (value[i].note) {
+                if (!regex.test(value[i].note)) {
+                    throw new Error('Note không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+                }
+            }
+            if (value[i].score) {
+                const regex = /^[0-9]+$/;
+                if (!regex.test(value[i].score)) {
+                    throw new Error(`score không hợp lệ`);
+                };
+            }
         }
         return true;
     })
 ], interviewerController.assignQuestions);
+
+router.put('/interview/:interviewId/questions', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+    body('questions').custom( async (value, {req}) => {
+        for (let i=0; i<value.length; i++) {
+            const questionCandidate = await QuestionCandidate.findOne({
+                interviewId: (req.params as any).interviewId, 'questions.questionId': value[i].questionId});
+            if (!questionCandidate) {
+                throw new Error(`QuestionId: '${value[i].questionId}' không tồn tại`);
+            }
+            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            if (!regex.test(value[i].content)) {
+                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+            }
+            if (!questionType.includes(value[i].typeQuestion)) {
+                throw new Error(`typeQuestion: ${value[i].typeQuestion} không hợp lệ`);
+            }
+            const skill = await Skill.findOne({name: value[i].skill});
+            if (!skill) {
+                throw new Error(`skill: ${value[i].skill} không hợp lệ`);
+            }
+            if (value[i].note) {
+                if (!regex.test(value[i].note)) {
+                    throw new Error('Note không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
+                }
+            }
+            if (value[i].score) {
+                const regex = /^[0-9]+$/;
+                if (!regex.test(value[i].score)) {
+                    console.log(value[i].score);
+                    throw new Error(`score không hợp lệ`);
+                };
+            }
+        }
+        return true;
+    })
+], interviewerController.updateQuestions);
 
 router.delete('/interview/:interviewId/questions/:questionId', isAuth, [
     param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
