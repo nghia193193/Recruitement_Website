@@ -24,6 +24,9 @@ const questionCandidateSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    totalScore: String
+}, {
+    timestamps: true
 });
 exports.QuestionCandidate = mongoose_1.default.model('QuestionCandidate', questionCandidateSchema);

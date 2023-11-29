@@ -19,7 +19,10 @@ const questionCandidateSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    totalScore: String
+}, {
+    timestamps: true
 });
 
 export const QuestionCandidate = mongoose.model('QuestionCandidate', questionCandidateSchema);

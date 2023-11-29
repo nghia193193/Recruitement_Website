@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const user_1 = require("../models/user");
 const questionCandidate_1 = require("../models/questionCandidate");
 const question_1 = require("../models/question");
@@ -781,3 +781,33 @@ const deleteAssignQuestion = async (interviewerId, questionId, interviewId) => {
     await questionCandidate.save();
 };
 exports.deleteAssignQuestion = deleteAssignQuestion;
+const submitTotalScore = async (interviewerId, interviewId) => {
+    const interviewer = await user_1.User.findById(interviewerId).populate('roleId');
+    if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+        const error = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const questionCandidate = await questionCandidate_1.QuestionCandidate.findOne({
+        interviewId: interviewId,
+        owner: interviewer._id.toString(),
+    });
+    if (!questionCandidate) {
+        const error = new Error('Không tìm thấy câu hỏi đã đặt');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    const score = questionCandidate.questions.reduce((totalScore, question) => {
+        if (question.score) {
+            return totalScore + question.score;
+        }
+        else
+            return totalScore + 0;
+    }, 0);
+    const submitScore = `${score}/${questionCandidate.questions.length * 10}`;
+    questionCandidate.totalScore = submitScore;
+    await questionCandidate.save();
+};
+exports.submitTotalScore = submitTotalScore;

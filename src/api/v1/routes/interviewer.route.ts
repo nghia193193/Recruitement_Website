@@ -278,6 +278,10 @@ router.post('/interview/:interviewId/questions', isAuth, [
                 if (!regex.test(value[i].score)) {
                     throw new Error(`score không hợp lệ`);
                 };
+                const intValue = parseInt(value[i].score, 10);
+                if (isNaN(intValue) || intValue > 10) {
+                    throw new Error('page phải là số nguyên <= 10');
+                }
             }
         }
         return true;
@@ -315,6 +319,10 @@ router.put('/interview/:interviewId/questions', isAuth, [
                     console.log(value[i].score);
                     throw new Error(`score không hợp lệ`);
                 };
+                const intValue = parseInt(value[i].score, 10);
+                if (isNaN(intValue) || intValue > 10) {
+                    throw new Error('page phải là số nguyên <= 10');
+                }
             }
         }
         return true;
@@ -325,5 +333,9 @@ router.delete('/interview/:interviewId/questions/:questionId', isAuth, [
     param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
     param('questionId').trim().isMongoId().withMessage('questionId không hợp lệ')
 ], interviewerController.deleteAssignQuestion);
+
+router.put('/interview/:interviewId/totalScore', isAuth, [
+    param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
+], interviewerController.submitTotalScore);
 
 export default router;

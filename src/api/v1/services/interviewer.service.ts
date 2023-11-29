@@ -772,3 +772,31 @@ export const deleteAssignQuestion = async (interviewerId: string, questionId: st
 
     await questionCandidate.save();
 }
+
+export const submitTotalScore = async (interviewerId: string, interviewId: string) => {
+    const interviewer = await User.findById(interviewerId).populate('roleId');
+    if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const questionCandidate = await QuestionCandidate.findOne({
+        interviewId: interviewId,
+        owner: interviewer._id.toString(),
+    });
+    if (!questionCandidate) {
+        const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi đã đặt');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    const score = questionCandidate.questions.reduce((totalScore, question) => {
+        if (question.score) {
+            return totalScore + question.score;
+        } else return totalScore + 0;
+    }, 0);
+    const submitScore = `${score}/${questionCandidate.questions.length*10}`;
+    questionCandidate.totalScore = submitScore;
+    await questionCandidate.save()
+}

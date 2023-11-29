@@ -443,3 +443,28 @@ export const deleteAssignQuestion = async (req: Request, res: Response, next: Ne
     }
 };
 
+export const submitTotalScore = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewerId = decodedToken.userId;
+        const interviewId = req.params.interviewId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        await interviewerService.submitTotalScore(interviewerId, interviewId);
+        res.status(200).json({ success: true, message: 'Save score successfully.', result: null });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
