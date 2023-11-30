@@ -247,7 +247,7 @@ const ApplyJob = async (req, res, next) => {
             jobAppliedId: jobId.toString(),
             candidateId: candidate._id.toString(),
             resumeId: resumeId,
-            status: utils_1.ApplyStatus[0]
+            status: utils_1.applyStatus[0]
         });
         await jobApply.save();
         const job = await job_1.Job.findById(jobId);

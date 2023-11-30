@@ -24,19 +24,7 @@ const resumeSchema = new Schema({
         type: String,
         required: true
     },
-    prize: {
-        type: String,
-        required: true
-    },
-    course: {
-        type: String,
-        required: true
-    },
     project: {
-        type: String,
-        required: true
-    },
-    socialActivity: {
         type: String,
         required: true
     },

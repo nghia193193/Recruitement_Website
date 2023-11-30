@@ -8,7 +8,7 @@ import { JobType } from "../models/jobType";
 import { JobLocation } from "../models/jobLocation";
 import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
-import { isValidTimeFormat, updateApplyStatus } from "../utils";
+import { isValidTimeFormat, applyStatus } from "../utils";
 import { User } from "../models/user";
 
 
@@ -555,12 +555,15 @@ router.put('/candidates/state', isAuth, [
     body('jobId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
     body('state').trim()
         .custom((value) => {
-            if (!updateApplyStatus.includes(value)) {
+            if (!applyStatus.includes(value)) {
                 throw new Error(`State: '${value}' không hợp lệ`);
             }
             return true;
         })
 ], recruiterController.updateCandidateState);
 
+router.get('/jobs/:jobId/suggested-user', isAuth, [
+    param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
+], recruiterController.GetJobSuggestedCandidates)
 
 export default router;

@@ -576,10 +576,13 @@ router.put('/candidates/state', middleware_1.isAuth, [
     (0, express_validator_1.body)('jobId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
     (0, express_validator_1.body)('state').trim()
         .custom((value) => {
-        if (!utils_1.updateApplyStatus.includes(value)) {
+        if (!utils_1.applyStatus.includes(value)) {
             throw new Error(`State: '${value}' không hợp lệ`);
         }
         return true;
     })
 ], recruiterController.updateCandidateState);
+router.get('/jobs/:jobId/suggested-user', middleware_1.isAuth, [
+    (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
+], recruiterController.GetJobSuggestedCandidates);
 exports.default = router;

@@ -188,6 +188,7 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                 }
             }
         })
+        .populate('interviewersId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
@@ -196,7 +197,6 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
         const mappedApplicants = await Promise.all(
             listInterviews.map(async (interview) => {
                 try {
-                    const cv = await ResumeUpload.findOne({ candidateId: interview.get('interviewId.candidateId._id') });
                     const educationList = await Education.find({ candidateId: interview.get('interviewId.candidateId._id') });
                     const returnEducationList = educationList.map(e => {
                         return {
@@ -234,7 +234,10 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                     for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
                         listSkill.push({ label: (interview.get('interviewId.candidateId.skills')[i].skillId as any).name, value: i });
                     }
-                    const jobApply = await JobApply.findOne({candidateId: interview.get('interviewId.candidateId._id'), jobAppliedId: interview.get('interviewId.jobApplyId._id')})
+                    const jobApply = await JobApply.findOne({ candidateId: interview.get('interviewId.candidateId._id'), jobAppliedId: interview.get('interviewId.jobApplyId._id') }).populate('resumeId');
+                    const interviewerFullNames = interview.interviewersId.map(interviewer => {
+                        return (interviewer as any).fullName;
+                    })
                     const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview.interviewId._id.toString() });
                     const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
                         return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
@@ -251,6 +254,7 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                         candidateFullName: interview.get('interviewId.candidateId.fullName'),
                         position: interview.get('interviewId.jobApplyId.positionId.name'),
                         interviewId: interview.interviewId._id.toString(),
+                        interviewerFullNames: interviewerFullNames,
                         date: interview.get('interviewId.time'),
                         state: jobApply?.status,
                         score: totalScore,
@@ -261,7 +265,7 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                         dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
                         phone: interview.get('interviewId.candidateId.phone'),
                         email: interview.get('interviewId.candidateId.email'),
-                        cv: cv?.resumeUpload,
+                        cv: jobApply?.get('resumeId.resumeUpload'),
                         information: {
                             education: returnEducationList,
                             experience: returnExperienceList,
@@ -457,7 +461,6 @@ export const getSingleInterview = async (interviewerId: string, interviewId: str
         error.result = null;
         throw error;
     }
-    const cv = await ResumeUpload.findOne({ candidateId: interview.get('interviewId.candidateId._id') });
     const educationList = await Education.find({ candidateId: interview.get('interviewId.candidateId._id') });
     const returnEducationList = educationList.map(e => {
         return {
@@ -495,6 +498,7 @@ export const getSingleInterview = async (interviewerId: string, interviewId: str
     for (let i = 0; i < interview.get('interviewId.candidateId').skills.length; i++) {
         listSkill.push({ label: (interview.get('interviewId.candidateId').skills[i].skillId as any).name, value: i });
     }
+    const jobApply = await JobApply.findOne({ candidateId: interview.get('interviewId.candidateId._id'), jobAppliedId: interview.get('interviewId.jobApplyId._id') }).populate('resumeId');
     const returnInterview = {
         interviewId: interview.interviewId._id.toString(),
         jobName: interview.get('interviewId.jobApplyId.name'),
@@ -504,13 +508,13 @@ export const getSingleInterview = async (interviewerId: string, interviewId: str
         questions: [],
         candidate: {
             candidateId: interview.get('interviewId.candidateId._id'),
-            candidateName: interview.get('interviewId.candidateId.fullName'),
+            candidateFullName: interview.get('interviewId.candidateId.fullName'),
             email: interview.get('interviewId.candidateId.email'),
             phone: interview.get('interviewId.candidateId.phone'),
             about: interview.get('interviewId.candidateId.about'),
             address: interview.get('interviewId.candidateId.address'),
             dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
-            cv: cv?.resumeUpload,
+            cv: jobApply?.get('resumeId.resumeUpload'),
             information: {
                 education: returnEducationList,
                 experience: returnExperienceList,

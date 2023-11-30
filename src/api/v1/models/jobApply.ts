@@ -14,7 +14,7 @@ const jobApplySchema = new Schema({
     },
     resumeId: {
         type: Schema.Types.ObjectId,
-        ref: 'Resume',
+        ref: 'ResumeUpload',
         required: true
     },
     note: String,

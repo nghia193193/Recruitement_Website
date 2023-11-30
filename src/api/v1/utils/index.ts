@@ -4,7 +4,7 @@ import * as nodemailer from 'nodemailer';
 
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-export const updateApplyStatus: string[] = ['PASS', 'FAIL'];
+export const applyStatus: string[] = ['PENDING','REVIEWING','PASS', 'FAIL'];
 export const questionType: string[] = ['Technical', 'SoftSkill', 'English'];
 
 

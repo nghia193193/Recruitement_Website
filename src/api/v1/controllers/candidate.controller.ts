@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
-import { verifyToken, isPDF, ApplyStatus } from '../utils';
+import { verifyToken, isPDF, applyStatus } from '../utils';
 import {v2 as cloudinary} from 'cloudinary';
 import { UploadedFile } from 'express-fileupload';
 import { ResumeUpload } from '../models/resumeUpload';
@@ -231,7 +231,7 @@ export const ApplyJob = async (req: Request, res: Response, next: NextFunction):
             jobAppliedId: jobId.toString(),
             candidateId: candidate._id.toString(),
             resumeId: resumeId,
-            status: ApplyStatus[0]
+            status: applyStatus[0]
         })
         await jobApply.save();
         const job = await Job.findById(jobId);

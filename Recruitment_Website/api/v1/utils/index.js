@@ -23,12 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addFractionStrings = exports.createICalEvent = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.updateApplyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.addFractionStrings = exports.createICalEvent = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.applyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-exports.updateApplyStatus = ['PASS', 'FAIL'];
+exports.applyStatus = ['PENDING', 'REVIEWING', 'PASS', 'FAIL'];
 exports.questionType = ['Technical', 'SoftSkill', 'English'];
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
