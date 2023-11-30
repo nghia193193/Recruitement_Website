@@ -557,7 +557,7 @@ router.get('/jobs/:jobId/candidates/:candidateId', middleware_1.isAuth, [
 ], recruiterController.getSingleApplicantsJob);
 router.post('/interviews', middleware_1.isAuth, [
     (0, express_validator_1.body)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
-    (0, express_validator_1.body)('jobApplyId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    (0, express_validator_1.body)('jobApplyId').trim().isMongoId().withMessage('jobApplyId không hợp lệ'),
     (0, express_validator_1.body)('interviewersId').trim()
         .custom(async (value) => {
         for (let interviewerId of value) {
@@ -571,4 +571,15 @@ router.post('/interviews', middleware_1.isAuth, [
     (0, express_validator_1.body)('time').trim()
         .isISO8601().toDate().withMessage('Thời gian không hợp lệ')
 ], recruiterController.createMeeting);
+router.put('/candidates/state', middleware_1.isAuth, [
+    (0, express_validator_1.body)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    (0, express_validator_1.body)('jobId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    (0, express_validator_1.body)('state').trim()
+        .custom((value) => {
+        if (!utils_1.updateApplyStatus.includes(value)) {
+            throw new Error(`State: '${value}' không hợp lệ`);
+        }
+        return true;
+    })
+], recruiterController.updateCandidateState);
 exports.default = router;

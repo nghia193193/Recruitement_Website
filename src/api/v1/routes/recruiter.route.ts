@@ -8,15 +8,15 @@ import { JobType } from "../models/jobType";
 import { JobLocation } from "../models/jobLocation";
 import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
-import { isValidTimeFormat } from "../utils";
+import { isValidTimeFormat, updateApplyStatus } from "../utils";
 import { User } from "../models/user";
 
 
 const router = Router();
 
-router.get('/jobs',isAuth , [
+router.get('/jobs', isAuth, [
     query('name').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[\p{L} 0-9]+$/u;
                 if (!regex.test(value)) {
@@ -27,22 +27,22 @@ router.get('/jobs',isAuth , [
             return true;
         }),
     query('position').trim()
-        .custom((value, {req}) => {  
+        .custom((value, { req }) => {
             if (value) {
-                return JobPosition.findOne({name: value})
+                return JobPosition.findOne({ name: value })
                     .then(pos => {
                         if (!pos) {
                             return Promise.reject(`Failed to convert 'position' with value: '${value}'`)
                         }
                         return true;
-                    })   
-            }  
-            return true        
+                    })
+            }
+            return true
         }),
     query('type').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
-                return JobType.findOne({name: value})
+                return JobType.findOne({ name: value })
                     .then(type => {
                         if (!type) {
                             return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
@@ -53,9 +53,9 @@ router.get('/jobs',isAuth , [
             return true
         }),
     query('location').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
-                return JobLocation.findOne({name: value})
+                return JobLocation.findOne({ name: value })
                     .then(loc => {
                         if (!loc) {
                             return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
@@ -66,7 +66,7 @@ router.get('/jobs',isAuth , [
             return true
         }),
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -81,7 +81,7 @@ router.get('/jobs',isAuth , [
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -95,13 +95,13 @@ router.get('/jobs',isAuth , [
             }
             return true;
         }),
-] ,recruiterController.GetAllJobs);
+], recruiterController.GetAllJobs);
 
-router.post('/job',isAuth , [
+router.post('/job', isAuth, [
     body('name').trim()
-        .isLength({min: 5, max:50}).withMessage('Tên công việc trong khoảng 5-50 ký tự')
-        .custom((value, {req}) => {
-            const regex = /^[\p{L} ,\/0-9]+$/u; 
+        .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
+        .custom((value, { req }) => {
+            const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
             };
@@ -109,8 +109,8 @@ router.post('/job',isAuth , [
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value, {req}) => {
-            const type = await JobType.findOne({name: value})
+        .custom(async (value, { req }) => {
+            const type = await JobType.findOne({ name: value })
             if (!type) {
                 return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
             }
@@ -120,8 +120,8 @@ router.post('/job',isAuth , [
         .notEmpty().withMessage('Vui lòng nhập số lượng')
         .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     body('benefit').trim()
-        .isLength({min: 5, max:200}).withMessage('Benefit trong khoảng 5-200 ký tự')
-        .custom((value, {req}) => {
+        .isLength({ min: 5, max: 200 }).withMessage('Benefit trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -130,16 +130,16 @@ router.post('/job',isAuth , [
         }),
     body('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
-        .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s$-]+$/; 
+        .custom((value, { req }) => {
+            const regex = /^[A-Za-z0-9\s$-]+$/;
             if (!regex.test(value)) {
                 throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
             };
             return true;
         }),
     body('requirement').trim()
-        .isLength({min: 5, max:200}).withMessage('Requirement trong khoảng 5-200 ký tự')
-        .custom((value, {req}) => {
+        .isLength({ min: 5, max: 200 }).withMessage('Requirement trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -148,16 +148,16 @@ router.post('/job',isAuth , [
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
-        .custom(async (value, {req}) => {
-            const location = await JobLocation.findOne({name: value})  
+        .custom(async (value, { req }) => {
+            const location = await JobLocation.findOne({ name: value })
             if (!location) {
                 throw new Error(`Failed to convert 'location' with value: '${value}'`);
             }
-            return true; 
+            return true;
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -169,8 +169,8 @@ router.post('/job',isAuth , [
         .isDate().withMessage('deadline không hợp lệ'),
     body('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
-        .custom(async (value, {req}) => {
-            const pos = await JobPosition.findOne({name: value})
+        .custom(async (value, { req }) => {
+            const pos = await JobPosition.findOne({ name: value })
             if (!pos) {
                 throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
@@ -178,7 +178,7 @@ router.post('/job',isAuth , [
         }),
     body('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value: string[], {req}) => {
+        .custom(async (value: string[], { req }) => {
             const errors = [];
             for (const skill of value) {
                 const s = await Skill.findOne({ name: skill });
@@ -191,18 +191,18 @@ router.post('/job',isAuth , [
             }
             return true;
         })
-],recruiterController.CreateJob);
+], recruiterController.CreateJob);
 
 router.get('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-, recruiterController.GetSingleJob);
+    , recruiterController.GetSingleJob);
 
-router.put('/jobs/:jobId',isAuth , [
+router.put('/jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     body('name').trim()
-        .isLength({min: 5, max:50}).withMessage('Tên công việc trong khoảng 5-50 ký tự')
-        .custom((value, {req}) => {
-            const regex = /^[\p{L} ,\/0-9]+$/u; 
+        .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
+        .custom((value, { req }) => {
+            const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
             };
@@ -210,8 +210,8 @@ router.put('/jobs/:jobId',isAuth , [
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value, {req}) => {
-            const type = await JobType.findOne({name: value})
+        .custom(async (value, { req }) => {
+            const type = await JobType.findOne({ name: value })
             if (!type) {
                 return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
             }
@@ -221,8 +221,8 @@ router.put('/jobs/:jobId',isAuth , [
         .notEmpty().withMessage('Vui lòng nhập số lượng')
         .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     body('benefit').trim()
-        .isLength({min: 5, max:200}).withMessage('Benefit trong khoảng 5-200 ký tự')
-        .custom((value, {req}) => {
+        .isLength({ min: 5, max: 200 }).withMessage('Benefit trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -231,16 +231,16 @@ router.put('/jobs/:jobId',isAuth , [
         }),
     body('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
-        .custom((value, {req}) => {
-            const regex = /^[A-Za-z0-9\s$-]+$/; 
+        .custom((value, { req }) => {
+            const regex = /^[A-Za-z0-9\s$-]+$/;
             if (!regex.test(value)) {
                 throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
             };
             return true;
         }),
     body('requirement').trim()
-        .isLength({min: 5, max:200}).withMessage('Requirement trong khoảng 5-200 ký tự')
-        .custom((value, {req}) => {
+        .isLength({ min: 5, max: 200 }).withMessage('Requirement trong khoảng 5-200 ký tự')
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -249,16 +249,16 @@ router.put('/jobs/:jobId',isAuth , [
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
-        .custom(async (value, {req}) => {
-            const location = await JobLocation.findOne({name: value})  
+        .custom(async (value, { req }) => {
+            const location = await JobLocation.findOne({ name: value })
             if (!location) {
                 throw new Error(`Failed to convert 'location' with value: '${value}'`);
             }
-            return true; 
+            return true;
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -270,8 +270,8 @@ router.put('/jobs/:jobId',isAuth , [
         .isISO8601().toDate().withMessage('deadline không hợp lệ'),
     body('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
-        .custom(async (value, {req}) => {
-            const pos = await JobPosition.findOne({name: value})
+        .custom(async (value, { req }) => {
+            const pos = await JobPosition.findOne({ name: value })
             if (!pos) {
                 throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
@@ -279,7 +279,7 @@ router.put('/jobs/:jobId',isAuth , [
         }),
     body('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value: string[], {req}) => {
+        .custom(async (value: string[], { req }) => {
             const errors = [];
             for (const skill of value) {
                 const s = await Skill.findOne({ name: skill });
@@ -292,15 +292,15 @@ router.put('/jobs/:jobId',isAuth , [
             }
             return true;
         })
-],recruiterController.UpdateJob);
+], recruiterController.UpdateJob);
 
 router.delete('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-, recruiterController.DeleteJob);
+    , recruiterController.DeleteJob);
 
-router.get('/events', isAuth,[
+router.get('/events', isAuth, [
     query('name').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[\p{L} 0-9]+$/u;
                 if (!regex.test(value)) {
@@ -311,7 +311,7 @@ router.get('/events', isAuth,[
             return true;
         }),
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -326,7 +326,7 @@ router.get('/events', isAuth,[
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -342,14 +342,14 @@ router.get('/events', isAuth,[
         }),
 ], recruiterController.GetAllEvents);
 
-router.get('/events/:eventId',isAuth,
+router.get('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
-,recruiterController.GetSingleEvent);
+    , recruiterController.GetSingleEvent);
 
 router.post('/events', isAuth, [
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách ,/:');
@@ -358,7 +358,7 @@ router.post('/events', isAuth, [
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} ,\/0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách ,/:');
@@ -367,7 +367,7 @@ router.post('/events', isAuth, [
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -376,7 +376,7 @@ router.post('/events', isAuth, [
         }),
     body('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             if (!isValidTimeFormat(value)) {
                 throw new Error('Thời gian không hợp lệ.');
             }
@@ -384,8 +384,8 @@ router.post('/events', isAuth, [
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
-        .custom((value: string, {req}) => {
-            return JobLocation.findOne({name: value})
+        .custom((value: string, { req }) => {
+            return JobLocation.findOne({ name: value })
                 .then(job => {
                     if (!job) {
                         return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
@@ -405,7 +405,7 @@ router.put('/events/:eventId', isAuth, [
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -414,7 +414,7 @@ router.put('/events/:eventId', isAuth, [
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -423,7 +423,7 @@ router.put('/events/:eventId', isAuth, [
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             const regex = /^[\p{L} .,\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
@@ -432,7 +432,7 @@ router.put('/events/:eventId', isAuth, [
         }),
     body('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
-        .custom((value: string, {req}) => {
+        .custom((value: string, { req }) => {
             if (!isValidTimeFormat(value)) {
                 throw new Error('Thời gian không hợp lệ.');
             }
@@ -440,8 +440,8 @@ router.put('/events/:eventId', isAuth, [
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
-        .custom((value: string, {req}) => {
-            return JobLocation.findOne({name: value})
+        .custom((value: string, { req }) => {
+            return JobLocation.findOne({ name: value })
                 .then(job => {
                     if (!job) {
                         return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
@@ -459,11 +459,11 @@ router.put('/events/:eventId', isAuth, [
 
 router.delete('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
-, recruiterController.DeleteEvent);
+    , recruiterController.DeleteEvent);
 
 router.get('/interviewers', isAuth, [
     query('name').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[\p{L} ]+$/u;
                 if (!regex.test(value)) {
@@ -474,7 +474,7 @@ router.get('/interviewers', isAuth, [
             return true;
         }),
     query('skill').trim()
-        .custom( async (value, {req}) => {
+        .custom(async (value, { req }) => {
             if (value) {
                 const skill = await Skill.findOne({ name: value });
                 if (!skill) {
@@ -497,7 +497,7 @@ router.get('/applied-candidates/:userId', isAuth, [
 router.get('/jobs/:jobId/candidates', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -512,7 +512,7 @@ router.get('/jobs/:jobId/candidates', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value, { req }) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -535,10 +535,10 @@ router.get('/jobs/:jobId/candidates/:candidateId', isAuth, [
 
 router.post('/interviews', isAuth, [
     body('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
-    body('jobApplyId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    body('jobApplyId').trim().isMongoId().withMessage('jobApplyId không hợp lệ'),
     body('interviewersId').trim()
         .custom(async (value) => {
-            for(let interviewerId of value) {
+            for (let interviewerId of value) {
                 const interviewer = await User.findById(interviewerId).populate('roleId');
                 if (!interviewer || !(interviewer.get('roleId.roleName') === "INTERVIEWER")) {
                     throw new Error(`InterviewerId: '${interviewerId}' không hợp lệ hoặc không có quyền`);
@@ -549,6 +549,18 @@ router.post('/interviews', isAuth, [
     body('time').trim()
         .isISO8601().toDate().withMessage('Thời gian không hợp lệ')
 ], recruiterController.createMeeting);
+
+router.put('/candidates/state', isAuth, [
+    body('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    body('jobId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+    body('state').trim()
+        .custom((value) => {
+            if (!updateApplyStatus.includes(value)) {
+                throw new Error(`State: '${value}' không hợp lệ`);
+            }
+            return true;
+        })
+], recruiterController.updateCandidateState);
 
 
 export default router;

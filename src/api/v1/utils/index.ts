@@ -4,8 +4,9 @@ import * as nodemailer from 'nodemailer';
 
 export const secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 export const refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-export const ApplyStatus: string[] = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+export const updateApplyStatus: string[] = ['PASS', 'FAIL'];
 export const questionType: string[] = ['Technical', 'SoftSkill', 'English'];
+
 
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -72,6 +73,25 @@ export function formatDateToJSDateObject(inputDate: Date): string {
   };
   const vietnameseDate: string = inputDate.toLocaleString('vi-VN', options);
   return vietnameseDate;
+}
+
+export function createICalEvent(startTime: Date, endTime: Date, attendees: string[]): string {
+  const startISOString = startTime.toISOString();
+  const endISOString = endTime.toISOString();
+  const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
+  const iCalString = 
+  `
+      BEGIN:VCALENDAR
+      VERSION:2.0
+      BEGIN:VEVENT
+      DTSTART:${startISOString}
+      DTEND:${endISOString}
+      ${attendeesString}
+      END:VEVENT
+      END:VCALENDAR
+  `;
+
+  return iCalString;
 }
 
 export function addFractionStrings(x1: string, x2: string) {

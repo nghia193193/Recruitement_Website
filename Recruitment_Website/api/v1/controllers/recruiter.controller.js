@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.updateCandidateState = exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -129,13 +129,15 @@ const GetAllJobs = async (req, res, next) => {
                 skills: listSkills
             };
         });
-        res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
+        res.status(200).json({
+            success: true, message: 'Get list jobs successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(jobLength / limit),
                 limit: limit,
                 totalElements: jobLength,
                 content: listjobs
-            } });
+            }
+        });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -432,13 +434,15 @@ const GetAllEvents = async (req, res, next) => {
                 ...rest._doc
             };
         });
-        res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
+        res.status(200).json({
+            success: true, message: 'Get list events successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(eventLenght / limit),
                 limit: limit,
                 totalElements: eventLenght,
                 content: listEvents
-            } });
+            }
+        });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -492,7 +496,7 @@ const GetSingleEvent = async (req, res, next) => {
             author: authorId.fullName,
             ...rest._doc,
         };
-        res.status(200).json({ success: true, message: 'Successfully', result: returnEvent });
+        res.status(200).json({ success: true, message: 'Get event successfully', result: returnEvent });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -823,13 +827,15 @@ const GetAllInterviewers = async (req, res, next) => {
             return mappedInterviewers.filter(interviewer => interviewer !== null);
         };
         returnInterviewerList().then(mappedInterviewers => {
-            res.status(200).json({ success: true, message: 'Successfully', result: {
+            res.status(200).json({
+                success: true, message: 'Get list interviewers successfully', result: {
                     pageNumber: page,
                     totalPages: Math.ceil(interviewerLength / limit),
                     limit: limit,
                     totalElements: interviewerLength,
                     content: mappedInterviewers
-                } });
+                }
+            });
         });
     }
     catch (err) {
@@ -923,7 +929,7 @@ const GetSingleInterviewer = async (req, res, next) => {
                 skills: listSkill
             }
         };
-        res.status(200).json({ success: true, message: 'Successfully', result: returnInterviewer });
+        res.status(200).json({ success: true, message: 'Get interviewer successfully', result: returnInterviewer });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -1077,7 +1083,7 @@ const GetAllApplicants = async (req, res, next) => {
             return Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
         };
         returnListApplicants().then(mappedApplicants => {
-            res.status(200).json({ success: true, message: 'Successfully', result: mappedApplicants });
+            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: mappedApplicants });
         });
     }
     catch (err) {
@@ -1175,7 +1181,7 @@ const GetSingleApplicants = async (req, res, next) => {
                 skills: listSkill
             }
         };
-        res.status(200).json({ success: true, message: 'Successfully', result: returnApplicant });
+        res.status(200).json({ success: true, message: 'Get applicant successfully', result: returnApplicant });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -1317,13 +1323,15 @@ const getApplicantsJob = async (req, res, next) => {
             return mappedApplicants.filter(applicant => applicant !== null);
         };
         returnListApplicants().then(mappedApplicants => {
-            res.status(200).json({ success: true, message: 'Successfully', result: {
+            res.status(200).json({
+                success: true, message: 'Get list applicants successfully', result: {
                     pageNumber: page,
                     totalPages: Math.ceil(applicantsJobLength / limit),
                     limit: limit,
                     totalElements: applicantsJobLength,
                     content: mappedApplicants
-                } });
+                }
+            });
         });
     }
     catch (err) {
@@ -1430,7 +1438,7 @@ const getSingleApplicantsJob = async (req, res, next) => {
                 skills: listSkill
             }
         };
-        res.status(200).json({ success: true, message: 'Successfully', result: returnApplicant });
+        res.status(200).json({ success: true, message: 'Get applicant successfully', result: returnApplicant });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -1594,7 +1602,7 @@ const createMeeting = async (req, res, next) => {
             attachments: [
                 {
                     filename: 'invitation.ics',
-                    content: createICalEvent(startDateTime, endDateTime, attendees),
+                    content: (0, utils_1.createICalEvent)(startDateTime, endDateTime, attendees),
                     encoding: 'base64'
                 }
             ]
@@ -1603,7 +1611,7 @@ const createMeeting = async (req, res, next) => {
             const error = new Error('Gửi mail thất bại');
             throw error;
         });
-        res.status(200).json({ success: true, message: 'Successfully', result: null });
+        res.status(200).json({ success: true, message: 'Create meeting successfully', result: null });
     }
     catch (err) {
         if (!err.statusCode) {
@@ -1614,19 +1622,44 @@ const createMeeting = async (req, res, next) => {
     }
 };
 exports.createMeeting = createMeeting;
-function createICalEvent(startTime, endTime, attendees) {
-    const startISOString = startTime.toISOString();
-    const endISOString = endTime.toISOString();
-    const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
-    const iCalString = `
-        BEGIN:VCALENDAR
-        VERSION:2.0
-        BEGIN:VEVENT
-        DTSTART:${startISOString}
-        DTEND:${endISOString}
-        ${attendeesString}
-        END:VEVENT
-        END:VCALENDAR
-    `;
-    return iCalString;
-}
+const updateCandidateState = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const { candidateId, jobId, state } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = await jobApply_1.JobApply.findOne({ candidateId: candidateId, jobAppliedId: jobId });
+        if (!jobApply) {
+            const error = new Error('Không tìm thấy job apply');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        jobApply.status = state;
+        await jobApply.save();
+        res.status(200).json({ success: true, message: 'Update state successfully', result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.updateCandidateState = updateCandidateState;

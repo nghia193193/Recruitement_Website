@@ -23,12 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addFractionStrings = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.ApplyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.addFractionStrings = exports.createICalEvent = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.updateApplyStatus = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const nodemailer = __importStar(require("nodemailer"));
 exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
 exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
-exports.ApplyStatus = ['PENDING', 'REVIEWING', 'INTERVIEWING', 'COMPLETED'];
+exports.updateApplyStatus = ['PASS', 'FAIL'];
 exports.questionType = ['Technical', 'SoftSkill', 'English'];
 exports.transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -99,6 +99,23 @@ function formatDateToJSDateObject(inputDate) {
     return vietnameseDate;
 }
 exports.formatDateToJSDateObject = formatDateToJSDateObject;
+function createICalEvent(startTime, endTime, attendees) {
+    const startISOString = startTime.toISOString();
+    const endISOString = endTime.toISOString();
+    const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
+    const iCalString = `
+      BEGIN:VCALENDAR
+      VERSION:2.0
+      BEGIN:VEVENT
+      DTSTART:${startISOString}
+      DTEND:${endISOString}
+      ${attendeesString}
+      END:VEVENT
+      END:VCALENDAR
+  `;
+    return iCalString;
+}
+exports.createICalEvent = createICalEvent;
 function addFractionStrings(x1, x2) {
     const [numerator1, denominator1] = x1.split('/').map(Number);
     const [numerator2, denominator2] = x2.split('/').map(Number);

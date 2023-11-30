@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { secretKey, verifyToken, transporter, formatDateToJSDateObject, addFractionStrings } from '../utils';
+import { secretKey, verifyToken, transporter, formatDateToJSDateObject, addFractionStrings, createICalEvent } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { JobPosition } from '../models/jobPosition';
@@ -8,8 +8,8 @@ import { JobType } from '../models/jobType';
 import { JobLocation } from '../models/jobLocation';
 import { Skill } from '../models/skill';
 import { Event } from '../models/event';
-import {UploadedFile} from 'express-fileupload';
-import {v2 as cloudinary} from 'cloudinary';
+import { UploadedFile } from 'express-fileupload';
+import { v2 as cloudinary } from 'cloudinary';
 import { Role } from '../models/role';
 import { JobApply } from '../models/jobApply';
 import { Education } from '../models/education';
@@ -31,7 +31,7 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
@@ -42,7 +42,7 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
@@ -57,15 +57,15 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
             query['name'] = new RegExp((req.query['name'] as any), 'i');
         };
         if (req.query['type']) {
-            const jobType = await JobType.findOne({name: req.query['type']});
+            const jobType = await JobType.findOne({ name: req.query['type'] });
             query['typeId'] = jobType?._id;
         };
         if (req.query['position']) {
-            const jobPos = await JobPosition.findOne({name: req.query['position']});
+            const jobPos = await JobPosition.findOne({ name: req.query['position'] });
             query['positionId'] = jobPos?._id;
         };
         if (req.query['location']) {
-            const jobLoc = await JobLocation.findOne({name: req.query['location']});
+            const jobLoc = await JobLocation.findOne({ name: req.query['location'] });
             query['locationId'] = jobLoc?._id;
         };
         const jobLength = await Job.find(query).countDocuments();
@@ -80,12 +80,12 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
         };
 
         const jobs = await Job.find(query).populate('positionId locationId typeId skills.skillId')
-            .sort({updatedAt: -1})
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
-        
+
         const listjobs = jobs.map(job => {
-            const { _id, skills, positionId, locationId, typeId, ...rest} = job;
+            const { _id, skills, positionId, locationId, typeId, ...rest } = job;
             delete (rest as any)._doc._id;
             delete (rest as any)._doc.skills;
             delete (rest as any)._doc.positionId;
@@ -104,13 +104,15 @@ export const GetAllJobs = async (req: Request, res: Response, next: NextFunction
             };
         });
 
-        res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
-            pageNumber: page,
-            totalPages: Math.ceil(jobLength/limit),
-            limit: limit,
-            totalElements: jobLength,
-            content: listjobs
-        }});
+        res.status(200).json({
+            success: true, message: 'Get list jobs successfully', statusCode: 200, result: {
+                pageNumber: page,
+                totalPages: Math.ceil(jobLength / limit),
+                limit: limit,
+                totalElements: jobLength,
+                content: listjobs
+            }
+        });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -125,33 +127,33 @@ export const CreateJob = async (req: Request, res: Response, next: NextFunction)
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const { name, jobType, quantity, benefit, salaryRange, 
+        const { name, jobType, quantity, benefit, salaryRange,
             requirement, location, description, deadline, position, skillRequired } = req.body;
         const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
-        if(!errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        const pos = await JobPosition.findOne({name: position});
-        const type = await JobType.findOne({name: jobType}); 
-        const loc = await JobLocation.findOne({name: location});
-        
+        const pos = await JobPosition.findOne({ name: position });
+        const type = await JobType.findOne({ name: jobType });
+        const loc = await JobLocation.findOne({ name: location });
+
         let listSkill = [];
         for (let skill of skillRequired) {
-            const s = await Skill.findOne({name: skill});
-            listSkill.push({skillId: (s as any)._id});
+            const s = await Skill.findOne({ name: skill });
+            listSkill.push({ skillId: (s as any)._id });
         };
-        
+
         const job = new Job({
             name: name,
             positionId: (pos as any)._id.toString(),
@@ -168,7 +170,7 @@ export const CreateJob = async (req: Request, res: Response, next: NextFunction)
             skills: listSkill
         });
         await job.save();
-        res.status(200).json({success: true, message: "Tạo job thành công", result: null})
+        res.status(200).json({ success: true, message: "Tạo job thành công", result: null })
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -185,7 +187,7 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -198,7 +200,7 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
             error.result = null;
             throw error;
         };
-        const job = await Job.findOne({authorId: recruiter._id, _id: jobId})
+        const job = await Job.findOne({ authorId: recruiter._id, _id: jobId })
             .populate('positionId locationId typeId skills.skillId');
         if (!job) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
@@ -206,7 +208,7 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
             error.result = null;
             throw error;
         }
-        const { _id, skills, positionId, locationId, typeId, ...rest} = job;
+        const { _id, skills, positionId, locationId, typeId, ...rest } = job;
         delete (rest as any)._doc._id;
         delete (rest as any)._doc.skills;
         delete (rest as any)._doc.positionId;
@@ -223,7 +225,7 @@ export const GetSingleJob = async (req: Request, res: Response, next: NextFuncti
             ...(rest as any)._doc,
             skills: listSkills
         };
-        res.status(200).json({sucess: true, message: 'Đã tìm thấy job', result: returnJob});
+        res.status(200).json({ sucess: true, message: 'Đã tìm thấy job', result: returnJob });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -238,13 +240,13 @@ export const UpdateJob = async (req: Request, res: Response, next: NextFunction)
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
         const jobId = req.params.jobId;
-        const { name, jobType, quantity, benefit, salaryRange, 
+        const { name, jobType, quantity, benefit, salaryRange,
             requirement, location, description, deadline, position, skillRequired } = req.body;
         const errors = validationResult(req);
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: number, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -255,17 +257,17 @@ export const UpdateJob = async (req: Request, res: Response, next: NextFunction)
             error.result = null;
             throw error;
         };
-        const pos = await JobPosition.findOne({name: position});
-        const type = await JobType.findOne({name: jobType}); 
-        const loc = await JobLocation.findOne({name: location});
+        const pos = await JobPosition.findOne({ name: position });
+        const type = await JobType.findOne({ name: jobType });
+        const loc = await JobLocation.findOne({ name: location });
 
         let listSkill = [];
         for (let skill of skillRequired) {
-            const s = await Skill.findOne({name: skill});
-            listSkill.push({skillId: (s as any)._id});
+            const s = await Skill.findOne({ name: skill });
+            listSkill.push({ skillId: (s as any)._id });
         };
 
-        const job = await Job.findOne({authorId: recruiter._id, _id: jobId});
+        const job = await Job.findOne({ authorId: recruiter._id, _id: jobId });
         if (!job) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
             error.statusCode = 409;
@@ -284,7 +286,7 @@ export const UpdateJob = async (req: Request, res: Response, next: NextFunction)
         job.deadline = deadline;
         job.skills = listSkill;
         await job.save();
-        res.status(200).json({sucess: true, message: 'Update job thành công', result: null});
+        res.status(200).json({ sucess: true, message: 'Update job thành công', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -303,13 +305,13 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy user');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy user');
             error.statusCode = 409;
             error.result = null;
             throw error;
         };
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -320,7 +322,7 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
             error.result = null;
             throw error;
         };
-        const job = await Job.findOne({authorId: recruiter._id, _id: jobId});
+        const job = await Job.findOne({ authorId: recruiter._id, _id: jobId });
         if (!job) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
             error.statusCode = 409;
@@ -328,7 +330,7 @@ export const DeleteJob = async (req: Request, res: Response, next: NextFunction)
             throw error;
         }
         await Job.findByIdAndDelete(jobId);
-        res.status(200).json({sucess: true, message: 'Xóa job thành công', result: null});
+        res.status(200).json({ sucess: true, message: 'Xóa job thành công', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -345,7 +347,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
@@ -357,7 +359,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
@@ -371,7 +373,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         if (name) {
             query['name'] = new RegExp((name as any), 'i');
         };
-        
+
         const eventLenght = await Event.find(query).countDocuments();
         if (eventLenght === 0) {
             const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy event');
@@ -384,12 +386,12 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         };
 
         const events = await Event.find(query).populate('authorId')
-            .sort({updatedAt: -1})
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
 
         const listEvents = events.map(e => {
-            const {_id, authorId, ...rest} = e;
+            const { _id, authorId, ...rest } = e;
             delete (rest as any)._doc._id;
             delete (rest as any)._doc.authorId;
             return {
@@ -399,13 +401,15 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
             }
         });
 
-        res.status(200).json({success: true, message: 'Successfully', statusCode: 200, result: {
-            pageNumber: page,
-            totalPages: Math.ceil(eventLenght/limit),
-            limit: limit,
-            totalElements: eventLenght,
-            content: listEvents
-        }});
+        res.status(200).json({
+            success: true, message: 'Get list events successfully', statusCode: 200, result: {
+                pageNumber: page,
+                totalPages: Math.ceil(eventLenght / limit),
+                limit: limit,
+                totalElements: eventLenght,
+                content: listEvents
+            }
+        });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -423,14 +427,14 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy user');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy user');
             error.statusCode = 409;
             error.result = null;
             throw error;
         };
-        
+
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -438,31 +442,31 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
         const eventId = req.params.eventId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        
+
         const event = await Event.findById(eventId).populate('authorId');
         if (!event) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy event');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy event');
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-           
-        const {_id, authorId, ...rest} = event;
+
+        const { _id, authorId, ...rest } = event;
         delete (rest as any)._doc._id;
         delete (rest as any)._doc.authorId;
-        
+
         const returnEvent = {
             eventId: _id.toString(),
             author: (authorId as any).fullName,
             ...(rest as any)._doc,
         };
 
-        res.status(200).json({success: true, message: 'Successfully', result: returnEvent});
+        res.status(200).json({ success: true, message: 'Get event successfully', result: returnEvent });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -480,30 +484,30 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy user');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy user');
             error.statusCode = 409;
             error.result = null;
             throw error;
         };
-        
+
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
-        const {title, name, description, time, location, deadline, startAt} = req.body;
-        
+        const { title, name, description, time, location, deadline, startAt } = req.body;
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
-        
+
         if (!req.files || !req.files.image) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không có tệp nào được tải lên!');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không có tệp nào được tải lên!');
             error.statusCode = 400;
             error.result = null;
             throw error;
@@ -511,7 +515,7 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
 
         const image: UploadedFile = req.files.image as UploadedFile;
         if (image.mimetype !== 'image/jpg' && image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
+            const error: Error & { statusCode?: any, result?: any } = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
             error.statusCode = 400;
             error.result = null;
             throw error;
@@ -525,7 +529,7 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
 
         const publicId = result.public_id;
         const imageUrl = cloudinary.url(publicId);
-        
+
         const event = new Event({
             authorId: recruiter._id,
             title: title,
@@ -542,7 +546,7 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
             startAt: startAt
         });
         await event.save();
-        res.status(200).json({success: true, message: 'Thêm event thành công', result: null});
+        res.status(200).json({ success: true, message: 'Thêm event thành công', result: null });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -560,40 +564,40 @@ export const UpdateEvent = async (req: Request, res: Response, next: NextFunctio
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy user');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy user');
             error.statusCode = 409;
             error.result = null;
             throw error;
         };
-        
+
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
         const eventId = req.params.eventId;
-        const {title, name, description, time, location, deadline, startAt} = req.body;
+        const { title, name, description, time, location, deadline, startAt } = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
 
         const event = await Event.findById(eventId);
-        if(!event) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('event không tồn tại');
+        if (!event) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('event không tồn tại');
             error.statusCode = 409;
             error.result = null;
             throw error;
         }
-        
+
         if (req.files?.image) {
             const image: UploadedFile = req.files.image as UploadedFile;
             if (image.mimetype !== 'image/jpg' && image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
-                const error: Error & {statusCode?: any, result?: any} = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
+                const error: Error & { statusCode?: any, result?: any } = new Error('File ảnh chỉ được phép là jpg,png,jpeg');
                 error.statusCode = 400;
                 error.result = null;
                 throw error;
@@ -603,12 +607,12 @@ export const UpdateEvent = async (req: Request, res: Response, next: NextFunctio
                 const error = new Error('Upload thất bại');
                 throw error;
             };
-    
+
             const publicId = result.public_id;
             const imageUrl = cloudinary.url(publicId);
 
             const deleteEventImage = event.image?.publicId;
-            if(deleteEventImage) {
+            if (deleteEventImage) {
                 await cloudinary.uploader.destroy(deleteEventImage);
             }
 
@@ -626,7 +630,7 @@ export const UpdateEvent = async (req: Request, res: Response, next: NextFunctio
         event.deadline = deadline;
         event.startAt = startAt;
         await event.save();
-        res.status(200).json({success: true, message: 'Update event thành công', result: null});
+        res.status(200).json({ success: true, message: 'Update event thành công', result: null });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -644,14 +648,14 @@ export const DeleteEvent = async (req: Request, res: Response, next: NextFunctio
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (!recruiter) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy user');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy user');
             error.statusCode = 409;
             error.result = null;
             throw error;
         };
-        
+
         if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -659,24 +663,24 @@ export const DeleteEvent = async (req: Request, res: Response, next: NextFunctio
         const eventId = req.params.eventId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
         const event = await Event.findById(eventId);
-        if(!event) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('event không tồn tại');
+        if (!event) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('event không tồn tại');
             error.statusCode = 409;
             error.result = null;
             throw error;
         }
         const deleteEventImage = event.image?.publicId;
-        if(deleteEventImage) {
+        if (deleteEventImage) {
             await cloudinary.uploader.destroy(deleteEventImage);
         }
         await Event.findByIdAndDelete(eventId);
-        res.status(200).json({success: true, message: 'Xóa event thành công', result: null});
+        res.status(200).json({ success: true, message: 'Xóa event thành công', result: null });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -694,26 +698,26 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = {
                 content: []
             };
             throw error;
         };
-        const {name, skill} = req.query;
+        const { name, skill } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
             };
             throw error;
         }
-        const roleInterviewerId = await Role.findOne({roleName: "INTERVIEWER"});
+        const roleInterviewerId = await Role.findOne({ roleName: "INTERVIEWER" });
         const query: any = {
             roleId: roleInterviewerId?._id.toString()
         };
@@ -721,12 +725,12 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             query['fullName'] = new RegExp((req.query['name'] as any), 'i');
         };
         if (req.query['skill']) {
-            const skillId = await Skill.findOne({name: req.query['skill']});
+            const skillId = await Skill.findOne({ name: req.query['skill'] });
             query['skills.skillId'] = skillId;
         }
         const interviewerLength = await User.find(query).countDocuments();
         const interviewerList = await User.find(query).populate('roleId skills.skillId')
-            .sort({updatedAt: -1})
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
         const returnInterviewerList = async () => {
@@ -740,7 +744,7 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
                                 major: e.major,
                                 graduatedYead: e.graduatedYear
                             }
-                            
+
                         })
                         const experienceList = await Experience.find({ candidateId: interviewer._id.toString() });
                         const returnExperienceList = experienceList.map(e => {
@@ -768,8 +772,8 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
                             }
                         })
                         let listSkill = [];
-                        for (let i=0;i<interviewer.skills.length;i++) {
-                            listSkill.push({label: (interviewer.skills[i].skillId as any).name, value: i});
+                        for (let i = 0; i < interviewer.skills.length; i++) {
+                            listSkill.push({ label: (interviewer.skills[i].skillId as any).name, value: i });
                         }
                         return {
                             interviewerId: interviewer._id.toString(),
@@ -797,13 +801,15 @@ export const GetAllInterviewers = async (req: Request, res: Response, next: Next
             return mappedInterviewers.filter(interviewer => interviewer !== null);
         };
         returnInterviewerList().then(mappedInterviewers => {
-            res.status(200).json({success: true, message: 'Successfully', result: {
-                pageNumber: page,
-                totalPages: Math.ceil(interviewerLength/limit),
-                limit: limit,
-                totalElements: interviewerLength,
-                content: mappedInterviewers
-            }});
+            res.status(200).json({
+                success: true, message: 'Get list interviewers successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(interviewerLength / limit),
+                    limit: limit,
+                    totalElements: interviewerLength,
+                    content: mappedInterviewers
+                }
+            });
         });
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -821,7 +827,7 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -829,14 +835,14 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
         const interviewerId = req.params.interviewerId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
         const interviewer = await User.findById(interviewerId).populate('roleId skills.skillId')
-        if(!interviewer) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Interviewer không tồn tại');
+        if (!interviewer) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Interviewer không tồn tại');
             error.statusCode = 409;
             error.result = null;
             throw error;
@@ -848,7 +854,7 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
                 major: e.major,
                 graduatedYead: e.graduatedYear
             }
-            
+
         })
         const experienceList = await Experience.find({ candidateId: interviewer._id.toString() });
         const returnExperienceList = experienceList.map(e => {
@@ -876,8 +882,8 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
             }
         })
         let listSkill = [];
-        for (let i=0;i<interviewer.skills.length;i++) {
-            listSkill.push({label: (interviewer.skills[i].skillId as any).name, value: i});
+        for (let i = 0; i < interviewer.skills.length; i++) {
+            listSkill.push({ label: (interviewer.skills[i].skillId as any).name, value: i });
         }
         const returnInterviewer = {
             fullName: interviewer.fullName,
@@ -896,7 +902,7 @@ export const GetSingleInterviewer = async (req: Request, res: Response, next: Ne
                 skills: listSkill
             }
         }
-        res.status(200).json({success: true, message: 'Successfully', result: returnInterviewer});
+        res.status(200).json({ success: true, message: 'Get interviewer successfully', result: returnInterviewer });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -914,7 +920,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -923,7 +929,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
@@ -937,7 +943,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
         }
         const matchName = query['fullName'] ? { fullName: query['fullName'] } : {};
         const matchSkill = query['skill'] ? { name: query['skill'] } : {};
-        
+
         const ListApplicants = await JobApply.find()
             .populate({
                 path: 'jobAppliedId',
@@ -956,10 +962,10 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                     match: matchSkill
                 }
             })
-            .sort({updatedAt: -1})
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
-        
+
         const returnListApplicants = async () => {
             const mappedApplicants = await Promise.all(
                 ListApplicants.map(async (applicant) => {
@@ -999,15 +1005,15 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                             }
                         })
                         let listSkill = [];
-                        for (let i=0;i<applicant.get('candidateId.skills').length;i++) {
-                            listSkill.push({label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i});
+                        for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
+                            listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
                         }
-                        const interview = await Interview.findOne({jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString()});
-                        const interviewers = await InterviewerInterview.findOne({interviewId: interview?._id.toString()}).populate('interviewersId');
+                        const interview = await Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
+                        const interviewers = await InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
                         const interviewerFullNames = interviewers?.interviewersId.map(interviewer => {
                             return (interviewer as any).fullName;
                         })
-                        const scoreInterviewer = await QuestionCandidate.find({interviewId: interview?._id.toString()});
+                        const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview?._id.toString() });
                         const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
                             return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
                         }, "0/0")
@@ -1016,7 +1022,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                         if (denominator === 0) {
                             totalScore = null;
                         } else {
-                            totalScore = `${numerator*100/denominator}/100`;
+                            totalScore = `${numerator * 100 / denominator}/100`;
                         }
                         return {
                             candidateId: applicant.candidateId._id.toString(),
@@ -1044,14 +1050,14 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                         console.error(error);
                         return null;
                     }
-                    
+
                 })
             );
             const getHash = (obj: any): string => JSON.stringify(obj);
             return Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
         }
         returnListApplicants().then(mappedApplicants => {
-            res.status(200).json({success: true, message: 'Successfully', result: mappedApplicants});
+            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: mappedApplicants });
         })
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -1069,7 +1075,7 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -1077,14 +1083,14 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
         const applicantId = req.params.userId;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = null;
             throw error;
         }
         const applicant = await User.findById(applicantId).populate('roleId skills.skillId')
-        if(!applicant) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Ứng viên không tồn tại');
+        if (!applicant) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Ứng viên không tồn tại');
             error.statusCode = 409;
             error.result = null;
             throw error;
@@ -1096,7 +1102,7 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
                 major: e.major,
                 graduatedYead: e.graduatedYear
             }
-            
+
         })
         const experienceList = await Experience.find({ candidateId: applicant._id.toString() });
         const returnExperienceList = experienceList.map(e => {
@@ -1124,8 +1130,8 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
             }
         })
         let listSkill = [];
-        for (let i=0;i<applicant.skills.length;i++) {
-            listSkill.push({label: (applicant.skills[i].skillId as any).name, value: i});
+        for (let i = 0; i < applicant.skills.length; i++) {
+            listSkill.push({ label: (applicant.skills[i].skillId as any).name, value: i });
         }
         const returnApplicant = {
             candidateId: applicant._id.toString(),
@@ -1148,7 +1154,7 @@ export const GetSingleApplicants = async (req: Request, res: Response, next: Nex
                 skills: listSkill
             }
         }
-        res.status(200).json({success: true, message: 'Successfully', result: returnApplicant});
+        res.status(200).json({ success: true, message: 'Get applicant successfully', result: returnApplicant });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -1165,7 +1171,7 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
@@ -1175,23 +1181,23 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
             };
             throw error;
         }
-        const applicantsJobLength = await JobApply.find({jobAppliedId: jobId}).countDocuments();
+        const applicantsJobLength = await JobApply.find({ jobAppliedId: jobId }).countDocuments();
         if (applicantsJobLength === 0) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Chưa có ứng viên nào apply vào công việc này');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Chưa có ứng viên nào apply vào công việc này');
             error.statusCode = 200;
             error.result = {
                 content: []
             };
             throw error;
         }
-        const ListApplicantsJob = await JobApply.find({jobAppliedId: jobId})
+        const ListApplicantsJob = await JobApply.find({ jobAppliedId: jobId })
             .populate({
                 path: 'candidateId',
                 model: User,
@@ -1200,9 +1206,9 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                     model: Skill
                 }
             })
-            .skip((page - 1)*limit)
+            .skip((page - 1) * limit)
             .limit(limit);
-            
+
         const returnListApplicants = async () => {
             const mappedApplicants = await Promise.all(
                 ListApplicantsJob.map(async (applicant) => {
@@ -1241,15 +1247,15 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                             }
                         })
                         let listSkill = [];
-                        for (let i=0;i<applicant.get('candidateId.skills').length;i++) {
-                            listSkill.push({label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i});
+                        for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
+                            listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
                         }
-                        const interview = await Interview.findOne({jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString()});
-                        const interviewers = await InterviewerInterview.findOne({interviewId: interview?._id.toString()}).populate('interviewersId');
+                        const interview = await Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
+                        const interviewers = await InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
                         const interviewerFullNames = interviewers?.interviewersId.map(interviewer => {
                             return (interviewer as any).fullName;
                         })
-                        const scoreInterviewer = await QuestionCandidate.find({interviewId: interview?._id.toString()});
+                        const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview?._id.toString() });
                         const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
                             return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
                         }, "0/0")
@@ -1258,7 +1264,7 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                         if (denominator === 0) {
                             totalScore = null;
                         } else {
-                            totalScore = `${numerator*100/denominator}/100`;
+                            totalScore = `${numerator * 100 / denominator}/100`;
                         }
                         return {
                             candidateId: applicant.candidateId._id.toString(),
@@ -1284,19 +1290,21 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                         console.error(error);
                         return null;
                     }
-                    
+
                 })
             );
             return mappedApplicants.filter(applicant => applicant !== null);
         }
         returnListApplicants().then(mappedApplicants => {
-            res.status(200).json({success: true, message: 'Successfully', result: {
-                pageNumber: page,
-                totalPages: Math.ceil(applicantsJobLength/limit),
-                limit: limit,
-                totalElements: applicantsJobLength,
-                content: mappedApplicants
-            }});
+            res.status(200).json({
+                success: true, message: 'Get list applicants successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(applicantsJobLength / limit),
+                    limit: limit,
+                    totalElements: applicantsJobLength,
+                    content: mappedApplicants
+                }
+            });
         });
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -1314,22 +1322,22 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
-        const {jobId, candidateId} = req.params;
+        const { jobId, candidateId } = req.params;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
             };
             throw error;
         }
-        const applicant = await JobApply.findOne({jobAppliedId: jobId, candidateId: candidateId})
+        const applicant = await JobApply.findOne({ jobAppliedId: jobId, candidateId: candidateId })
             .populate({
                 path: 'candidateId',
                 model: User,
@@ -1339,7 +1347,7 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
                 }
             });
         if (!applicant) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không thể tìm thấy ứng viên');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không thể tìm thấy ứng viên');
             error.statusCode = 409;
             error.result = null;
             throw error;
@@ -1378,8 +1386,8 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
             }
         })
         let listSkill = [];
-        for (let i=0;i<applicant.get('candidateId.skills').length;i++) {
-            listSkill.push({label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i});
+        for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
+            listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
         }
         const returnApplicant = {
             candidateId: applicant.candidateId._id.toString(),
@@ -1401,7 +1409,7 @@ export const getSingleApplicantsJob = async (req: Request, res: Response, next: 
                 skills: listSkill
             }
         }
-        res.status(200).json({success: true, message: 'Successfully', result: returnApplicant});
+        res.status(200).json({ success: true, message: 'Get applicant successfully', result: returnApplicant });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -1418,15 +1426,15 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         const decodedToken: any = await verifyToken(accessToken);
         const recruiter = await User.findById(decodedToken.userId).populate('roleId');
         if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
-            const error: Error & {statusCode?: any, result?: any} = new Error('UnAuthorized');
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
             throw error;
         };
-        const {candidateId, interviewersId, time, jobApplyId} = req.body;
+        const { candidateId, interviewersId, time, jobApplyId } = req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error: Error & {statusCode?: any, result?: any} = new Error(errors.array()[0].msg);
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
             error.result = {
                 content: []
@@ -1435,21 +1443,21 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         }
         const candidate = await User.findById(candidateId);
         if (!candidate) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy candidate');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy candidate');
             error.statusCode = 409;
             error.result = null;
             throw error;
         }
         const jobId = await Job.findById(jobApplyId);
         if (!jobId) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy Job');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy Job');
             error.statusCode = 409;
             error.result = null;
             throw error;
         }
-        const jobApply = await JobApply.findOne({candidateId: candidateId, jobAppliedId: jobApplyId});
+        const jobApply = await JobApply.findOne({ candidateId: candidateId, jobAppliedId: jobApplyId });
         if (!jobApply) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy Job Apply');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy Job Apply');
             error.statusCode = 409;
             error.result = null;
             throw error;
@@ -1466,17 +1474,17 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         const graphClient = GraphClient.Client.init({
             authProvider: (done) => {
                 credential
-                  .getToken(scopes)
-                  .then((tokenResponse) => {
-                    const token = tokenResponse?.token;
-                    if (token) {
-                      done(null, token);
-                    } else {
-                      done(new Error("Failed to retrieve access token"), null);
-                    }
-                  })
-                  .catch((error) => done(error, null));
-              },
+                    .getToken(scopes)
+                    .then((tokenResponse) => {
+                        const token = tokenResponse?.token;
+                        if (token) {
+                            done(null, token);
+                        } else {
+                            done(new Error("Failed to retrieve access token"), null);
+                        }
+                    })
+                    .catch((error) => done(error, null));
+            },
         });
         const startDateTime = new Date(time);
         const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
@@ -1485,7 +1493,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             endDateTime: endDateTime.toISOString(),
             subject: 'Interview',
             lobbyBypassSettings: {
-                scope: 'everyone', 
+                scope: 'everyone',
                 isDialInBypassEnabled: true,
             },
         };
@@ -1498,7 +1506,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         const meetingUrl = result.joinWebUrl;
         const interview = new Interview({
             candidateId: candidateId,
-            jobApplyId: jobApplyId, 
+            jobApplyId: jobApplyId,
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
             state: 'PENDING'
@@ -1511,13 +1519,13 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
         await interviewerInterview.save();
         jobApply.status = "REVIEWING";
         await jobApply.save();
-        const candidateCV = await ResumeUpload.findOne({candidateId: candidateId});
+        const candidateCV = await ResumeUpload.findOne({ candidateId: candidateId });
         let interviewersMail = [];
         let interviewersName = [] as string[];
-        for (let i=0; i<interviewersId.length; i++) {
+        for (let i = 0; i < interviewersId.length; i++) {
             const interviewer = await User.findById(interviewersId[i].toString());
             if (!interviewer) {
-                const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy interviewer');
+                const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy interviewer');
                 error.statusCode = 409;
                 error.result = null;
                 throw error;
@@ -1556,7 +1564,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
                     <h2 style="color:blue; text-align: center;">Join the Meeting</h2>
                     <div style="text-align: center">
                         <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none;"><a href="${meetingUrl
-                        }" style="font-size: 15px;color: white; text-decoration: none">Join Now</a></button>
+                }" style="font-size: 15px;color: white; text-decoration: none">Join Now</a></button>
                     </div>
                     <p><b>Description:</b> Job: N&T</p>
                     <p><b>Link applicant CV:</b> <a href="${candidateCV?.resumeUpload}">Download CV</a></p>
@@ -1566,7 +1574,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             attachments: [
                 {
                     filename: 'invitation.ics',
-                    content: createICalEvent(startDateTime,endDateTime,attendees),
+                    content: createICalEvent(startDateTime, endDateTime, attendees),
                     encoding: 'base64'
                 }
             ]
@@ -1575,7 +1583,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             const error: Error = new Error('Gửi mail thất bại');
             throw error;
         });
-        res.status(200).json({success: true, message: 'Successfully', result: null});
+        res.status(200).json({ success: true, message: 'Create meeting successfully', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
             (err as any).statusCode = 500;
@@ -1585,21 +1593,41 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
     }
 };
 
-function createICalEvent(startTime: Date, endTime: Date, attendees: string[]): string {
-    const startISOString = startTime.toISOString();
-    const endISOString = endTime.toISOString();
-    const attendeesString = attendees.map(attendee => `ATTENDEE:${attendee}`).join('\r\n');
-    const iCalString = 
-    `
-        BEGIN:VCALENDAR
-        VERSION:2.0
-        BEGIN:VEVENT
-        DTSTART:${startISOString}
-        DTEND:${endISOString}
-        ${attendeesString}
-        END:VEVENT
-        END:VCALENDAR
-    `;
-
-    return iCalString;
-}
+export const updateCandidateState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const {candidateId, jobId, state} = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const jobApply = await JobApply.findOne({candidateId: candidateId, jobAppliedId: jobId});
+        if (!jobApply) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job apply');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
+        jobApply.status = state;
+        await jobApply.save()
+        res.status(200).json({ success: true, message: 'Update state successfully', result: null });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
