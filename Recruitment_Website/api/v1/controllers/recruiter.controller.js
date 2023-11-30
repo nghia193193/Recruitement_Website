@@ -73,10 +73,11 @@ const GetAllJobs = async (req, res, next) => {
             throw error;
         }
         const query = {
-            authorId: recruiter._id
+            authorId: recruiter._id,
+            isActive: true
         };
         if (req.query['name']) {
-            query['name'] = req.query['name'];
+            query['name'] = new RegExp(req.query['name'], 'i');
         }
         ;
         if (req.query['type']) {
@@ -399,10 +400,11 @@ const GetAllEvents = async (req, res, next) => {
             throw error;
         }
         const query = {
-            authorId: recruiter._id
+            authorId: recruiter._id,
+            isActive: true
         };
         if (name) {
-            query['name'] = name;
+            query['name'] = new RegExp(name, 'i');
         }
         ;
         const eventLenght = await event_1.Event.find(query).countDocuments();
@@ -964,7 +966,6 @@ const GetAllApplicants = async (req, res, next) => {
         }
         const matchName = query['fullName'] ? { fullName: query['fullName'] } : {};
         const matchSkill = query['skill'] ? { name: query['skill'] } : {};
-        console.log('match Skill: ', matchSkill);
         const ListApplicants = await jobApply_1.JobApply.find()
             .populate({
             path: 'jobAppliedId',
@@ -980,17 +981,16 @@ const GetAllApplicants = async (req, res, next) => {
             populate: {
                 path: 'skills.skillId',
                 model: skill_1.Skill,
+                match: matchSkill
             }
         })
             .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
-        ListApplicants.forEach(app => {
-            console.log(app.candidateId.skills);
-        });
         const returnListApplicants = async () => {
             const mappedApplicants = await Promise.all(ListApplicants.map(async (applicant) => {
                 try {
+                    const cv = await resumeUpload_1.ResumeUpload.findOne({ candidateId: applicant.candidateId._id.toString() });
                     const educationList = await education_1.Education.find({ candidateId: applicant.candidateId._id.toString() });
                     const returnEducationList = educationList.map(e => {
                         return {
@@ -1028,19 +1028,37 @@ const GetAllApplicants = async (req, res, next) => {
                     for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
                         listSkill.push({ label: applicant.get('candidateId.skills')[i].skillId.name, value: i });
                     }
+                    const interview = await interview_1.Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
+                    const interviewers = await interviewerInterview_1.InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
+                    const interviewerFullNames = interviewers?.interviewersId.map(interviewer => {
+                        return interviewer.fullName;
+                    });
+                    const scoreInterviewer = await questionCandidate_1.QuestionCandidate.find({ interviewId: interview?._id.toString() });
+                    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
+                        return (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer.totalScore);
+                    }, "0/0");
+                    const [numerator, denominator] = score.split('/').map(Number);
+                    let totalScore;
+                    if (denominator === 0) {
+                        totalScore = null;
+                    }
+                    else {
+                        totalScore = `${numerator * 100 / denominator}/100`;
+                    }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
                         blackList: applicant.get('candidateId.blackList'),
                         avatar: applicant.get('candidateId.avatar.url'),
                         candidateFullName: applicant.get('candidateId.fullName'),
                         candidateEmail: applicant.get('candidateId.email'),
-                        interviewerFullNames: [],
-                        score: null,
-                        state: 'NOT_RECEIVED',
+                        interviewerFullNames: interviewerFullNames,
+                        score: totalScore,
+                        state: applicant.status,
                         about: applicant.get('candidateId.about'),
                         dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                         address: applicant.get('candidateId.address'),
                         phone: applicant.get('candidateId.phone'),
+                        cv: cv?.resumeUpload,
                         information: {
                             education: returnEducationList,
                             experience: returnExperienceList,
@@ -1213,7 +1231,6 @@ const getApplicantsJob = async (req, res, next) => {
         })
             .skip((page - 1) * limit)
             .limit(limit);
-        console.log(ListApplicantsJob);
         const returnListApplicants = async () => {
             const mappedApplicants = await Promise.all(ListApplicantsJob.map(async (applicant) => {
                 try {

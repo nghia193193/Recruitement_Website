@@ -33,7 +33,7 @@ const router = (0, express_1.Router)();
 router.get('/', [
     (0, express_validator_1.query)('name').trim().custom((value, { req }) => {
         if (value) {
-            const regex = /^[A-Za-z0-9\s]+$/; // Cho phép chữ, số và dấu cách
+            const regex = /^[\p{L} 0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
             }
@@ -84,24 +84,30 @@ router.get('/', [
     (0, express_validator_1.query)('page').trim()
         .custom((value, { req }) => {
         if (value) {
-            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            const regex = /^[0-9]+$/;
             if (!regex.test(value)) {
                 throw new Error('page không hợp lệ');
             }
             ;
-            return true;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('page phải là số nguyên lớn hơn 0');
+            }
         }
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
         .custom((value, { req }) => {
         if (value) {
-            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            const regex = /^[0-9]+$/;
             if (!regex.test(value)) {
                 throw new Error('limit không hợp lệ');
             }
             ;
-            return true;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('limit phải là số nguyên lớn hơn 0');
+            }
         }
         return true;
     }),

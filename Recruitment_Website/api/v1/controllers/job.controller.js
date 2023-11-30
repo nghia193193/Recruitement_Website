@@ -24,7 +24,7 @@ const GetJobs = async (req, res, next) => {
             isActive: true
         };
         if (req.query['name']) {
-            query['name'] = req.query['name'];
+            query['name'] = new RegExp(req.query['name'], 'i');
         }
         ;
         if (req.query['type']) {

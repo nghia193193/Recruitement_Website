@@ -11,6 +11,8 @@ import { Education } from "../models/education";
 import { Experience } from "../models/experience";
 import { Certificate } from "../models/certificate";
 import { Project } from "../models/project";
+import { JobApply } from "../models/jobApply";
+import { addFractionStrings } from "../utils";
 
 export const saveInformation = async (interviewerId: string, education: any, experience: any, certificate: any, project: any, skills: any) => {
     const interviewer = await User.findById(interviewerId).populate('roleId');
@@ -232,14 +234,26 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                     for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
                         listSkill.push({ label: (interview.get('interviewId.candidateId.skills')[i].skillId as any).name, value: i });
                     }
+                    const jobApply = await JobApply.findOne({candidateId: interview.get('interviewId.candidateId._id'), jobAppliedId: interview.get('interviewId.jobApplyId._id')})
+                    const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview.interviewId._id.toString() });
+                    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
+                        return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
+                    }, "0/0")
+                    const [numerator, denominator] = score.split('/').map(Number);
+                    let totalScore;
+                    if (denominator === 0) {
+                        totalScore = null;
+                    } else {
+                        totalScore = `${numerator * 100 / denominator}/100`;
+                    }
                     return {
                         candidateId: interview.get('interviewId.candidateId._id'),
-                        candidateName: interview.get('interviewId.candidateId.fullName'),
+                        candidateFullName: interview.get('interviewId.candidateId.fullName'),
                         position: interview.get('interviewId.jobApplyId.positionId.name'),
                         interviewId: interview.interviewId._id.toString(),
                         date: interview.get('interviewId.time'),
-                        state: interview.get('interviewId.state'),
-                        score: null,
+                        state: jobApply?.status,
+                        score: totalScore,
                         jobName: interview.get('interviewId.jobApplyId.name'),
                         avatar: interview.get('interviewId.candidateId.avatar.url'),
                         address: interview.get('interviewId.candidateId.address'),
@@ -741,7 +755,7 @@ export const updateQuestions = async (interviewerId: string, questions: any, int
         error.statusCode = 409;
         error.result = null;
         throw error;
-    } 
+    }
     questionCandidate.questions = questions;
     await questionCandidate.save();
 }
@@ -796,7 +810,7 @@ export const submitTotalScore = async (interviewerId: string, interviewId: strin
             return totalScore + question.score;
         } else return totalScore + 0;
     }, 0);
-    const submitScore = `${score}/${questionCandidate.questions.length*10}`;
+    const submitScore = `${score}/${questionCandidate.questions.length * 10}`;
     questionCandidate.totalScore = submitScore;
     await questionCandidate.save()
 }

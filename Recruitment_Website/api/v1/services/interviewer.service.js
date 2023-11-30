@@ -14,6 +14,8 @@ const education_1 = require("../models/education");
 const experience_1 = require("../models/experience");
 const certificate_1 = require("../models/certificate");
 const project_1 = require("../models/project");
+const jobApply_1 = require("../models/jobApply");
+const utils_1 = require("../utils");
 const saveInformation = async (interviewerId, education, experience, certificate, project, skills) => {
     const interviewer = await user_1.User.findById(interviewerId).populate('roleId');
     if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -235,14 +237,27 @@ const getAllApplicants = async (interviewerId, page, limit) => {
                 for (let i = 0; i < interview.get('interviewId.candidateId.skills').length; i++) {
                     listSkill.push({ label: interview.get('interviewId.candidateId.skills')[i].skillId.name, value: i });
                 }
+                const jobApply = await jobApply_1.JobApply.findOne({ candidateId: interview.get('interviewId.candidateId._id'), jobAppliedId: interview.get('interviewId.jobApplyId._id') });
+                const scoreInterviewer = await questionCandidate_1.QuestionCandidate.find({ interviewId: interview.interviewId._id.toString() });
+                const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
+                    return (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer.totalScore);
+                }, "0/0");
+                const [numerator, denominator] = score.split('/').map(Number);
+                let totalScore;
+                if (denominator === 0) {
+                    totalScore = null;
+                }
+                else {
+                    totalScore = `${numerator * 100 / denominator}/100`;
+                }
                 return {
                     candidateId: interview.get('interviewId.candidateId._id'),
-                    candidateName: interview.get('interviewId.candidateId.fullName'),
+                    candidateFullName: interview.get('interviewId.candidateId.fullName'),
                     position: interview.get('interviewId.jobApplyId.positionId.name'),
                     interviewId: interview.interviewId._id.toString(),
                     date: interview.get('interviewId.time'),
-                    state: interview.get('interviewId.state'),
-                    score: null,
+                    state: jobApply?.status,
+                    score: totalScore,
                     jobName: interview.get('interviewId.jobApplyId.name'),
                     avatar: interview.get('interviewId.candidateId.avatar.url'),
                     address: interview.get('interviewId.candidateId.address'),

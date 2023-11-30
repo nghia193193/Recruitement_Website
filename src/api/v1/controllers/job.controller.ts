@@ -22,7 +22,7 @@ export const GetJobs = async (req: Request, res: Response, next: NextFunction): 
             isActive: true
         };
         if (req.query['name']) {
-            query['name'] = req.query['name'];
+            query['name'] = new RegExp((req.query['name'] as any), 'i');
         };
         if (req.query['type']) {
             const jobType = await JobType.findOne({name: req.query['type']});

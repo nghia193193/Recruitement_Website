@@ -18,7 +18,7 @@ router.get('/jobs',isAuth , [
     query('name').trim()
         .custom((value, {req}) => {
             if (value) {
-                const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
+                const regex = /^[\p{L} 0-9]+$/u;
                 if (!regex.test(value)) {
                     throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
                 };
@@ -299,6 +299,17 @@ router.delete('/jobs/:jobId', isAuth,
 , recruiterController.DeleteJob);
 
 router.get('/events', isAuth,[
+    query('name').trim()
+        .custom((value, {req}) => {
+            if (value) {
+                const regex = /^[\p{L} 0-9]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+                };
+                return true
+            }
+            return true;
+        }),
     query('page').trim()
         .custom((value, {req}) => {
             if (value) {
