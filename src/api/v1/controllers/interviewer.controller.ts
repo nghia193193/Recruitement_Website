@@ -351,7 +351,7 @@ export const getAssignQuestions = async (req: Request, res: Response, next: Next
         if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
             error.statusCode = 400;
-            error.result = null;
+            error.result = [];
             throw error;
         }
         const returnQuestions = await interviewerService.getAssignQuestions(interviewerId, interviewId);

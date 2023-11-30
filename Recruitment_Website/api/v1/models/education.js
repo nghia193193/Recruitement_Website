@@ -14,5 +14,7 @@ const educationSchema = new Schema({
     school: String,
     major: String,
     graduatedYear: String
+}, {
+    timestamps: true
 });
 exports.Education = mongoose_1.default.model('Education', educationSchema);

@@ -690,7 +690,7 @@ export const getAssignQuestions = async (interviewerId: string, interviewId: str
     if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
-        error.result = null;
+        error.result = [];
         throw error;
     };
     const questionCandidate = await QuestionCandidate.findOne({ interviewId: interviewId, owner: interviewer._id.toString() })
@@ -705,7 +705,7 @@ export const getAssignQuestions = async (interviewerId: string, interviewId: str
     if (!questionCandidate) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy câu hỏi đã đặt');
         error.statusCode = 409;
-        error.result = null;
+        error.result = [];
         throw error;
     }
     const returnQuestions = questionCandidate.questions.map(question => {
@@ -817,4 +817,13 @@ export const submitTotalScore = async (interviewerId: string, interviewId: strin
     const submitScore = `${score}/${questionCandidate.questions.length * 10}`;
     questionCandidate.totalScore = submitScore;
     await questionCandidate.save()
+    const interview = await Interview.findById(interviewId);
+    if (!interview) {
+        const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy buổi phỏng vấn');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    interview.state = "COMPLETED";
+    await interview.save();
 }

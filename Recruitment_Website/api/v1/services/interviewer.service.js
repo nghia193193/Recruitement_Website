@@ -698,7 +698,7 @@ const getAssignQuestions = async (interviewerId, interviewId) => {
     if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
         const error = new Error('UnAuthorized');
         error.statusCode = 401;
-        error.result = null;
+        error.result = [];
         throw error;
     }
     ;
@@ -714,7 +714,7 @@ const getAssignQuestions = async (interviewerId, interviewId) => {
     if (!questionCandidate) {
         const error = new Error('Không tìm thấy câu hỏi đã đặt');
         error.statusCode = 409;
-        error.result = null;
+        error.result = [];
         throw error;
     }
     const returnQuestions = questionCandidate.questions.map(question => {
@@ -828,5 +828,14 @@ const submitTotalScore = async (interviewerId, interviewId) => {
     const submitScore = `${score}/${questionCandidate.questions.length * 10}`;
     questionCandidate.totalScore = submitScore;
     await questionCandidate.save();
+    const interview = await interview_1.Interview.findById(interviewId);
+    if (!interview) {
+        const error = new Error('Không tìm thấy buổi phỏng vấn');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    interview.state = "COMPLETED";
+    await interview.save();
 };
 exports.submitTotalScore = submitTotalScore;

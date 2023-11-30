@@ -278,16 +278,6 @@ router.post('/interview/:interviewId/questions', middleware_1.isAuth, [
                 throw new Error(`QuestionId: '${value[i].questionId}' đã tồn tại`);
             }
             const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
-            if (!regex.test(value[i].content)) {
-                throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
-            }
-            if (!utils_1.questionType.includes(value[i].typeQuestion)) {
-                throw new Error(`typeQuestion: ${value[i].typeQuestion} không hợp lệ`);
-            }
-            const skill = await skill_1.Skill.findOne({ name: value[i].skill });
-            if (!skill) {
-                throw new Error(`skill: ${value[i].skill} không hợp lệ`);
-            }
             if (value[i].note) {
                 if (!regex.test(value[i].note)) {
                     throw new Error('Note không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');

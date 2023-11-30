@@ -16,5 +16,7 @@ const skillSchema = new Schema({
         type: String,
         required: true
     }
+}, {
+    timestamps: true
 });
 exports.Skill = mongoose_1.default.model('Skill', skillSchema);

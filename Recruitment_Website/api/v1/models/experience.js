@@ -15,5 +15,7 @@ const experienceSchema = new Schema({
     position: String,
     dateFrom: Date,
     dateTo: Date
+}, {
+    timestamps: true
 });
 exports.Experience = mongoose_1.default.model('Experience', experienceSchema);

@@ -21,6 +21,8 @@ const questionSchema = new Schema({
         ref: 'Skill',
         required: true
     }
+}, {
+    timestamps: true
 });
 
 export const Question = mongoose.model('Question', questionSchema);

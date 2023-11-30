@@ -14,5 +14,7 @@ const certificateSchema = new Schema({
     name: String,
     receivedDate: Date,
     url: String
+}, {
+    timestamps: true
 });
 exports.Certificate = mongoose_1.default.model('Certificate', certificateSchema);
