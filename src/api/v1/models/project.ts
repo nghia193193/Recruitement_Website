@@ -10,6 +10,8 @@ const projectSchema = new Schema(
         name: String,
         description: String,
         url: String
+    }, {
+        timestamps: true
     }
 );
 

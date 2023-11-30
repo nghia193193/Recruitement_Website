@@ -11,6 +11,8 @@ const experienceSchema = new Schema(
         position: String,
         dateFrom: Date,
         dateTo: Date
+    }, {
+        timestamps: true
     }
 );
 

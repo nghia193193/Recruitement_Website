@@ -10,6 +10,8 @@ const educationSchema = new Schema(
         school: String,
         major: String,
         graduatedYear: String
+    }, {
+        timestamps: true
     }
 );
 

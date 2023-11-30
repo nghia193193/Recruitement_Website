@@ -10,6 +10,8 @@ const certificateSchema = new Schema(
         name: String,
         receivedDate: Date,
         url: String
+    }, {
+        timestamps: true
     }
 );
 
