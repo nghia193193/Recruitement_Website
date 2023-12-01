@@ -517,6 +517,30 @@ const getAllInterviews = async (req, res, next) => {
             };
             throw error;
         }
+        const interviewLength = await interviewerInterview_1.InterviewerInterview.aggregate([
+            {
+                $lookup: {
+                    from: "interviews",
+                    localField: "interviewId",
+                    foreignField: "_id",
+                    as: "interviews"
+                }
+            },
+            {
+                $match: {
+                    "interviews.candidateId": new mongoose_1.default.Types.ObjectId(candidate._id.toString())
+                }
+            }
+        ]);
+        if (interviewLength.length === 0) {
+            const error = new Error('Bạn chưa có buổi phỏng vấn nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
         const listInterviews = await interviewerInterview_1.InterviewerInterview.aggregate([
             {
                 $lookup: {
@@ -544,17 +568,6 @@ const getAllInterviews = async (req, res, next) => {
                 model: job_1.Job,
             }
         });
-        console.log('populate: ', populateInterviews);
-        const interviewLength = populateInterviews.length;
-        if (interviewLength === 0) {
-            const error = new Error('Bạn chưa có buổi phỏng vấn nào');
-            error.statusCode = 200;
-            error.success = true;
-            error.result = {
-                content: []
-            };
-            throw error;
-        }
         const returnListInterview = populateInterviews.map(interview => {
             let interviewersName = [];
             for (let interviewer of interview.interviewersId) {
@@ -569,9 +582,9 @@ const getAllInterviews = async (req, res, next) => {
         });
         res.status(200).json({ success: true, message: "Successfully!", result: {
                 pageNumber: page,
-                totalPages: Math.ceil(interviewLength / limit),
+                totalPages: Math.ceil(interviewLength.length / limit),
                 limit: limit,
-                totalElements: interviewLength,
+                totalElements: interviewLength.length,
                 content: returnListInterview
             } });
     }

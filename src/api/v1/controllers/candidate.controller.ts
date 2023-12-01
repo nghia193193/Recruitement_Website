@@ -494,7 +494,30 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
             };
             throw error;
         }
-        
+        const interviewLength = await InterviewerInterview.aggregate([
+            {
+              $lookup: {
+                from: "interviews",
+                localField: "interviewId",
+                foreignField: "_id",
+                as: "interviews"
+              }
+            },
+            {
+              $match: {
+                "interviews.candidateId": new mongoose.Types.ObjectId(candidate._id.toString())
+              }
+            }
+        ]);
+        if (interviewLength.length === 0) {
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào');
+            error.statusCode = 200;
+            error.success = true;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
         const listInterviews = await InterviewerInterview.aggregate([
             {
               $lookup: {
@@ -523,17 +546,6 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
                 model: Job,
             }
         })
-        console.log('populate: ', populateInterviews);
-        const interviewLength = populateInterviews.length;
-        if (interviewLength === 0) {
-            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào');
-            error.statusCode = 200;
-            error.success = true;
-            error.result = {
-                content: []
-            };
-            throw error;
-        }
         const returnListInterview = populateInterviews.map(interview => {
             let interviewersName = [];
             for (let interviewer of interview.interviewersId) {
@@ -548,9 +560,9 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
         })
         res.status(200).json({success: true, message: "Successfully!", result: {
             pageNumber: page,
-            totalPages: Math.ceil(interviewLength/limit),
+            totalPages: Math.ceil(interviewLength.length/limit),
             limit: limit,
-            totalElements: interviewLength,
+            totalElements: interviewLength.length,
             content: returnListInterview
         }});
     } catch (err) {
