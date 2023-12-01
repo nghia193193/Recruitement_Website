@@ -990,9 +990,7 @@ const GetAllApplicants = async (req, res, next) => {
             }
         })
             .populate('resumeId')
-            .sort({ updatedAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit);
+            .sort({ updatedAt: -1 });
         const returnListApplicants = async () => {
             const mappedApplicants = await Promise.all(ListApplicants.map(async (applicant) => {
                 try {
@@ -1062,7 +1060,15 @@ const GetAllApplicants = async (req, res, next) => {
             return Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
         };
         returnListApplicants().then(mappedApplicants => {
-            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: mappedApplicants });
+            const startIndex = (page - 1) * limit;
+            const endIndex = startIndex + limit;
+            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(mappedApplicants.length / limit),
+                    limit: limit,
+                    totalElements: mappedApplicants.length,
+                    content: mappedApplicants.slice(startIndex, endIndex)
+                } });
         });
     }
     catch (err) {
