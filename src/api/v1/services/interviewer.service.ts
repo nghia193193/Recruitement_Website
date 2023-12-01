@@ -667,6 +667,13 @@ export const deleteQuestion = async (interviewerId: string, questionId: string) 
         error.result = null;
         throw error;
     }
+    const interviewQuestion = await QuestionCandidate.findOne({'questions.questionId': questionId});
+    if (interviewQuestion) {
+        const error: Error & { statusCode?: any, result?: any } = new Error('Câu hỏi này đã tồn tại trong buổi phỏng phấn không thể xóa!');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
     await Question.findByIdAndDelete(questionId);
 }
 
@@ -708,6 +715,7 @@ export const getAssignQuestions = async (interviewerId: string, interviewId: str
         error.result = [];
         throw error;
     }
+    console.log(questionCandidate);
     const returnQuestions = questionCandidate.questions.map(question => {
         return {
             questionId: (question.questionId as any)._id.toString(),
