@@ -1260,7 +1260,7 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
                             avatar: applicant.get('candidateId.avatar.url'),
                             candidateFullName: applicant.get('candidateId.fullName'),
                             candidateEmail: applicant.get('candidateId.email'),
-                            interviewerFullNames: interviewerFullNames,
+                            interviewerFullNames: interviewerFullNames ? interviewerFullNames : [],
                             score: totalScore,
                             state: applicant.status,
                             dateOfBirth: applicant.get('candidateId.dateOfBirth'),
