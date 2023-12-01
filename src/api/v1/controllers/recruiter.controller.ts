@@ -22,6 +22,7 @@ import { Interview } from '../models/interview';
 import { InterviewerInterview } from '../models/interviewerInterview';
 import { ResumeUpload } from '../models/resumeUpload';
 import { QuestionCandidate } from '../models/questionCandidate';
+import mongoose from 'mongoose';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -1037,13 +1038,15 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
         returnListApplicants().then(mappedApplicants => {
             const startIndex = (page - 1) * limit;
             const endIndex = startIndex + limit;
-            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: {
-                pageNumber: page,
-                totalPages: Math.ceil(mappedApplicants.length / limit),
-                limit: limit,
-                totalElements: mappedApplicants.length,
-                content: mappedApplicants.slice(startIndex, endIndex) 
-            }});
+            res.status(200).json({
+                success: true, message: 'Get list applicants successfully', result: {
+                    pageNumber: page,
+                    totalPages: Math.ceil(mappedApplicants.length / limit),
+                    limit: limit,
+                    totalElements: mappedApplicants.length,
+                    content: mappedApplicants.slice(startIndex, endIndex)
+                }
+            });
         })
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -1777,6 +1780,111 @@ export const GetJobSuggestedCandidates = async (req: Request, res: Response, nex
                     content: mappedApplicants
                 }
             });
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const GetInterviewsOfCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const candidateId = req.params.candidateId;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const interviews = await InterviewerInterview.aggregate([
+            {
+                $lookup: {
+                    from: "interviews",
+                    localField: "interviewId",
+                    foreignField: "_id",
+                    as: "interviews"
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobs",
+                    localField: "interviews.jobApplyId",
+                    foreignField: "_id",
+                    as: "jobs"
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobpositions",
+                    localField: "jobs.positionId",
+                    foreignField: "_id",
+                    as: "jobpositions"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "interviewersId",
+                    foreignField: "_id",
+                    as: "interviewers"
+                }
+            },
+            {
+                $match: {
+                    "interviews.candidateId": new mongoose.Types.ObjectId(candidateId),
+                    "jobs.authorId": new mongoose.Types.ObjectId(recruiter._id.toString())
+                }
+            },
+
+        ]).sort({updatedAt: -1})
+        if (interviews.length === 0) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào.');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const returnInterviews = interviews.map(interview => {
+            const interviewersFullName: any = interview.interviewers.map((interviewer: any) => {
+                return interviewer.fullName
+            })
+            return {
+                interviewId: interview.interviews[0]._id.toString(),
+                jobName: interview.jobs[0].name,
+                interviewLink: interview.interviews[0].interviewLink,
+                time: interview.interviews[0].time,
+                position: interview.jobpositions[0].name,
+                state: interview.interviews[0].state,
+                interviewersFullName: interviewersFullName
+            }
+        })
+        res.status(200).json({
+            success: true, message: 'Get list interviews successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviews.length / limit),
+                limit: limit,
+                totalElements: interviews.length,
+                content: returnInterviews.slice(startIndex, endIndex)
+            }
         });
     } catch (err) {
         if (!(err as any).statusCode) {

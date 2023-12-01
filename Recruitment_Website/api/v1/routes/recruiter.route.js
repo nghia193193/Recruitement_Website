@@ -585,4 +585,7 @@ router.put('/candidates/state', middleware_1.isAuth, [
 router.get('/jobs/:jobId/suggested-user', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
 ], recruiterController.GetJobSuggestedCandidates);
+router.get('/candidates/:candidateId/interviews', middleware_1.isAuth, [
+    (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+], recruiterController.GetInterviewsOfCandidate);
 exports.default = router;

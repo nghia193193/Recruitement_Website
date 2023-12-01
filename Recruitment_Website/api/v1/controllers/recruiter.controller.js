@@ -22,8 +22,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetJobSuggestedCandidates = exports.updateCandidateState = exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.GetInterviewsOfCandidate = exports.GetJobSuggestedCandidates = exports.updateCandidateState = exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -45,6 +48,7 @@ const GraphClient = __importStar(require("@microsoft/microsoft-graph-client"));
 const interview_1 = require("../models/interview");
 const interviewerInterview_1 = require("../models/interviewerInterview");
 const questionCandidate_1 = require("../models/questionCandidate");
+const mongoose_1 = __importDefault(require("mongoose"));
 const GetAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -1061,13 +1065,15 @@ const GetAllApplicants = async (req, res, next) => {
         returnListApplicants().then(mappedApplicants => {
             const startIndex = (page - 1) * limit;
             const endIndex = startIndex + limit;
-            res.status(200).json({ success: true, message: 'Get list applicants successfully', result: {
+            res.status(200).json({
+                success: true, message: 'Get list applicants successfully', result: {
                     pageNumber: page,
                     totalPages: Math.ceil(mappedApplicants.length / limit),
                     limit: limit,
                     totalElements: mappedApplicants.length,
                     content: mappedApplicants.slice(startIndex, endIndex)
-                } });
+                }
+            });
         });
     }
     catch (err) {
@@ -1150,9 +1156,6 @@ const GetSingleApplicants = async (req, res, next) => {
             avatar: applicant.get('avatar.url'),
             candidateFullName: applicant.fullName,
             candidateEmail: applicant.email,
-            interviewerFullNames: [],
-            score: null,
-            state: 'NOT_RECEIVED',
             about: applicant.about,
             dateOfBirth: applicant.dateOfBirth,
             address: applicant.address,
@@ -1818,3 +1821,109 @@ const GetJobSuggestedCandidates = async (req, res, next) => {
     }
 };
 exports.GetJobSuggestedCandidates = GetJobSuggestedCandidates;
+const GetInterviewsOfCandidate = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const candidateId = req.params.candidateId;
+        const page = req.query.page ? +req.query.page : 1;
+        const limit = req.query.limit ? +req.query.limit : 10;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const interviews = await interviewerInterview_1.InterviewerInterview.aggregate([
+            {
+                $lookup: {
+                    from: "interviews",
+                    localField: "interviewId",
+                    foreignField: "_id",
+                    as: "interviews"
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobs",
+                    localField: "interviews.jobApplyId",
+                    foreignField: "_id",
+                    as: "jobs"
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobpositions",
+                    localField: "jobs.positionId",
+                    foreignField: "_id",
+                    as: "jobpositions"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "interviewersId",
+                    foreignField: "_id",
+                    as: "interviewers"
+                }
+            },
+            {
+                $match: {
+                    "interviews.candidateId": new mongoose_1.default.Types.ObjectId(candidateId),
+                    "jobs.authorId": new mongoose_1.default.Types.ObjectId(recruiter._id.toString())
+                }
+            },
+        ]).sort({ updatedAt: -1 });
+        if (interviews.length === 0) {
+            const error = new Error('Bạn chưa có buổi phỏng vấn nào.');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const returnInterviews = interviews.map(interview => {
+            const interviewersFullName = interview.interviewers.map((interviewer) => {
+                return interviewer.fullName;
+            });
+            return {
+                interviewId: interview.interviews[0]._id.toString(),
+                jobName: interview.jobs[0].name,
+                interviewLink: interview.interviews[0].interviewLink,
+                time: interview.interviews[0].time,
+                position: interview.jobpositions[0].name,
+                state: interview.interviews[0].state,
+                interviewersFullName: interviewersFullName
+            };
+        });
+        res.status(200).json({
+            success: true, message: 'Get list interviews successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviews.length / limit),
+                limit: limit,
+                totalElements: interviews.length,
+                content: returnInterviews.slice(startIndex, endIndex)
+            }
+        });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.GetInterviewsOfCandidate = GetInterviewsOfCandidate;

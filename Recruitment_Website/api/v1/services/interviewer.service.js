@@ -9,7 +9,6 @@ const interviewerInterview_1 = require("../models/interviewerInterview");
 const interview_1 = require("../models/interview");
 const job_1 = require("../models/job");
 const jobPosition_1 = require("../models/jobPosition");
-const resumeUpload_1 = require("../models/resumeUpload");
 const education_1 = require("../models/education");
 const experience_1 = require("../models/experience");
 const certificate_1 = require("../models/certificate");
@@ -308,7 +307,6 @@ const getSingleApplicant = async (interviewerId, candidateId) => {
         error.result = null;
         throw error;
     }
-    const cv = await resumeUpload_1.ResumeUpload.findOne({ candidateId: candidate._id.toString() });
     const educationList = await education_1.Education.find({ candidateId: candidate._id.toString() });
     const returnEducationList = educationList.map(e => {
         return {
@@ -355,7 +353,6 @@ const getSingleApplicant = async (interviewerId, candidateId) => {
         dateOfBirth: candidate.dateOfBirth,
         phone: candidate.phone,
         email: candidate.email,
-        cv: cv?.resumeUpload,
         information: {
             education: returnEducationList,
             experience: returnExperienceList,

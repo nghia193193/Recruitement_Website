@@ -564,6 +564,10 @@ router.put('/candidates/state', isAuth, [
 
 router.get('/jobs/:jobId/suggested-user', isAuth, [
     param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
-], recruiterController.GetJobSuggestedCandidates)
+], recruiterController.GetJobSuggestedCandidates);
+
+router.get('/candidates/:candidateId/interviews', isAuth, [
+    param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
+], recruiterController.GetInterviewsOfCandidate);
 
 export default router;
