@@ -303,7 +303,6 @@ export const getSingleApplicant = async (interviewerId: string, candidateId: str
         error.result = null;
         throw error;
     }
-    const cv = await ResumeUpload.findOne({ candidateId: candidate._id.toString() });
     const educationList = await Education.find({ candidateId: candidate._id.toString() });
     const returnEducationList = educationList.map(e => {
         return {
@@ -350,7 +349,6 @@ export const getSingleApplicant = async (interviewerId: string, candidateId: str
         dateOfBirth: candidate.dateOfBirth,
         phone: candidate.phone,
         email: candidate.email,
-        cv: cv?.resumeUpload,
         information: {
             education: returnEducationList,
             experience: returnExperienceList,
