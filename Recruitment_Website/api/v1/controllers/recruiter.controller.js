@@ -1041,7 +1041,6 @@ const GetAllApplicants = async (req, res, next) => {
                         dateOfBirth: applicant.get('candidateId.dateOfBirth'),
                         address: applicant.get('candidateId.address'),
                         phone: applicant.get('candidateId.phone'),
-                        cv: applicant.get('resumeId.resumeUpload'),
                         information: {
                             education: returnEducationList,
                             experience: returnExperienceList,
