@@ -1790,7 +1790,7 @@ export const GetJobSuggestedCandidates = async (req: Request, res: Response, nex
     }
 };
 
-export const GetInterviewsOfCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getInterviewsOfCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
@@ -1852,7 +1852,7 @@ export const GetInterviewsOfCandidate = async (req: Request, res: Response, next
                 }
             },
 
-        ]).sort({updatedAt: -1})
+        ]).sort({ updatedAt: -1 })
         if (interviews.length === 0) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào.');
             error.statusCode = 200;
@@ -1884,6 +1884,112 @@ export const GetInterviewsOfCandidate = async (req: Request, res: Response, next
                 limit: limit,
                 totalElements: interviews.length,
                 content: returnInterviews.slice(startIndex, endIndex)
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const getInterviewsOfInterviewer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const interviewerId = req.params.interviewerId;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+
+        const listInterviews = await InterviewerInterview.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'interviewersId',
+                    foreignField: '_id',
+                    as: 'interviewers'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'interviews',
+                    localField: 'interviewId',
+                    foreignField: '_id',
+                    as: 'interviews'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'jobs',
+                    localField: 'interviews.jobApplyId',
+                    foreignField: '_id',
+                    as: 'jobs'
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobpositions",
+                    localField: "jobs.positionId",
+                    foreignField: "_id",
+                    as: "jobpositions"
+                }
+            },
+            {
+                $match: {
+                    "interviewers._id": new mongoose.Types.ObjectId(interviewerId),
+                    "jobs.authorId": new mongoose.Types.ObjectId(recruiter._id.toString()),
+                }
+            }
+        ])
+        .sort({ updatedAt: -1 })
+        if (listInterviews.length === 0) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Bạn chưa có buổi phỏng vấn nào.');
+            error.statusCode = 200;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const returnListInterviews = listInterviews.map(interview => {
+            const listInterviewers = interview.interviewers.map((interviewer: any) => {
+                return interviewer.fullName;
+            })
+            return {
+                interviewId: interview.interviews[0]._id.toString(),
+                jobName: interview.jobs[0].name,
+                interviewLink: interview.interviews[0].interviewLink,
+                time: interview.interviews[0].time,
+                position: interview.jobpositions[0].name,
+                state: interview.interviews[0].state,
+                interviewersFullName: listInterviewers
+            }
+        })
+        res.status(200).json({
+            success: true, message: 'Get list interviews successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(listInterviews.length / limit),
+                limit: limit,
+                totalElements: listInterviews.length,
+                content: returnListInterviews.slice(startIndex, endIndex)
             }
         });
     } catch (err) {

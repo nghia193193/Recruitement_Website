@@ -321,7 +321,6 @@ router.get('/events', isAuth, [
                 if (isNaN(intValue) || intValue <= 0) {
                     throw new Error('page phải là số nguyên lớn hơn 0');
                 }
-                return true;
             }
             return true;
         }),
@@ -336,7 +335,6 @@ router.get('/events', isAuth, [
                 if (isNaN(intValue) || intValue <= 0) {
                     throw new Error('limit phải là số nguyên lớn hơn 0');
                 }
-                return true;
             }
             return true;
         }),
@@ -507,7 +505,6 @@ router.get('/jobs/:jobId/candidates', isAuth, [
                 if (isNaN(intValue) || intValue <= 0) {
                     throw new Error('page phải là số nguyên lớn hơn 0');
                 }
-                return true;
             }
             return true;
         }),
@@ -522,7 +519,6 @@ router.get('/jobs/:jobId/candidates', isAuth, [
                 if (isNaN(intValue) || intValue <= 0) {
                     throw new Error('limit phải là số nguyên lớn hơn 0');
                 }
-                return true;
             }
             return true;
         }),
@@ -568,6 +564,66 @@ router.get('/jobs/:jobId/suggested-user', isAuth, [
 
 router.get('/candidates/:candidateId/interviews', isAuth, [
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
-], recruiterController.GetInterviewsOfCandidate);
+    query('page').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('page không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+    query('limit').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('limit không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+], recruiterController.getInterviewsOfCandidate);
+
+router.get('/interviewers/:interviewerId/interviews', isAuth, [
+    param('interviewerId').trim().isMongoId().withMessage('interviewerId không hợp lệ'),
+    query('page').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/; 
+                if (!regex.test(value)) {
+                    throw new Error('page không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+    query('limit').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/;
+                if (!regex.test(value)) {
+                    throw new Error('limit không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+], recruiterController.getInterviewsOfInterviewer);
 
 export default router;
