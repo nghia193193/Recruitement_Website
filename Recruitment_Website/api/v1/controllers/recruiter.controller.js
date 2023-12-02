@@ -965,38 +965,41 @@ const GetAllApplicants = async (req, res, next) => {
             error.result = null;
             throw error;
         }
-        const query = {};
-        if (req.query['name']) {
-            query['fullName'] = new RegExp(req.query['name'], 'i');
-        }
-        ;
-        if (req.query['skill']) {
-            query['skill'] = req.query['skill'];
-        }
-        const matchName = query['fullName'] ? { fullName: query['fullName'] } : {};
-        const matchSkill = query['skill'] ? { name: query['skill'] } : {};
-        const ListApplicants = await jobApply_1.JobApply.find()
-            .populate({
-            path: 'jobAppliedId',
-            model: job_1.Job,
-            match: {
-                authorId: recruiter._id.toString()
+        const listApplicants = await jobApply_1.JobApply.aggregate([
+            {
+                $lookup: {
+                    from: 'jobs',
+                    localField: 'jobAppliedId',
+                    foreignField: '_id',
+                    as: 'jobs'
+                }
             },
-        })
-            .populate({
-            path: 'candidateId',
-            model: user_1.User,
-            match: matchName,
-            populate: {
-                path: 'skills.skillId',
-                model: skill_1.Skill,
-                match: matchSkill
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'candidateId',
+                    foreignField: '_id',
+                    as: 'applicants'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'skills',
+                    localField: 'applicants.skills.skillId',
+                    foreignField: '_id',
+                    as: 'skills'
+                }
+            },
+            {
+                $match: {
+                    "jobs.authorId": new mongoose_1.default.Types.ObjectId(recruiter._id.toString()),
+                    "applicants.fullName": req.query.name ? new RegExp(req.query.name, 'i') : { $exists: true },
+                    "skills.name": req.query.skill ? req.query.skill : { $exists: true },
+                }
             }
-        })
-            .populate('resumeId')
-            .sort({ updatedAt: -1 });
+        ]).sort({ updatedAt: -1 });
         const returnListApplicants = async () => {
-            const mappedApplicants = await Promise.all(ListApplicants.map(async (applicant) => {
+            const mappedApplicants = await Promise.all(listApplicants.map(async (applicant) => {
                 try {
                     const educationList = await education_1.Education.find({ candidateId: applicant.candidateId._id.toString() });
                     const returnEducationList = educationList.map(e => {
@@ -1032,19 +1035,19 @@ const GetAllApplicants = async (req, res, next) => {
                         };
                     });
                     let listSkill = [];
-                    for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
-                        listSkill.push({ label: applicant.get('candidateId.skills')[i].skillId.name, value: i });
+                    for (let i = 0; i < applicant.skills.length; i++) {
+                        listSkill.push({ label: applicant.skills[i].name, value: i });
                     }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
-                        blackList: applicant.get('candidateId.blackList'),
-                        avatar: applicant.get('candidateId.avatar.url'),
-                        candidateFullName: applicant.get('candidateId.fullName'),
-                        candidateEmail: applicant.get('candidateId.email'),
-                        about: applicant.get('candidateId.about'),
-                        dateOfBirth: applicant.get('candidateId.dateOfBirth'),
-                        address: applicant.get('candidateId.address'),
-                        phone: applicant.get('candidateId.phone'),
+                        blackList: applicant.applicants[0].blackList,
+                        avatar: applicant.applicants[0].avatar.url,
+                        candidateFullName: applicant.applicants[0].fullName,
+                        candidateEmail: applicant.applicants[0].email,
+                        about: applicant.applicants[0].about,
+                        dateOfBirth: applicant.applicants[0].dateOfBirth,
+                        address: applicant.applicants[0].address,
+                        phone: applicant.applicants[0].phone,
                         information: {
                             education: returnEducationList,
                             experience: returnExperienceList,

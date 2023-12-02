@@ -487,7 +487,58 @@ router.get('/interviewers/:interviewerId', isAuth, [
     param('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleInterviewer);
 
-router.get('/applied-candidates', isAuth, [], recruiterController.GetAllApplicants);
+router.get('/applied-candidates', isAuth, [
+    query('name').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+                };
+                return true
+            }
+            return true;
+        }),
+    query('skill').trim()
+        .custom(async (value, { req }) => {
+            if (value) {
+                const skill = await Skill.findOne({ name: value });
+                if (!skill) {
+                    throw new Error(`Skill: '${value}' không hợp lệ`);
+                }
+            }
+            return true;
+        }),
+    query('page').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('page không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('page phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+    query('limit').trim()
+        .custom((value, { req }) => {
+            if (value) {
+                const regex = /^[0-9]+$/; // Chỉ cho phép số
+                if (!regex.test(value)) {
+                    throw new Error('limit không hợp lệ');
+                };
+                const intValue = parseInt(value, 10);
+                if (isNaN(intValue) || intValue <= 0) {
+                    throw new Error('limit phải là số nguyên lớn hơn 0');
+                }
+            }
+            return true;
+        }),
+], recruiterController.GetAllApplicants);
+
 router.get('/applied-candidates/:userId', isAuth, [
     param('userId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleApplicants);
@@ -599,7 +650,7 @@ router.get('/interviewers/:interviewerId/interviews', isAuth, [
     query('page').trim()
         .custom((value, { req }) => {
             if (value) {
-                const regex = /^[0-9]+$/; 
+                const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
                     throw new Error('page không hợp lệ');
                 };

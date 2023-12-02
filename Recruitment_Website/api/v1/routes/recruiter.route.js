@@ -510,7 +510,60 @@ router.get('/interviewers', middleware_1.isAuth, [
 router.get('/interviewers/:interviewerId', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleInterviewer);
-router.get('/applied-candidates', middleware_1.isAuth, [], recruiterController.GetAllApplicants);
+router.get('/applied-candidates', middleware_1.isAuth, [
+    (0, express_validator_1.query)('name').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[\p{L} ]+$/u;
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+            }
+            ;
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('skill').trim()
+        .custom(async (value, { req }) => {
+        if (value) {
+            const skill = await skill_1.Skill.findOne({ name: value });
+            if (!skill) {
+                throw new Error(`Skill: '${value}' không hợp lệ`);
+            }
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('page').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('page không hợp lệ');
+            }
+            ;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('page phải là số nguyên lớn hơn 0');
+            }
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('limit').trim()
+        .custom((value, { req }) => {
+        if (value) {
+            const regex = /^[0-9]+$/; // Chỉ cho phép số
+            if (!regex.test(value)) {
+                throw new Error('limit không hợp lệ');
+            }
+            ;
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue <= 0) {
+                throw new Error('limit phải là số nguyên lớn hơn 0');
+            }
+        }
+        return true;
+    }),
+], recruiterController.GetAllApplicants);
 router.get('/applied-candidates/:userId', middleware_1.isAuth, [
     (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('Id không hợp lệ')
 ], recruiterController.GetSingleApplicants);
