@@ -771,81 +771,31 @@ const GetAllInterviewers = async (req, res, next) => {
             .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
-        const returnInterviewerList = async () => {
-            const mappedInterviewers = await Promise.all(interviewerList.map(async (interviewer) => {
-                try {
-                    const educationList = await education_1.Education.find({ candidateId: interviewer._id.toString() });
-                    const returnEducationList = educationList.map(e => {
-                        return {
-                            school: e.school,
-                            major: e.major,
-                            graduatedYead: e.graduatedYear
-                        };
-                    });
-                    const experienceList = await experience_1.Experience.find({ candidateId: interviewer._id.toString() });
-                    const returnExperienceList = experienceList.map(e => {
-                        return {
-                            companyName: e.companyName,
-                            position: e.position,
-                            dateFrom: e.dateFrom,
-                            dateTo: e.dateTo
-                        };
-                    });
-                    const certificateList = await certificate_1.Certificate.find({ candidateId: interviewer._id.toString() });
-                    const returnCertificateList = certificateList.map(c => {
-                        return {
-                            name: c.name,
-                            receivedDate: c.receivedDate,
-                            url: c.url
-                        };
-                    });
-                    const projectList = await project_1.Project.find({ candidateId: interviewer._id.toString() });
-                    const returnProjectList = projectList.map(p => {
-                        return {
-                            name: p.name,
-                            description: p.description,
-                            url: p.url
-                        };
-                    });
-                    let listSkill = [];
-                    for (let i = 0; i < interviewer.skills.length; i++) {
-                        listSkill.push({ label: interviewer.skills[i].skillId.name, value: i });
-                    }
-                    return {
-                        interviewerId: interviewer._id.toString(),
-                        avatar: interviewer.avatar?.url,
-                        fullName: interviewer.fullName,
-                        about: interviewer.about,
-                        email: interviewer.email,
-                        dateOfBirth: interviewer.dateOfBirth,
-                        address: interviewer.address,
-                        phone: interviewer.phone,
-                        information: {
-                            education: returnEducationList,
-                            experience: returnExperienceList,
-                            certificate: returnCertificateList,
-                            project: returnProjectList,
-                            skills: listSkill
-                        }
-                    };
-                }
-                catch (error) {
-                    console.error(error);
-                    return null;
-                }
-            }));
-            return mappedInterviewers.filter(interviewer => interviewer !== null);
-        };
-        returnInterviewerList().then(mappedInterviewers => {
-            res.status(200).json({
-                success: true, message: 'Get list interviewers successfully', result: {
-                    pageNumber: page,
-                    totalPages: Math.ceil(interviewerLength / limit),
-                    limit: limit,
-                    totalElements: interviewerLength,
-                    content: mappedInterviewers
-                }
-            });
+        const mappedInterviewers = interviewerList.map(interviewer => {
+            let listSkill = [];
+            for (let i = 0; i < interviewer.skills.length; i++) {
+                listSkill.push({ label: interviewer.skills[i].skillId.name, value: i });
+            }
+            return {
+                interviewerId: interviewer._id.toString(),
+                avatar: interviewer.avatar?.url,
+                fullName: interviewer.fullName,
+                about: interviewer.about,
+                email: interviewer.email,
+                dateOfBirth: interviewer.dateOfBirth,
+                address: interviewer.address,
+                phone: interviewer.phone,
+                skills: listSkill
+            };
+        });
+        res.status(200).json({
+            success: true, message: 'Get list interviewers successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(interviewerLength / limit),
+                limit: limit,
+                totalElements: interviewerLength,
+                content: mappedInterviewers
+            }
         });
     }
     catch (err) {
@@ -1005,85 +955,36 @@ const GetAllApplicants = async (req, res, next) => {
                 }
             }
         ]).sort({ updatedAt: -1 });
-        const returnListApplicants = async () => {
-            const mappedApplicants = await Promise.all(listApplicants.map(async (applicant) => {
-                try {
-                    const educationList = await education_1.Education.find({ candidateId: applicant.candidateId._id.toString() });
-                    const returnEducationList = educationList.map(e => {
-                        return {
-                            school: e.school,
-                            major: e.major,
-                            graduatedYead: e.graduatedYear
-                        };
-                    });
-                    const experienceList = await experience_1.Experience.find({ candidateId: applicant.candidateId._id.toString() });
-                    const returnExperienceList = experienceList.map(e => {
-                        return {
-                            companyName: e.companyName,
-                            position: e.position,
-                            dateFrom: e.dateFrom,
-                            dateTo: e.dateTo
-                        };
-                    });
-                    const certificateList = await certificate_1.Certificate.find({ candidateId: applicant.candidateId._id.toString() });
-                    const returnCertificateList = certificateList.map(c => {
-                        return {
-                            name: c.name,
-                            receivedDate: c.receivedDate,
-                            url: c.url
-                        };
-                    });
-                    const projectList = await project_1.Project.find({ candidateId: applicant.candidateId._id.toString() });
-                    const returnProjectList = projectList.map(p => {
-                        return {
-                            name: p.name,
-                            description: p.description,
-                            url: p.url
-                        };
-                    });
-                    let listSkill = [];
-                    for (let i = 0; i < applicant.skills.length; i++) {
-                        listSkill.push({ label: applicant.skills[i].name, value: i });
-                    }
-                    return {
-                        candidateId: applicant.candidateId._id.toString(),
-                        blackList: applicant.applicants[0].blackList,
-                        avatar: applicant.applicants[0].avatar.url,
-                        candidateFullName: applicant.applicants[0].fullName,
-                        candidateEmail: applicant.applicants[0].email,
-                        about: applicant.applicants[0].about,
-                        dateOfBirth: applicant.applicants[0].dateOfBirth,
-                        address: applicant.applicants[0].address,
-                        phone: applicant.applicants[0].phone,
-                        information: {
-                            education: returnEducationList,
-                            experience: returnExperienceList,
-                            certificate: returnCertificateList,
-                            project: returnProjectList,
-                            skills: listSkill
-                        }
-                    };
-                }
-                catch (error) {
-                    console.error(error);
-                    return null;
-                }
-            }));
-            const getHash = (obj) => JSON.stringify(obj);
-            return Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
-        };
-        returnListApplicants().then(mappedApplicants => {
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            res.status(200).json({
-                success: true, message: 'Get list applicants successfully', result: {
-                    pageNumber: page,
-                    totalPages: Math.ceil(mappedApplicants.length / limit),
-                    limit: limit,
-                    totalElements: mappedApplicants.length,
-                    content: mappedApplicants.slice(startIndex, endIndex)
-                }
-            });
+        const mappedApplicants = listApplicants.map(applicant => {
+            let listSkill = [];
+            for (let i = 0; i < applicant.skills.length; i++) {
+                listSkill.push({ label: applicant.skills[i].name, value: i });
+            }
+            return {
+                candidateId: applicant.candidateId._id.toString(),
+                blackList: applicant.applicants[0].blackList,
+                avatar: applicant.applicants[0].avatar.url,
+                candidateFullName: applicant.applicants[0].fullName,
+                candidateEmail: applicant.applicants[0].email,
+                about: applicant.applicants[0].about,
+                dateOfBirth: applicant.applicants[0].dateOfBirth,
+                address: applicant.applicants[0].address,
+                phone: applicant.applicants[0].phone,
+                skills: listSkill
+            };
+        });
+        const getHash = (obj) => JSON.stringify(obj);
+        const returnApplicants = Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        res.status(200).json({
+            success: true, message: 'Get list applicants successfully', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(returnApplicants.length / limit),
+                limit: limit,
+                totalElements: returnApplicants.length,
+                content: returnApplicants.slice(startIndex, endIndex)
+            }
         });
     }
     catch (err) {
