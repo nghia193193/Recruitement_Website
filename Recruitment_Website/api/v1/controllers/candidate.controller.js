@@ -146,6 +146,13 @@ const DeleteResume = async (req, res, next) => {
             throw error;
         }
         ;
+        const isJobApplyExist = await jobApply_1.JobApply.findOne({ resumeId: resumeId });
+        if (isJobApplyExist) {
+            const error = new Error('Resume này đã được apply vào một job. Không thể xóa');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
         const publicId = resume.publicId;
         const isDelete = await resumeUpload_1.ResumeUpload.findOneAndDelete({ _id: resumeId });
         if (!isDelete) {
