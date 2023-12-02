@@ -101,7 +101,7 @@ router.post('/job', isAuth, [
     body('name').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
         .custom((value, { req }) => {
-            const regex = /^[\p{L} ,\/0-9]+$/u;
+            const regex = /^[\p{L} ,\/#0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
             };

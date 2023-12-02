@@ -77,7 +77,7 @@ const GetAllJobs = async (req, res, next) => {
         }
         const query = {
             authorId: recruiter._id,
-            isActive: true
+            isActive: req.query['active'] ? req.query['active'] : true
         };
         if (req.query['name']) {
             query['name'] = new RegExp(req.query['name'], 'i');
@@ -169,6 +169,13 @@ const CreateJob = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(errors.array()[0].msg);
             error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        const existJob = await job_1.Job.findOne({ name: name });
+        if (existJob) {
+            const error = new Error('Tên job này đã tồn tại vui lòng nhập tên khác');
+            error.statusCode = 409;
             error.result = null;
             throw error;
         }
@@ -406,7 +413,7 @@ const GetAllEvents = async (req, res, next) => {
         }
         const query = {
             authorId: recruiter._id,
-            isActive: true
+            isActive: req.query['active'] ? req.query['active'] : true
         };
         if (name) {
             query['name'] = new RegExp(name, 'i');
