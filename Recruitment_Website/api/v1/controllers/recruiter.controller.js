@@ -523,14 +523,7 @@ const CreateEvent = async (req, res, next) => {
         const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
-        if (!recruiter) {
-            const error = new Error('Không tìm thấy user');
-            error.statusCode = 409;
-            error.result = null;
-            throw error;
-        }
-        ;
-        if (recruiter.get('roleId.roleName') !== 'RECRUITER') {
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
             const error = new Error('UnAuthorized');
             error.statusCode = 401;
             error.result = null;
@@ -560,6 +553,13 @@ const CreateEvent = async (req, res, next) => {
             throw error;
         }
         ;
+        const isExist = await event_1.Event.findOne({ name: name });
+        if (isExist) {
+            const error = new Error('Tên event này đã được tạo vui lòng chọn tên khác.');
+            error.statusCode = 409;
+            error.result = null;
+            throw error;
+        }
         const result = await cloudinary_1.v2.uploader.upload(image.tempFilePath);
         if (!result) {
             const error = new Error('Upload thất bại');
