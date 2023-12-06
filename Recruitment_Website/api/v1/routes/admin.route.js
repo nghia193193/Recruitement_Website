@@ -60,6 +60,9 @@ router.get('/users', middleware_1.isAuth, [
         return true;
     }),
 ], adminController.getAllAccounts);
+router.get('/users/:userId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('userId không hợp lệ')
+], adminController.getSingleAccount);
 router.get('/users/recruiter', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value, { req }) => {

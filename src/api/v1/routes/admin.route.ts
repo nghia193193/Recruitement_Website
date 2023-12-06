@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as adminController from '../controllers/admin.controller';
 import { isAuth } from '../middleware';
-import { query } from 'express-validator';
+import { param, query } from 'express-validator';
 
 const router = Router();
 
@@ -35,6 +35,10 @@ router.get('/users',isAuth, [
             return true;
         }),
 ], adminController.getAllAccounts);
+
+router.get('/users/:userId',isAuth, [
+    param('userId').trim().isMongoId().withMessage('userId không hợp lệ')
+], adminController.getSingleAccount);
 
 router.get('/users/recruiter',isAuth, [
     query('page').trim()

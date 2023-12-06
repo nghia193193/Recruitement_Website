@@ -40,6 +40,33 @@ export const getAllAccounts = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+export const getSingleAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const adminId = decodedToken.userId;
+        const accountId = req.params.userId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const {returnAccount} = await adminService.getSingleAccount(adminId, accountId);
+        res.status(200).json({
+            success: true, message: "Get account successfully!", result: returnAccount});
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
 
 export const getAllRecruiterAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

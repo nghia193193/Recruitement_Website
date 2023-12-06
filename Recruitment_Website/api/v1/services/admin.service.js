@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
+exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getSingleAccount = exports.getAllAccounts = void 0;
+const certificate_1 = require("../models/certificate");
+const education_1 = require("../models/education");
+const experience_1 = require("../models/experience");
+const project_1 = require("../models/project");
 const role_1 = require("../models/role");
 const user_1 = require("../models/user");
 const getAllAccounts = async (adminId, searchText, searchBy, active, page, limit) => {
@@ -55,6 +59,7 @@ const getAllAccounts = async (adminId, searchText, searchBy, active, page, limit
         .limit(limit);
     const returnListAccounts = listAccounts.map(account => {
         return {
+            accountId: account._id.toString(),
             accountFullName: account.fullName,
             accountRole: account.get('roleId.roleName'),
             accountPhone: account.phone,
@@ -65,6 +70,82 @@ const getAllAccounts = async (adminId, searchText, searchBy, active, page, limit
     return { accountLength, returnListAccounts };
 };
 exports.getAllAccounts = getAllAccounts;
+const getSingleAccount = async (adminId, accountId) => {
+    const admin = await user_1.User.findById(adminId);
+    if (!admin) {
+        const error = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const account = await user_1.User.findById(accountId).populate('roleId skills.skillId');
+    if (!account) {
+        const error = new Error('Không tìm thấy tài khoản');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const educationList = await education_1.Education.find({ candidateId: accountId });
+    const returnEducationList = educationList.map(e => {
+        return {
+            school: e.school,
+            major: e.major,
+            graduatedYead: e.graduatedYear
+        };
+    });
+    const experienceList = await experience_1.Experience.find({ candidateId: accountId });
+    const returnExperienceList = experienceList.map(e => {
+        return {
+            companyName: e.companyName,
+            position: e.position,
+            dateFrom: e.dateFrom,
+            dateTo: e.dateTo
+        };
+    });
+    const certificateList = await certificate_1.Certificate.find({ candidateId: accountId });
+    const returnCertificateList = certificateList.map(c => {
+        return {
+            name: c.name,
+            receivedDate: c.receivedDate,
+            url: c.url
+        };
+    });
+    const projectList = await project_1.Project.find({ candidateId: accountId });
+    const returnProjectList = projectList.map(p => {
+        return {
+            name: p.name,
+            description: p.description,
+            url: p.url
+        };
+    });
+    let listSkill = [];
+    for (let i = 0; i < account.skills.length; i++) {
+        listSkill.push({ label: account.skills[i].skillId.name, value: i });
+    }
+    const returnAccount = {
+        fullName: account.fullName,
+        avatar: account.avatar?.url,
+        about: account.about,
+        email: account.email,
+        dateOfBirth: account.dateOfBirth,
+        address: account.address,
+        phone: account.phone,
+        skills: listSkill,
+        information: {
+            education: returnEducationList,
+            experience: returnExperienceList,
+            certificate: returnCertificateList,
+            project: returnProjectList,
+            skills: listSkill
+        }
+    };
+    return { returnAccount };
+};
+exports.getSingleAccount = getSingleAccount;
 const getAllRecruiterAccounts = async (adminId, searchText, searchBy, active, page, limit) => {
     const admin = await user_1.User.findById(adminId);
     if (!admin) {
@@ -115,6 +196,7 @@ const getAllRecruiterAccounts = async (adminId, searchText, searchBy, active, pa
         .limit(limit);
     const returnListAccounts = listAccounts.map(account => {
         return {
+            accountId: account._id.toString(),
             accountFullName: account.fullName,
             accountRole: account.get('roleId.roleName'),
             accountPhone: account.phone,
@@ -175,6 +257,7 @@ const getAllInterviewerAccounts = async (adminId, searchText, searchBy, active, 
         .limit(limit);
     const returnListAccounts = listAccounts.map(account => {
         return {
+            accountId: account._id.toString(),
             accountFullName: account.fullName,
             accountRole: account.get('roleId.roleName'),
             accountPhone: account.phone,
@@ -235,6 +318,7 @@ const getAllCandidateAccounts = async (adminId, searchText, searchBy, active, pa
         .limit(limit);
     const returnListAccounts = listAccounts.map(account => {
         return {
+            accountId: account._id.toString(),
             accountFullName: account.fullName,
             accountRole: account.get('roleId.roleName'),
             accountPhone: account.phone,
@@ -286,6 +370,7 @@ const getAllBlackListAccounts = async (adminId, searchText, searchBy, active, pa
         .limit(limit);
     const returnListAccounts = listAccounts.map(account => {
         return {
+            accountId: account._id.toString(),
             accountFullName: account.fullName,
             accountRole: account.get('roleId.roleName'),
             accountPhone: account.phone,
