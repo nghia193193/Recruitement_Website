@@ -36,10 +36,6 @@ router.get('/users',isAuth, [
         }),
 ], adminController.getAllAccounts);
 
-router.get('/users/:userId',isAuth, [
-    param('userId').trim().isMongoId().withMessage('userId không hợp lệ')
-], adminController.getSingleAccount);
-
 router.get('/users/recruiter',isAuth, [
     query('page').trim()
         .custom((value, { req }) => {

@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getSingleAccount = exports.getAllAccounts = void 0;
+exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
 const adminService = __importStar(require("../services/admin.service"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
@@ -45,14 +45,14 @@ const getAllAccounts = async (req, res, next) => {
             };
             throw error;
         }
-        const { accountLength, returnListAccounts } = await adminService.getAllAccounts(adminId, searchText, searchBy, active, page, limit);
+        const { accountLength, accounts } = await adminService.getAllAccounts(adminId, searchText, searchBy, active, page, limit);
         res.status(200).json({
             success: true, message: "Get list interview Successfully!", result: {
                 pageNumber: page,
                 totalPages: Math.ceil(accountLength / limit),
                 limit: limit,
                 totalElements: accountLength,
-                content: returnListAccounts
+                content: accounts
             }
         });
     }
@@ -65,36 +65,6 @@ const getAllAccounts = async (req, res, next) => {
     }
 };
 exports.getAllAccounts = getAllAccounts;
-const getSingleAccount = async (req, res, next) => {
-    try {
-        const authHeader = req.get('Authorization');
-        const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
-        const adminId = decodedToken.userId;
-        const accountId = req.params.userId;
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (!errors.isEmpty()) {
-            const error = new Error(errors.array()[0].msg);
-            error.statusCode = 400;
-            error.result = {
-                content: []
-            };
-            throw error;
-        }
-        const { returnAccount } = await adminService.getSingleAccount(adminId, accountId);
-        res.status(200).json({
-            success: true, message: "Get account successfully!", result: returnAccount
-        });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
-        }
-        next(err);
-    }
-};
-exports.getSingleAccount = getSingleAccount;
 const getAllRecruiterAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -113,14 +83,14 @@ const getAllRecruiterAccounts = async (req, res, next) => {
             };
             throw error;
         }
-        const { accountLength, returnListAccounts } = await adminService.getAllRecruiterAccounts(adminId, searchText, searchBy, active, page, limit);
+        const { accountLength, accounts } = await adminService.getAllRecruiterAccounts(adminId, searchText, searchBy, active, page, limit);
         res.status(200).json({
             success: true, message: "Get list interview Successfully!", result: {
                 pageNumber: page,
                 totalPages: Math.ceil(accountLength / limit),
                 limit: limit,
                 totalElements: accountLength,
-                content: returnListAccounts
+                content: accounts
             }
         });
     }
@@ -151,14 +121,14 @@ const getAllInterviewerAccounts = async (req, res, next) => {
             };
             throw error;
         }
-        const { accountLength, returnListAccounts } = await adminService.getAllInterviewerAccounts(adminId, searchText, searchBy, active, page, limit);
+        const { accountLength, accounts } = await adminService.getAllInterviewerAccounts(adminId, searchText, searchBy, active, page, limit);
         res.status(200).json({
             success: true, message: "Get list interview Successfully!", result: {
                 pageNumber: page,
                 totalPages: Math.ceil(accountLength / limit),
                 limit: limit,
                 totalElements: accountLength,
-                content: returnListAccounts
+                content: accounts
             }
         });
     }
@@ -189,14 +159,14 @@ const getAllCandidateAccounts = async (req, res, next) => {
             };
             throw error;
         }
-        const { accountLength, returnListAccounts } = await adminService.getAllCandidateAccounts(adminId, searchText, searchBy, active, page, limit);
+        const { accountLength, accounts } = await adminService.getAllCandidateAccounts(adminId, searchText, searchBy, active, page, limit);
         res.status(200).json({
             success: true, message: "Get list interview Successfully!", result: {
                 pageNumber: page,
                 totalPages: Math.ceil(accountLength / limit),
                 limit: limit,
                 totalElements: accountLength,
-                content: returnListAccounts
+                content: accounts
             }
         });
     }
@@ -227,14 +197,14 @@ const getAllBlackListAccounts = async (req, res, next) => {
             };
             throw error;
         }
-        const { accountLength, returnListAccounts } = await adminService.getAllBlackListAccounts(adminId, searchText, searchBy, active, page, limit);
+        const { accountLength, accounts } = await adminService.getAllBlackListAccounts(adminId, searchText, searchBy, active, page, limit);
         res.status(200).json({
             success: true, message: "Get list interview Successfully!", result: {
                 pageNumber: page,
                 totalPages: Math.ceil(accountLength / limit),
                 limit: limit,
                 totalElements: accountLength,
-                content: returnListAccounts
+                content: accounts
             }
         });
     }

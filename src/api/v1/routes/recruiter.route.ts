@@ -342,7 +342,7 @@ router.get('/events', isAuth, [
 
 router.get('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.GetSingleEvent);
+, recruiterController.GetSingleEvent);
 
 router.post('/events', isAuth, [
     body('title').trim()

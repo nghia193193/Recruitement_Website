@@ -54,94 +54,79 @@ export const getAllAccounts = async (adminId: string, searchText: any, searchBy:
         .skip((page - 1) * limit)
         .limit(limit)
 
-    const returnListAccounts = listAccounts.map(account => {
-        return {
-            accountId: account._id.toString(),
-            accountFullName: account.fullName,
-            accountRole: account.get('roleId.roleName'),
-            accountPhone: account.phone,
-            accountEmail: account.email,
-            createdDate: account.createdAt,
-        }
-    })
-    return { accountLength, returnListAccounts }
-};
+    const returnListAccounts = async () => {
+        const mappedAccounts = await Promise.all(
+            listAccounts.map(async (account) => {
+                try {
+                    const educationList = await Education.find({ candidateId: account._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        }
 
-export const getSingleAccount = async (adminId: string, accountId: string) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
-        error.statusCode = 401;
-        error.result = {
-            content: []
-        };
-        throw error;
-    }
-    const account = await User.findById(accountId).populate('roleId skills.skillId');
-    if (!account) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy tài khoản');
-        error.statusCode = 401;
-        error.result = {
-            content: []
-        };
-        throw error;
-    }
-    const educationList = await Education.find({ candidateId: accountId });
-    const returnEducationList = educationList.map(e => {
-        return {
-            school: e.school,
-            major: e.major,
-            graduatedYead: e.graduatedYear
-        }
+                    })
+                    const experienceList = await Experience.find({ candidateId: account._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        }
+                    })
+                    const certificateList = await Certificate.find({ candidateId: account._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        }
+                    })
+                    const projectList = await Project.find({ candidateId: account._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        }
+                    })
+                    let listSkill = [];
+                    for (let i = 0; i < account.skills.length; i++) {
+                        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+                    }
+                    return {
+                        accountId: account._id.toString(),
+                        fullName: account.fullName,
+                        avatar: account.avatar?.url,
+                        about: account.about,
+                        email: account.email,
+                        dateOfBirth: account.dateOfBirth,
+                        address: account.address,
+                        phone: account.phone,
+                        skills: listSkill,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
 
-    })
-    const experienceList = await Experience.find({ candidateId: accountId });
-    const returnExperienceList = experienceList.map(e => {
-        return {
-            companyName: e.companyName,
-            position: e.position,
-            dateFrom: e.dateFrom,
-            dateTo: e.dateTo
-        }
-    })
-    const certificateList = await Certificate.find({ candidateId: accountId });
-    const returnCertificateList = certificateList.map(c => {
-        return {
-            name: c.name,
-            receivedDate: c.receivedDate,
-            url: c.url
-        }
-    })
-    const projectList = await Project.find({ candidateId: accountId });
-    const returnProjectList = projectList.map(p => {
-        return {
-            name: p.name,
-            description: p.description,
-            url: p.url
-        }
-    })
-    let listSkill = [];
-    for (let i = 0; i < account.skills.length; i++) {
-        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+        )
+        return mappedAccounts.filter(account => account !== null);
     }
-    const returnAccount = {
-        fullName: account.fullName,
-        avatar: account.avatar?.url,
-        about: account.about,
-        email: account.email,
-        dateOfBirth: account.dateOfBirth,
-        address: account.address,
-        phone: account.phone,
-        skills: listSkill,
-        information: {
-            education: returnEducationList,
-            experience: returnExperienceList,
-            certificate: returnCertificateList,
-            project: returnProjectList,
-            skills: listSkill
-        }
-    }
-    return {returnAccount};
+    const accounts = await returnListAccounts().then(mappedAccounts => {
+        return mappedAccounts
+    })
+    return { accountLength, accounts };
 };
 
 export const getAllRecruiterAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
@@ -192,17 +177,79 @@ export const getAllRecruiterAccounts = async (adminId: string, searchText: any, 
         .skip((page - 1) * limit)
         .limit(limit)
 
-    const returnListAccounts = listAccounts.map(account => {
-        return {
-            accountId: account._id.toString(),
-            accountFullName: account.fullName,
-            accountRole: account.get('roleId.roleName'),
-            accountPhone: account.phone,
-            accountEmail: account.email,
-            createdDate: account.createdAt,
-        }
+    const returnListAccounts = async () => {
+        const mappedAccounts = await Promise.all(
+            listAccounts.map(async (account) => {
+                try {
+                    const educationList = await Education.find({ candidateId: account._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        }
+
+                    })
+                    const experienceList = await Experience.find({ candidateId: account._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        }
+                    })
+                    const certificateList = await Certificate.find({ candidateId: account._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        }
+                    })
+                    const projectList = await Project.find({ candidateId: account._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        }
+                    })
+                    let listSkill = [];
+                    for (let i = 0; i < account.skills.length; i++) {
+                        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+                    }
+                    return {
+                        accountId: account._id.toString(),
+                        fullName: account.fullName,
+                        avatar: account.avatar?.url,
+                        about: account.about,
+                        email: account.email,
+                        dateOfBirth: account.dateOfBirth,
+                        address: account.address,
+                        phone: account.phone,
+                        skills: listSkill,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
+
+        )
+        return mappedAccounts.filter(account => account !== null);
+    }
+    const accounts = await returnListAccounts().then(mappedAccounts => {
+        return mappedAccounts
     })
-    return { accountLength, returnListAccounts }
+    return { accountLength, accounts };
 };
 
 export const getAllInterviewerAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
@@ -253,17 +300,79 @@ export const getAllInterviewerAccounts = async (adminId: string, searchText: any
         .skip((page - 1) * limit)
         .limit(limit)
 
-    const returnListAccounts = listAccounts.map(account => {
-        return {
-            accountId: account._id.toString(),
-            accountFullName: account.fullName,
-            accountRole: account.get('roleId.roleName'),
-            accountPhone: account.phone,
-            accountEmail: account.email,
-            createdDate: account.createdAt,
-        }
+    const returnListAccounts = async () => {
+        const mappedAccounts = await Promise.all(
+            listAccounts.map(async (account) => {
+                try {
+                    const educationList = await Education.find({ candidateId: account._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        }
+
+                    })
+                    const experienceList = await Experience.find({ candidateId: account._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        }
+                    })
+                    const certificateList = await Certificate.find({ candidateId: account._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        }
+                    })
+                    const projectList = await Project.find({ candidateId: account._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        }
+                    })
+                    let listSkill = [];
+                    for (let i = 0; i < account.skills.length; i++) {
+                        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+                    }
+                    return {
+                        accountId: account._id.toString(),
+                        fullName: account.fullName,
+                        avatar: account.avatar?.url,
+                        about: account.about,
+                        email: account.email,
+                        dateOfBirth: account.dateOfBirth,
+                        address: account.address,
+                        phone: account.phone,
+                        skills: listSkill,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
+
+        )
+        return mappedAccounts.filter(account => account !== null);
+    }
+    const accounts = await returnListAccounts().then(mappedAccounts => {
+        return mappedAccounts
     })
-    return { accountLength, returnListAccounts }
+    return { accountLength, accounts };
 };
 
 export const getAllCandidateAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
@@ -314,17 +423,79 @@ export const getAllCandidateAccounts = async (adminId: string, searchText: any, 
         .skip((page - 1) * limit)
         .limit(limit)
 
-    const returnListAccounts = listAccounts.map(account => {
-        return {
-            accountId: account._id.toString(),
-            accountFullName: account.fullName,
-            accountRole: account.get('roleId.roleName'),
-            accountPhone: account.phone,
-            accountEmail: account.email,
-            createdDate: account.createdAt,
-        }
+    const returnListAccounts = async () => {
+        const mappedAccounts = await Promise.all(
+            listAccounts.map(async (account) => {
+                try {
+                    const educationList = await Education.find({ candidateId: account._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        }
+
+                    })
+                    const experienceList = await Experience.find({ candidateId: account._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        }
+                    })
+                    const certificateList = await Certificate.find({ candidateId: account._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        }
+                    })
+                    const projectList = await Project.find({ candidateId: account._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        }
+                    })
+                    let listSkill = [];
+                    for (let i = 0; i < account.skills.length; i++) {
+                        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+                    }
+                    return {
+                        accountId: account._id.toString(),
+                        fullName: account.fullName,
+                        avatar: account.avatar?.url,
+                        about: account.about,
+                        email: account.email,
+                        dateOfBirth: account.dateOfBirth,
+                        address: account.address,
+                        phone: account.phone,
+                        skills: listSkill,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
+
+        )
+        return mappedAccounts.filter(account => account !== null);
+    }
+    const accounts = await returnListAccounts().then(mappedAccounts => {
+        return mappedAccounts
     })
-    return { accountLength, returnListAccounts }
+    return { accountLength, accounts };
 };
 
 export const getAllBlackListAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
@@ -366,15 +537,77 @@ export const getAllBlackListAccounts = async (adminId: string, searchText: any, 
         .skip((page - 1) * limit)
         .limit(limit)
 
-    const returnListAccounts = listAccounts.map(account => {
-        return {
-            accountId: account._id.toString(),
-            accountFullName: account.fullName,
-            accountRole: account.get('roleId.roleName'),
-            accountPhone: account.phone,
-            accountEmail: account.email,
-            createdDate: account.createdAt,
-        }
+    const returnListAccounts = async () => {
+        const mappedAccounts = await Promise.all(
+            listAccounts.map(async (account) => {
+                try {
+                    const educationList = await Education.find({ candidateId: account._id.toString() });
+                    const returnEducationList = educationList.map(e => {
+                        return {
+                            school: e.school,
+                            major: e.major,
+                            graduatedYead: e.graduatedYear
+                        }
+
+                    })
+                    const experienceList = await Experience.find({ candidateId: account._id.toString() });
+                    const returnExperienceList = experienceList.map(e => {
+                        return {
+                            companyName: e.companyName,
+                            position: e.position,
+                            dateFrom: e.dateFrom,
+                            dateTo: e.dateTo
+                        }
+                    })
+                    const certificateList = await Certificate.find({ candidateId: account._id.toString() });
+                    const returnCertificateList = certificateList.map(c => {
+                        return {
+                            name: c.name,
+                            receivedDate: c.receivedDate,
+                            url: c.url
+                        }
+                    })
+                    const projectList = await Project.find({ candidateId: account._id.toString() });
+                    const returnProjectList = projectList.map(p => {
+                        return {
+                            name: p.name,
+                            description: p.description,
+                            url: p.url
+                        }
+                    })
+                    let listSkill = [];
+                    for (let i = 0; i < account.skills.length; i++) {
+                        listSkill.push({ label: (account.skills[i].skillId as any).name, value: i });
+                    }
+                    return {
+                        accountId: account._id.toString(),
+                        fullName: account.fullName,
+                        avatar: account.avatar?.url,
+                        about: account.about,
+                        email: account.email,
+                        dateOfBirth: account.dateOfBirth,
+                        address: account.address,
+                        phone: account.phone,
+                        skills: listSkill,
+                        information: {
+                            education: returnEducationList,
+                            experience: returnExperienceList,
+                            certificate: returnCertificateList,
+                            project: returnProjectList,
+                            skills: listSkill
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
+
+        )
+        return mappedAccounts.filter(account => account !== null);
+    }
+    const accounts = await returnListAccounts().then(mappedAccounts => {
+        return mappedAccounts
     })
-    return { accountLength, returnListAccounts }
+    return { accountLength, accounts };
 };
