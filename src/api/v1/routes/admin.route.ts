@@ -160,4 +160,12 @@ router.get('/users/blacklist',isAuth, [
         }),
 ], adminController.getAllBlackListAccounts);
 
+router.post('/users/blacklist/:userId',isAuth, [
+    param('userId').trim().isMongoId().withMessage('userId không hợp lệ')
+], adminController.addBlackList);
+
+router.delete('/candidate/:candidateId',isAuth, [
+    param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
+], adminController.removeBlackList);
+
 export default router

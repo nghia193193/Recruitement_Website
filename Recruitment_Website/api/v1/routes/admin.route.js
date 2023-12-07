@@ -188,4 +188,10 @@ router.get('/users/blacklist', middleware_1.isAuth, [
         return true;
     }),
 ], adminController.getAllBlackListAccounts);
+router.post('/users/blacklist/:userId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('userId không hợp lệ')
+], adminController.addBlackList);
+router.delete('/candidate/:candidateId', middleware_1.isAuth, [
+    (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
+], adminController.removeBlackList);
 exports.default = router;

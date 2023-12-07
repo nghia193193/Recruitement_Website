@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
+exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
 const certificate_1 = require("../models/certificate");
 const education_1 = require("../models/education");
 const experience_1 = require("../models/experience");
@@ -615,3 +615,49 @@ const getAllBlackListAccounts = async (adminId, searchText, searchBy, active, pa
     return { accountLength, accounts };
 };
 exports.getAllBlackListAccounts = getAllBlackListAccounts;
+const addBlackList = async (adminId, userId) => {
+    const admin = await user_1.User.findById(adminId);
+    if (!admin) {
+        const error = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const account = await user_1.User.findById(userId);
+    if (!account) {
+        const error = new Error('Không tìm thấy tài khoản');
+        error.statusCode = 409;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    account.blackList = true;
+    await account.save();
+};
+exports.addBlackList = addBlackList;
+const removeBlackList = async (adminId, candidateId) => {
+    const admin = await user_1.User.findById(adminId);
+    if (!admin) {
+        const error = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const account = await user_1.User.findById(candidateId);
+    if (!account) {
+        const error = new Error('Không tìm thấy tài khoản');
+        error.statusCode = 409;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    account.blackList = false;
+    await account.save();
+};
+exports.removeBlackList = removeBlackList;

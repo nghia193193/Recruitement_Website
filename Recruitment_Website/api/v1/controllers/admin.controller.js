@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
+exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
 const adminService = __importStar(require("../services/admin.service"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
@@ -217,3 +217,59 @@ const getAllBlackListAccounts = async (req, res, next) => {
     }
 };
 exports.getAllBlackListAccounts = getAllBlackListAccounts;
+const addBlackList = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const adminId = decodedToken.userId;
+        const userId = req.params.userId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        await adminService.addBlackList(adminId, userId);
+        res.status(200).json({ success: true, message: "Add black list successfully!", result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.addBlackList = addBlackList;
+const removeBlackList = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const adminId = decodedToken.userId;
+        const candidateId = req.params.candidateId;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        await adminService.removeBlackList(adminId, candidateId);
+        res.status(200).json({ success: true, message: "Remove black list successfully!", result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.removeBlackList = removeBlackList;

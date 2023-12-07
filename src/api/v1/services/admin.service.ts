@@ -626,3 +626,49 @@ export const getAllBlackListAccounts = async (adminId: string, searchText: any, 
     })
     return { accountLength, accounts };
 };
+
+export const addBlackList = async (adminId: string, userId: string) => {
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const account = await User.findById(userId);
+    if (!account) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy tài khoản');
+        error.statusCode = 409;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    account.blackList = true;
+    await account.save();
+};
+
+export const removeBlackList = async (adminId: string, candidateId: string) => {
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    const account = await User.findById(candidateId);
+    if (!account) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy tài khoản');
+        error.statusCode = 409;
+        error.result = {
+            content: []
+        };
+        throw error;
+    }
+    account.blackList = false;
+    await account.save();
+};
