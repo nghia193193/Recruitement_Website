@@ -53,7 +53,7 @@ const getAllAccounts = async (adminId, searchText, searchBy, active, page, limit
         throw error;
     }
     const listAccounts = await user_1.User.find(query)
-        .populate('roleId')
+        .populate('roleId skills.skillId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
@@ -176,7 +176,7 @@ const getAllRecruiterAccounts = async (adminId, searchText, searchBy, active, pa
         throw error;
     }
     const listAccounts = await user_1.User.find(query)
-        .populate('roleId')
+        .populate('roleId skills.skillId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
@@ -299,7 +299,7 @@ const getAllInterviewerAccounts = async (adminId, searchText, searchBy, active, 
         throw error;
     }
     const listAccounts = await user_1.User.find(query)
-        .populate('roleId')
+        .populate('roleId skills.skillId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
@@ -422,7 +422,7 @@ const getAllCandidateAccounts = async (adminId, searchText, searchBy, active, pa
         throw error;
     }
     const listAccounts = await user_1.User.find(query)
-        .populate('roleId')
+        .populate('roleId skills.skillId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
@@ -536,7 +536,7 @@ const getAllBlackListAccounts = async (adminId, searchText, searchBy, active, pa
         throw error;
     }
     const listAccounts = await user_1.User.find(query)
-        .populate('roleId')
+        .populate('roleId skills.skillId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
