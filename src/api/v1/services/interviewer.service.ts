@@ -13,6 +13,7 @@ import { Certificate } from "../models/certificate";
 import { Project } from "../models/project";
 import { JobApply } from "../models/jobApply";
 import { addFractionStrings } from "../utils";
+import mongoose from "mongoose";
 
 export const saveInformation = async (interviewerId: string, education: any, experience: any, certificate: any, project: any, skills: any) => {
     const interviewer = await User.findById(interviewerId).populate('roleId');
@@ -380,38 +381,58 @@ export const getAllInterviews = async (interviewerId: string, page: number, limi
         };
         throw error;
     }
-    const listInterviews = await InterviewerInterview.find({ interviewersId: interviewer._id.toString() })
-        .populate({
-            path: 'interviewId',
-            model: Interview,
-            populate: {
-                path: 'jobApplyId',
-                model: Job,
-                populate: {
-                    path: 'positionId',
-                    model: JobPosition
-                }
+    const listInterviews = await InterviewerInterview.aggregate([
+        { $match: { interviewersId: new mongoose.Types.ObjectId(interviewer._id.toString()) } },
+        {
+            $lookup: {
+                from: 'interviews',
+                localField: 'interviewId',
+                foreignField: '_id',
+                as: 'interviews'
             }
-        })
-        .populate({
-            path: 'interviewersId',
-            model: User
-        })
-        .sort({ updatedAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-
+        },
+        {
+            $lookup: {
+                from: 'jobs',
+                localField: 'interviews.jobApplyId',
+                foreignField: '_id',
+                as: 'jobs'
+            }
+        },
+        {
+            $lookup: {
+                from: 'jobpositions',
+                localField: 'jobs.positionId',
+                foreignField: '_id',
+                as: 'positions'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'interviewersId',
+                foreignField: '_id',
+                as: 'interviewers'
+            }
+        },
+        { $sort: { 'interviews.updatedAt': -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit }
+    ]);
+    
     const returnListInterviews = listInterviews.map(interview => {
-        const listInterviewers = interview.interviewersId.map(interviewer => {
-            return (interviewer as any).fullName;
+        const listInterviewers = interview.interviewers.map((interviewer: any) => {
+            return interviewer.fullName;
         })
         return {
             interviewId: interview.interviewId._id.toString(),
-            jobName: interview.get('interviewId.jobApplyId.name'),
-            interviewLink: interview.get('interviewId.interviewLink'),
-            time: interview.get('interviewId.time'),
-            position: interview.get('interviewId.jobApplyId.positionId.name'),
-            state: interview.get('interviewId.state'),
+            interviewerInterviewUpdatedAt: interview.updatedAt,
+            interviewUpdatedAt: interview.interviews[0].updatedAt,
+            jobName: interview.jobs[0].name,
+            interviewLink: interview.interviews[0].interviewLink,
+            time: interview.interviews[0].time,
+            position: interview.positions[0].name,
+            state: interview.interviews[0].state,
             interviewersFullName: listInterviewers
         }
     })
@@ -665,7 +686,7 @@ export const deleteQuestion = async (interviewerId: string, questionId: string) 
         error.result = null;
         throw error;
     }
-    const interviewQuestion = await QuestionCandidate.findOne({'questions.questionId': questionId});
+    const interviewQuestion = await QuestionCandidate.findOne({ 'questions.questionId': questionId });
     if (interviewQuestion) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Câu hỏi này đã tồn tại trong buổi phỏng phấn không thể xóa!');
         error.statusCode = 409;
@@ -713,7 +734,7 @@ export const getAssignQuestions = async (interviewerId: string, interviewId: str
         error.result = [];
         throw error;
     }
-    console.log(questionCandidate);
+    
     const returnQuestions = questionCandidate.questions.map(question => {
         return {
             questionId: (question.questionId as any)._id.toString(),

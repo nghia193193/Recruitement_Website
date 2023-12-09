@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const user_1 = require("../models/user");
@@ -15,6 +18,7 @@ const certificate_1 = require("../models/certificate");
 const project_1 = require("../models/project");
 const jobApply_1 = require("../models/jobApply");
 const utils_1 = require("../utils");
+const mongoose_1 = __importDefault(require("mongoose"));
 const saveInformation = async (interviewerId, education, experience, certificate, project, skills) => {
     const interviewer = await user_1.User.findById(interviewerId).populate('roleId');
     if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
@@ -384,37 +388,57 @@ const getAllInterviews = async (interviewerId, page, limit) => {
         };
         throw error;
     }
-    const listInterviews = await interviewerInterview_1.InterviewerInterview.find({ interviewersId: interviewer._id.toString() })
-        .populate({
-        path: 'interviewId',
-        model: interview_1.Interview,
-        populate: {
-            path: 'jobApplyId',
-            model: job_1.Job,
-            populate: {
-                path: 'positionId',
-                model: jobPosition_1.JobPosition
+    const listInterviews = await interviewerInterview_1.InterviewerInterview.aggregate([
+        { $match: { interviewersId: new mongoose_1.default.Types.ObjectId(interviewer._id.toString()) } },
+        {
+            $lookup: {
+                from: 'interviews',
+                localField: 'interviewId',
+                foreignField: '_id',
+                as: 'interviews'
             }
-        }
-    })
-        .populate({
-        path: 'interviewersId',
-        model: user_1.User
-    })
-        .sort({ updatedAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit);
+        },
+        {
+            $lookup: {
+                from: 'jobs',
+                localField: 'interviews.jobApplyId',
+                foreignField: '_id',
+                as: 'jobs'
+            }
+        },
+        {
+            $lookup: {
+                from: 'jobpositions',
+                localField: 'jobs.positionId',
+                foreignField: '_id',
+                as: 'positions'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'interviewersId',
+                foreignField: '_id',
+                as: 'interviewers'
+            }
+        },
+        { $sort: { 'interviews.updatedAt': -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit }
+    ]);
     const returnListInterviews = listInterviews.map(interview => {
-        const listInterviewers = interview.interviewersId.map(interviewer => {
+        const listInterviewers = interview.interviewers.map((interviewer) => {
             return interviewer.fullName;
         });
         return {
             interviewId: interview.interviewId._id.toString(),
-            jobName: interview.get('interviewId.jobApplyId.name'),
-            interviewLink: interview.get('interviewId.interviewLink'),
-            time: interview.get('interviewId.time'),
-            position: interview.get('interviewId.jobApplyId.positionId.name'),
-            state: interview.get('interviewId.state'),
+            interviewerInterviewUpdatedAt: interview.updatedAt,
+            interviewUpdatedAt: interview.interviews[0].updatedAt,
+            jobName: interview.jobs[0].name,
+            interviewLink: interview.interviews[0].interviewLink,
+            time: interview.interviews[0].time,
+            position: interview.positions[0].name,
+            state: interview.interviews[0].state,
             interviewersFullName: listInterviewers
         };
     });
@@ -721,7 +745,6 @@ const getAssignQuestions = async (interviewerId, interviewId) => {
         error.result = [];
         throw error;
     }
-    console.log(questionCandidate);
     const returnQuestions = questionCandidate.questions.map(question => {
         return {
             questionId: question.questionId._id.toString(),
