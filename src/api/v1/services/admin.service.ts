@@ -690,6 +690,20 @@ export const createAccount = async (adminId: string, fullName: string, email: st
         error.result = null;
         throw error;
     }
+    const emailUser = await User.findOne({email: email});
+    if (emailUser) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('Email đã tồn tại');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    const phoneUser = await User.findOne({phone: phone});
+    if (phoneUser) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('Số điện thoại đã tồn tại');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
     const user = new User({
         fullName: fullName,
         email: email,
