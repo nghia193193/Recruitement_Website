@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import * as adminController from '../controllers/admin.controller';
 import { isAuth } from '../middleware';
-import { param, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
+import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
 
@@ -167,5 +168,45 @@ router.post('/users/blacklist/:userId',isAuth, [
 router.delete('/candidate/:candidateId',isAuth, [
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
 ], adminController.removeBlackList);
+
+router.post('/create_account',isAuth, [
+    body('fullName').trim()
+        .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
+        .custom((value: string, {req}) => {
+            const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
+            if (!regex.test(value)) {
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+            };
+            return true;
+        }),
+    body('email').trim()
+        .isEmail().withMessage('Email không hợp lệ')
+        .normalizeEmail(),
+    body('phone').trim()
+        .custom((value: string, {req}) => {
+            // Định dạng số điện thoại của Việt Nam
+            const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
+            if (!phonePattern.test(value)) {
+                throw new Error('Số điện thoại không hợp lệ');
+            }
+            return true;
+        }),
+    body('password').trim()
+        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
+        .customSanitizer((value: string, {req}) => {
+            const sanitizedValue = sanitizeHtml(value);
+            return sanitizedValue;
+        }),
+    body('confirmPassword').trim()
+        .notEmpty().withMessage('Vui lòng xác nhận mật khẩu'),
+    body('position').trim()
+        .custom((value) => {
+            const validPosition = ['INTERVIEWER', 'RECRUITER'];
+            if (!validPosition.includes(value)) {
+                throw new Error('Chỉ cho phép vị trí interviewer/recruiter');
+            }
+            return true;
+        })
+], adminController.createAccount);
 
 export default router

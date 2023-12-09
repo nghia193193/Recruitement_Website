@@ -4,6 +4,7 @@ import { Experience } from "../models/experience";
 import { Project } from "../models/project";
 import { Role } from "../models/role";
 import { User } from "../models/user";
+import * as bcrypt from 'bcryptjs';
 
 export const getAllAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
     const admin = await User.findById(adminId);
@@ -671,4 +672,33 @@ export const removeBlackList = async (adminId: string, candidateId: string) => {
     }
     account.blackList = false;
     await account.save();
+};
+
+export const createAccount = async (adminId: string, fullName: string, email: string, password: string, phone: string, position: string) => {
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const roleId = await Role.findOne({roleName: position, isActive: true});
+    if (!roleId) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy role này');
+        error.statusCode = 409;
+        error.result = null;
+        throw error;
+    }
+    const user = new User({
+        fullName: fullName,
+        email: email,
+        password: hashedPassword,
+        phone: phone,
+        roleId: roleId,
+        isActive: true,
+        isVerifiedEmail: true,
+        blackList: false
+    })
+    await user.save();
 };

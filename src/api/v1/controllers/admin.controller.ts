@@ -241,3 +241,37 @@ export const removeBlackList = async (req: Request, res: Response, next: NextFun
         next(err);
     }
 };
+
+export const createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const adminId = decodedToken.userId;
+        const { fullName, email, password, confirmPassword, phone, position } = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        if (confirmPassword !== password) {
+            const error: Error & { statusCode?: number, result?: any } = new Error('Mật khẩu xác nhận không chính xác');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        await adminService.createAccount(adminId, fullName, email, password, phone, position);
+        res.status(200).json({ success: true, message: "Tạo tài khoản thành công!", result: null });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+

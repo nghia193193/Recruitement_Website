@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
+exports.createAccount = exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
 const adminService = __importStar(require("../services/admin.service"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
@@ -273,3 +273,37 @@ const removeBlackList = async (req, res, next) => {
     }
 };
 exports.removeBlackList = removeBlackList;
+const createAccount = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const adminId = decodedToken.userId;
+        const { fullName, email, password, confirmPassword, phone, position } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            const error = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        if (confirmPassword !== password) {
+            const error = new Error('Mật khẩu xác nhận không chính xác');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        await adminService.createAccount(adminId, fullName, email, password, phone, position);
+        res.status(200).json({ success: true, message: "Tạo tài khoản thành công!", result: null });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.createAccount = createAccount;
