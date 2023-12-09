@@ -14,8 +14,6 @@ const node_schedule_1 = __importDefault(require("node-schedule"));
 const user_1 = require("./models/user");
 const config_1 = require("../../config");
 const cloudinary_1 = require("cloudinary");
-const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
-const swaggerDef_1 = __importDefault(require("./utils/swaggerDef"));
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@cluster0.nizvwnm.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -35,7 +33,6 @@ app.use((req, res, next) => {
     next();
 });
 app.use(routes_1.default);
-app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDef_1.default));
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error.statusCode || 500;
@@ -49,9 +46,9 @@ app.use((error, req, res, next) => {
     }
     ;
 });
-mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 10 })
+mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 100 })
     .then(result => {
-    app.listen(8050, () => {
+    app.listen(8080, () => {
         node_schedule_1.default.scheduleJob('*/5 * * * *', () => {
             deleteOtpExpiredUser();
         });
