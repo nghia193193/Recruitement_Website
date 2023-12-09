@@ -43,7 +43,7 @@ export const getAllAccounts = async (adminId: string, searchText: any, searchBy:
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -169,7 +169,7 @@ export const getAllRecruiterAccounts = async (adminId: string, searchText: any, 
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -295,7 +295,7 @@ export const getAllInterviewerAccounts = async (adminId: string, searchText: any
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -421,7 +421,7 @@ export const getAllCandidateAccounts = async (adminId: string, searchText: any, 
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -538,7 +538,7 @@ export const getAllBlackListAccounts = async (adminId: string, searchText: any, 
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };

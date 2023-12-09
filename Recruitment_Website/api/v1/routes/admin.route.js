@@ -63,6 +63,43 @@ router.get('/users', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('active').trim()
+        .custom((value) => {
+        if (value) {
+            const validActive = ['true', 'false'];
+            if (!validActive.includes(value)) {
+                throw new Error('active không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchBy').trim()
+        .custom((value) => {
+        if (value) {
+            const validSearchBy = ['name', 'email', 'phone'];
+            if (!validSearchBy.includes(value)) {
+                throw new Error('searchBy không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchText').trim()
+        .custom((value) => {
+        if (value) {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung tìm kiếm không được chứa ký tự đặc biệt trừ dấu cách');
+                }
+                ;
+                return true;
+            }
+            return true;
+        }
+        return true;
+    })
 ], adminController.getAllAccounts);
 router.get('/users/recruiter', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
@@ -95,6 +132,43 @@ router.get('/users/recruiter', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('active').trim()
+        .custom((value) => {
+        if (value) {
+            const validActive = ['true', 'false'];
+            if (!validActive.includes(value)) {
+                throw new Error('active không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchBy').trim()
+        .custom((value) => {
+        if (value) {
+            const validSearchBy = ['name', 'email', 'phone'];
+            if (!validSearchBy.includes(value)) {
+                throw new Error('searchBy không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchText').trim()
+        .custom((value) => {
+        if (value) {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung tìm kiếm không được chứa ký tự đặc biệt trừ dấu cách');
+                }
+                ;
+                return true;
+            }
+            return true;
+        }
+        return true;
+    })
 ], adminController.getAllRecruiterAccounts);
 router.get('/users/interviewer', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
@@ -127,6 +201,43 @@ router.get('/users/interviewer', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('active').trim()
+        .custom((value) => {
+        if (value) {
+            const validActive = ['true', 'false'];
+            if (!validActive.includes(value)) {
+                throw new Error('active không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchBy').trim()
+        .custom((value) => {
+        if (value) {
+            const validSearchBy = ['name', 'email', 'phone'];
+            if (!validSearchBy.includes(value)) {
+                throw new Error('searchBy không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchText').trim()
+        .custom((value) => {
+        if (value) {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung tìm kiếm không được chứa ký tự đặc biệt trừ dấu cách');
+                }
+                ;
+                return true;
+            }
+            return true;
+        }
+        return true;
+    })
 ], adminController.getAllInterviewerAccounts);
 router.get('/users/candidate', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
@@ -159,6 +270,43 @@ router.get('/users/candidate', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('active').trim()
+        .custom((value) => {
+        if (value) {
+            const validActive = ['true', 'false'];
+            if (!validActive.includes(value)) {
+                throw new Error('active không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchBy').trim()
+        .custom((value) => {
+        if (value) {
+            const validSearchBy = ['name', 'email', 'phone'];
+            if (!validSearchBy.includes(value)) {
+                throw new Error('searchBy không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchText').trim()
+        .custom((value) => {
+        if (value) {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung tìm kiếm không được chứa ký tự đặc biệt trừ dấu cách');
+                }
+                ;
+                return true;
+            }
+            return true;
+        }
+        return true;
+    })
 ], adminController.getAllCandidateAccounts);
 router.get('/users/blacklist', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
@@ -191,6 +339,43 @@ router.get('/users/blacklist', middleware_1.isAuth, [
         }
         return true;
     }),
+    (0, express_validator_1.query)('active').trim()
+        .custom((value) => {
+        if (value) {
+            const validActive = ['true', 'false'];
+            if (!validActive.includes(value)) {
+                throw new Error('active không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchBy').trim()
+        .custom((value) => {
+        if (value) {
+            const validSearchBy = ['name', 'email', 'phone'];
+            if (!validSearchBy.includes(value)) {
+                throw new Error('searchBy không hợp lệ');
+            }
+            return true;
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)('searchText').trim()
+        .custom((value) => {
+        if (value) {
+            if (value) {
+                const regex = /^[\p{L} ]+$/u;
+                if (!regex.test(value)) {
+                    throw new Error('Nội dung tìm kiếm không được chứa ký tự đặc biệt trừ dấu cách');
+                }
+                ;
+                return true;
+            }
+            return true;
+        }
+        return true;
+    })
 ], adminController.getAllBlackListAccounts);
 router.post('/users/blacklist/:userId', middleware_1.isAuth, [
     (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('userId không hợp lệ')

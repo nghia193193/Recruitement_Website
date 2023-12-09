@@ -70,7 +70,7 @@ const getAllAccounts = async (adminId, searchText, searchBy, active, page, limit
     const accountLength = await user_1.User.find(query).countDocuments();
     if (accountLength === 0) {
         const error = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -193,7 +193,7 @@ const getAllRecruiterAccounts = async (adminId, searchText, searchBy, active, pa
     const accountLength = await user_1.User.find(query).countDocuments();
     if (accountLength === 0) {
         const error = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -316,7 +316,7 @@ const getAllInterviewerAccounts = async (adminId, searchText, searchBy, active, 
     const accountLength = await user_1.User.find(query).countDocuments();
     if (accountLength === 0) {
         const error = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -439,7 +439,7 @@ const getAllCandidateAccounts = async (adminId, searchText, searchBy, active, pa
     const accountLength = await user_1.User.find(query).countDocuments();
     if (accountLength === 0) {
         const error = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
@@ -553,7 +553,7 @@ const getAllBlackListAccounts = async (adminId, searchText, searchBy, active, pa
     const accountLength = await user_1.User.find(query).countDocuments();
     if (accountLength === 0) {
         const error = new Error('Chưa có tài khoản nào');
-        error.statusCode = 409;
+        error.statusCode = 200;
         error.result = {
             content: []
         };
