@@ -725,7 +725,7 @@ export const createAccount = async (adminId: string, fullName: string, email: st
     await user.save();
 };
 
-export const getAllJobs = async (adminId: string, recruiterName: string, jobName: string, page: number, limit: number) => {
+export const getAllJobs = async (adminId: string, recruiterName: any, jobName: any, page: number, limit: number) => {
     const admin = await User.findById(adminId);
     if (!admin) {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
@@ -804,7 +804,7 @@ export const getAllJobs = async (adminId: string, recruiterName: string, jobName
     return { jobLength, listJobs };
 };
 
-export const getAllEvents = async (adminId: string, recruiterName: string, eventName: string, page: number, limit: number) => {
+export const getAllEvents = async (adminId: string, recruiterName: any, eventName: any, page: number, limit: number) => {
     const admin = await User.findById(adminId);
     if (!admin) {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');

@@ -454,7 +454,7 @@ router.get('/jobs', middleware_1.isAuth, [
         }
         return true;
     }),
-    (0, express_validator_1.body)('recruiterName').trim()
+    (0, express_validator_1.query)('recruiterName').trim()
         .custom((value) => {
         if (value) {
             const regex = /^[\p{L} ]+$/u;
@@ -466,7 +466,7 @@ router.get('/jobs', middleware_1.isAuth, [
         }
         return true;
     }),
-    (0, express_validator_1.body)('jobName').trim()
+    (0, express_validator_1.query)('jobName').trim()
         .custom((value) => {
         if (value) {
             const regex = /^[\p{L} #+]+$/u;
@@ -510,7 +510,7 @@ router.get('/events', middleware_1.isAuth, [
         }
         return true;
     }),
-    (0, express_validator_1.body)('recruiterName').trim()
+    (0, express_validator_1.query)('recruiterName').trim()
         .custom((value) => {
         if (value) {
             const regex = /^[\p{L} ]+$/u;
@@ -522,7 +522,7 @@ router.get('/events', middleware_1.isAuth, [
         }
         return true;
     }),
-    (0, express_validator_1.body)('eventName').trim()
+    (0, express_validator_1.query)('eventName').trim()
         .custom((value) => {
         if (value) {
             const regex = /^[\p{L} #+]+$/u;

@@ -418,7 +418,7 @@ router.get('/jobs', isAuth, [
             }
             return true;
         }),
-    body('recruiterName').trim()
+    query('recruiterName').trim()
         .custom((value) => {
             if (value) {
                 const regex = /^[\p{L} ]+$/u;
@@ -429,7 +429,7 @@ router.get('/jobs', isAuth, [
             }
             return true
         }),
-    body('jobName').trim()
+    query('jobName').trim()
         .custom((value) => {
             if (value) {
                 const regex = /^[\p{L} #+]+$/u;
@@ -471,7 +471,7 @@ router.get('/events', isAuth, [
             }
             return true;
         }),
-    body('recruiterName').trim()
+    query('recruiterName').trim()
         .custom((value) => {
             if (value) {
                 const regex = /^[\p{L} ]+$/u;
@@ -482,7 +482,7 @@ router.get('/events', isAuth, [
             }
             return true
         }),
-    body('eventName').trim()
+    query('eventName').trim()
         .custom((value) => {
             if (value) {
                 const regex = /^[\p{L} #+]+$/u;

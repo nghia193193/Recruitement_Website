@@ -313,7 +313,7 @@ const getAllJobs = async (req, res, next) => {
         const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const adminId = decodedToken.userId;
-        const { recruiterName, jobName } = req.body;
+        const { recruiterName, jobName } = req.query;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -351,7 +351,7 @@ const getAllEvents = async (req, res, next) => {
         const accessToken = authHeader.split(' ')[1];
         const decodedToken = await (0, utils_1.verifyToken)(accessToken);
         const adminId = decodedToken.userId;
-        const { recruiterName, eventName } = req.body;
+        const { recruiterName, eventName } = req.query;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
         const errors = (0, express_validator_1.validationResult)(req);
