@@ -8,7 +8,9 @@ const GetAllEvents = async (req, res, next) => {
         const name = req.query.name;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
-        const query = {};
+        const query = {
+            isActive: true
+        };
         if (name) {
             query['name'] = name;
         }
@@ -16,7 +18,8 @@ const GetAllEvents = async (req, res, next) => {
         const eventLength = await event_1.Event.find(query).countDocuments();
         if (eventLength === 0) {
             const error = new Error('Không tìm thấy sự kiện nào');
-            error.statusCode = 422;
+            error.statusCode = 200;
+            error.success = true;
             error.result = {
                 content: []
             };

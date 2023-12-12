@@ -275,3 +275,78 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+export const getAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const adminId = decodedToken.userId;
+        const { recruiterName, jobName } = req.body;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const { jobLength, listJobs } = await adminService.getAllJobs(adminId, recruiterName, jobName, page, limit);
+        res.status(200).json({
+            success: true, message: "Get all jobs successfully!", result: {
+                pageNumber: page,
+                totalPages: Math.ceil(jobLength / limit),
+                limit: limit,
+                totalElements: jobLength,
+                content: listJobs
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const getAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const adminId = decodedToken.userId;
+        const { recruiterName, eventName } = req.body;
+        const page: number = req.query.page ? +req.query.page : 1;
+        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
+            error.statusCode = 400;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        const { eventLength, listEvents } = await adminService.getAllEvents(adminId, recruiterName, eventName, page, limit);
+        res.status(200).json({
+            success: true, message: "Get all events successfully!", result: {
+                pageNumber: page,
+                totalPages: Math.ceil(eventLength / limit),
+                limit: limit,
+                totalElements: eventLength,
+                content: listEvents
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+

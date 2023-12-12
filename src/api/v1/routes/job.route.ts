@@ -11,9 +11,9 @@ const router = Router();
 router.get('/',[
     query('name').trim().custom((value: string, {req}) => {
         if (value) {
-            const regex = /^[\p{L} 0-9]+$/u;
+            const regex = /^[\p{L} 0-9#+]+$/u;
             if (!regex.test(value)) {
-                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
+                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách, #+');
             };
             return true;
         }

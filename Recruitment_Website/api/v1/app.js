@@ -48,7 +48,7 @@ app.use((error, req, res, next) => {
 });
 mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 100 })
     .then(result => {
-    app.listen(8080, () => {
+    app.listen(8050, () => {
         node_schedule_1.default.scheduleJob('*/5 * * * *', () => {
             deleteOtpExpiredUser();
         });

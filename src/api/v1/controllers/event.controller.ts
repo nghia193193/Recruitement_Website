@@ -7,15 +7,18 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         const name = req.query.name;
         const page: number = req.query.page ? +req.query.page : 1; 
         const limit: number = req.query.limit ? +req.query.limit : 10;
-        const query: any = {};
+        const query: any = {
+            isActive: true
+        };
         if (name) {
             query['name'] = name;
         };
         
         const eventLength = await Event.find(query).countDocuments();
         if (eventLength === 0) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy sự kiện nào');
-            error.statusCode = 422;
+            const error: Error & {statusCode?: any, success?: any, result?: any} = new Error('Không tìm thấy sự kiện nào');
+            error.statusCode = 200;
+            error.success = true;
             error.result = {
                 content: []
             };

@@ -1,6 +1,9 @@
 import { Certificate } from "../models/certificate";
 import { Education } from "../models/education";
+import { Event } from "../models/event";
 import { Experience } from "../models/experience";
+import { Job } from "../models/job";
+import { JobApply } from "../models/jobApply";
 import { Project } from "../models/project";
 import { Role } from "../models/role";
 import { User } from "../models/user";
@@ -42,8 +45,9 @@ export const getAllAccounts = async (adminId: string, searchText: any, searchBy:
     }
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
+        const error: Error & { statusCode?: number, success?: any, result?: any } = new Error('Chưa có tài khoản nào');
         error.statusCode = 200;
+        error.success = true;
         error.result = {
             content: []
         };
@@ -168,8 +172,9 @@ export const getAllRecruiterAccounts = async (adminId: string, searchText: any, 
     }
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
+        const error: Error & { statusCode?: number, success?: any, result?: any } = new Error('Chưa có tài khoản nào');
         error.statusCode = 200;
+        error.success = true;
         error.result = {
             content: []
         };
@@ -294,8 +299,9 @@ export const getAllInterviewerAccounts = async (adminId: string, searchText: any
     }
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
+        const error: Error & { statusCode?: number, success?: any, result?: any } = new Error('Chưa có tài khoản nào');
         error.statusCode = 200;
+        error.success = true;
         error.result = {
             content: []
         };
@@ -420,8 +426,9 @@ export const getAllCandidateAccounts = async (adminId: string, searchText: any, 
     }
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
+        const error: Error & { statusCode?: number, success?: any, result?: any } = new Error('Chưa có tài khoản nào');
         error.statusCode = 200;
+        error.success = true;
         error.result = {
             content: []
         };
@@ -537,8 +544,9 @@ export const getAllBlackListAccounts = async (adminId: string, searchText: any, 
     }
     const accountLength = await User.find(query).countDocuments();
     if (accountLength === 0) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Chưa có tài khoản nào');
+        const error: Error & { statusCode?: number, success?: any, result?: any } = new Error('Chưa có tài khoản nào');
         error.statusCode = 200;
+        error.success = true;
         error.result = {
             content: []
         };
@@ -683,21 +691,21 @@ export const createAccount = async (adminId: string, fullName: string, email: st
         throw error;
     }
     const hashedPassword = await bcrypt.hash(password, 12);
-    const roleId = await Role.findOne({roleName: position, isActive: true});
+    const roleId = await Role.findOne({ roleName: position, isActive: true });
     if (!roleId) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy role này');
         error.statusCode = 409;
         error.result = null;
         throw error;
     }
-    const emailUser = await User.findOne({email: email});
+    const emailUser = await User.findOne({ email: email });
     if (emailUser) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Email đã tồn tại');
         error.statusCode = 409;
         error.result = null;
         throw error;
     }
-    const phoneUser = await User.findOne({phone: phone});
+    const phoneUser = await User.findOne({ phone: phone });
     if (phoneUser) {
         const error: Error & { statusCode?: number, result?: any } = new Error('Số điện thoại đã tồn tại');
         error.statusCode = 409;
@@ -715,4 +723,134 @@ export const createAccount = async (adminId: string, fullName: string, email: st
         blackList: false
     })
     await user.save();
+};
+
+export const getAllJobs = async (adminId: string, recruiterName: string, jobName: string, page: number, limit: number) => {
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const query: any = {};
+    if (recruiterName) {
+        const roleId = await Role.findOne({roleName: "RECRUITER"});
+        const authorId = await User.findOne({ fullName: recruiterName, roleId: roleId?._id.toString() });
+        if (!authorId) {
+            const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy recruiter');
+            error.statusCode = 409;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        query['authorId'] = authorId._id.toString();
+    }
+    if (jobName) {
+        query['name'] = new RegExp(jobName, 'i');
+    }
+    const jobLength = await Job.find(query).countDocuments();
+    if (jobLength === 0) {
+        const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy job');
+        error.statusCode = 200;
+        error.success = true;
+        error.result = {
+            content: []
+        };
+        throw error;
+    };
+    const jobs = await Job.find(query).populate('positionId locationId typeId skills.skillId')
+        .sort({ updatedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+    const returnListJobs = async () => {
+        const mappedJobs = await Promise.all(
+            jobs.map(async (job) => {
+                try {
+                    const { _id, skills, positionId, locationId, typeId, ...rest } = job;
+                    delete (rest as any)._doc._id;
+                    delete (rest as any)._doc.skills;
+                    delete (rest as any)._doc.positionId;
+                    delete (rest as any)._doc.locationId;
+                    delete (rest as any)._doc.typeId;
+                    const listSkills = skills.map(skill => {
+                        return (skill as any).skillId.name
+                    });
+                    const process = await JobApply.find({ jobAppliedId: _id.toString(), status: "PASS" }).countDocuments();
+                    return {
+                        jobId: _id.toString(),
+                        position: (positionId as any).name,
+                        location: (locationId as any).name,
+                        jobType: (typeId as any).name,
+                        process: process,
+                        ...(rest as any)._doc,
+                        skills: listSkills
+                    };
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            })
+        );
+        return mappedJobs.filter(job => job !== null);
+    }
+    const listJobs = await returnListJobs().then(mappedJobs => {
+        return mappedJobs;
+    })
+    return { jobLength, listJobs };
+};
+
+export const getAllEvents = async (adminId: string, recruiterName: string, eventName: string, page: number, limit: number) => {
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const query: any = {};
+    if (recruiterName) {
+        const roleId = await Role.findOne({roleName: "RECRUITER"});
+        const authorId = await User.findOne({ fullName: recruiterName, roleId: roleId?._id.toString() });
+        if (!authorId) {
+            const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy recruiter');
+            error.statusCode = 409;
+            error.result = {
+                content: []
+            };
+            throw error;
+        }
+        query['authorId'] = authorId._id.toString();
+    }
+    if (eventName) {
+        query['name'] = new RegExp(eventName, 'i');
+    }
+    console.log(query)
+    const eventLength = await Event.find(query).countDocuments();
+    if (eventLength === 0) {
+        const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy sự kiện nào');
+        error.statusCode = 200;
+        error.success = true;
+        error.result = {
+            content: []
+        };
+        throw error;
+    };
+    const events = await Event.find(query).populate('authorId')
+        .sort({ updatedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+    const listEvents = events.map(e => {
+        const { _id, authorId, ...rest } = e;
+        delete (rest as any)._doc._id;
+        delete (rest as any)._doc.authorId;
+        return {
+            eventId: _id.toString(),
+            author: (authorId as any).fullName,
+            ...(rest as any)._doc
+        }
+    });
+    return { eventLength, listEvents };
 };
