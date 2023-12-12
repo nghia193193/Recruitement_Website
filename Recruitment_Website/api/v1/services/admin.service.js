@@ -772,31 +772,33 @@ const getAllJobs = async (adminId, recruiterName, jobName, page, limit) => {
         throw error;
     }
     ;
-    const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId')
+    const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId authorId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
     const returnListJobs = async () => {
         const mappedJobs = await Promise.all(jobs.map(async (job) => {
             try {
-                const { _id, skills, positionId, locationId, typeId, ...rest } = job;
-                delete rest._doc._id;
-                delete rest._doc.skills;
-                delete rest._doc.positionId;
-                delete rest._doc.locationId;
-                delete rest._doc.typeId;
-                const listSkills = skills.map(skill => {
+                const listSkills = job.skills.map(skill => {
                     return skill.skillId.name;
                 });
-                const process = await jobApply_1.JobApply.find({ jobAppliedId: _id.toString(), status: "PASS" }).countDocuments();
+                const process = await jobApply_1.JobApply.find({ jobAppliedId: job._id.toString(), status: "PASS" }).countDocuments();
                 return {
-                    jobId: _id.toString(),
-                    position: positionId.name,
-                    location: locationId.name,
-                    jobType: typeId.name,
+                    jobId: job._id.toString(),
+                    jobName: job.name,
+                    quantity: job.quantity,
+                    benefit: job.benefit,
+                    salaryRange: job.salaryRange,
+                    requirement: job.requirement,
+                    description: job.description,
+                    createdAt: job.createdAt,
+                    deadline: job.deadline,
+                    position: job.get('positionId.name'),
+                    location: job.get('locationId.name'),
+                    jobType: job.get('typeId.name'),
+                    author: job.get('authorId.fullName'),
                     process: process,
-                    ...rest._doc,
-                    skills: listSkills
+                    skills: listSkills,
                 };
             }
             catch (error) {
