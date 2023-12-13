@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.interviewerStatistics = exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getTypeQuestion = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -510,3 +510,26 @@ const submitTotalScore = async (req, res, next) => {
     }
 };
 exports.submitTotalScore = submitTotalScore;
+const interviewerStatistics = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const interviewerId = decodedToken.userId;
+        const { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber } = await interviewerService.interviewerStatistics(interviewerId);
+        res.status(200).json({ success: true, message: 'Get statistics successfully.', result: {
+                interviewCount: interviewNumber,
+                contributedQuestionCount: contributedQuestionNumber,
+                scoredInterviewCount: scoredInterviewNumber,
+                incompleteInterviewCount: incompleteInterviewNumber
+            } });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.interviewerStatistics = interviewerStatistics;

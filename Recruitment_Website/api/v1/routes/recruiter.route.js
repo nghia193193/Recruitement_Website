@@ -700,4 +700,5 @@ router.get('/interviewers/:interviewerId/interviews', middleware_1.isAuth, [
         return true;
     }),
 ], recruiterController.getInterviewsOfInterviewer);
+router.get('/statistics', middleware_1.isAuth, recruiterController.recruiterStatistics);
 exports.default = router;

@@ -17,10 +17,13 @@ const jobApplySchema = new Schema({
         ref: 'ResumeUpload',
         required: true
     },
-    note: String,
     status: {
         type: String,
         required: true
+    },
+    authorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
     }
 },{
     timestamps: true

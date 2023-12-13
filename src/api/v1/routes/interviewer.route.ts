@@ -328,4 +328,6 @@ router.put('/interview/:interviewId/totalScore', isAuth, [
     param('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
 ], interviewerController.submitTotalScore);
 
+router.get('/statistics', isAuth, interviewerController.interviewerStatistics);
+
 export default router;

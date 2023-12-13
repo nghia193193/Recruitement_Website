@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllEvents = exports.getAllJobs = exports.createAccount = exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
+exports.adminStatistics = exports.getAllEvents = exports.getAllJobs = exports.createAccount = exports.removeBlackList = exports.addBlackList = exports.getAllBlackListAccounts = exports.getAllCandidateAccounts = exports.getAllInterviewerAccounts = exports.getAllRecruiterAccounts = exports.getAllAccounts = void 0;
 const adminService = __importStar(require("../services/admin.service"));
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
@@ -383,3 +383,28 @@ const getAllEvents = async (req, res, next) => {
     }
 };
 exports.getAllEvents = getAllEvents;
+const adminStatistics = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const adminId = decodedToken.userId;
+        const { jobNumber, eventNumber, blackListNumber, candidatePassNumber } = await adminService.adminStatistics(adminId);
+        res.status(200).json({
+            success: true, message: "Get statistics successfully!", result: {
+                jobCount: jobNumber,
+                eventCount: eventNumber,
+                blackListCount: blackListNumber,
+                candidatePassCount: candidatePassNumber
+            }
+        });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.adminStatistics = adminStatistics;

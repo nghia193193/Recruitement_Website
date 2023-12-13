@@ -535,4 +535,5 @@ router.get('/events', middleware_1.isAuth, [
         return true;
     }),
 ], adminController.getAllEvents);
+router.get('/statistics', middleware_1.isAuth, adminController.adminStatistics);
 exports.default = router;

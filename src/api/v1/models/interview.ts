@@ -23,6 +23,11 @@ const interviewSchema = new Schema({
     state: {
         type: String,
         required: true
+    },
+    authorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 },{
     timestamps: true

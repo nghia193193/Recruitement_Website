@@ -23,6 +23,7 @@ import { InterviewerInterview } from '../models/interviewerInterview';
 import { ResumeUpload } from '../models/resumeUpload';
 import { QuestionCandidate } from '../models/questionCandidate';
 import mongoose from 'mongoose';
+import * as recruiterService from '../services/recruiter.service';
 
 
 export const GetAllJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -523,7 +524,7 @@ export const CreateEvent = async (req: Request, res: Response, next: NextFunctio
             throw error;
         };
 
-        const isExist = await Event.findOne({name: name});
+        const isExist = await Event.findOne({ name: name });
         if (isExist) {
             const error: Error & { statusCode?: any, result?: any } = new Error('Tên event này đã được tạo vui lòng chọn tên khác.');
             error.statusCode = 409;
@@ -1429,7 +1430,8 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
             jobApplyId: jobApplyId,
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'PENDING'
+            state: 'PENDING',
+            authorId: recruiter._id.toString()
         })
         await interview.save();
         const interviewerInterview = new InterviewerInterview({
@@ -1541,6 +1543,7 @@ export const updateCandidateState = async (req: Request, res: Response, next: Ne
             throw error;
         }
         jobApply.status = state;
+        jobApply.authorId = recruiter._id;
         await jobApply.save()
         res.status(200).json({ success: true, message: 'Update state successfully', result: null });
     } catch (err) {
@@ -1904,6 +1907,37 @@ export const getInterviewsOfInterviewer = async (req: Request, res: Response, ne
                 limit: limit,
                 totalElements: listInterviews.length,
                 content: returnListInterviews.slice(startIndex, endIndex)
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
+export const recruiterStatistics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const recruiterId = decodedToken.userId;
+        const recruiter = await User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error: Error & { statusCode?: any, result?: any } = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        };
+        const { jobNumber, eventNumber, interviewNumber, candidatePassNumber } = await recruiterService.recruiterStatistics(recruiterId);
+        res.status(200).json({
+            success: true, message: 'Get statistics successfully', result: {
+                createdJobCount: jobNumber,
+                createdEventCount: eventNumber,
+                createdInterviewCount: interviewNumber,
+                candidatePassCount: candidatePassNumber
             }
         });
     } catch (err) {

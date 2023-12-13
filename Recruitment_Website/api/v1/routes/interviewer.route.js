@@ -347,4 +347,5 @@ router.delete('/interview/:interviewId/questions/:questionId', middleware_1.isAu
 router.put('/interview/:interviewId/totalScore', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewId').trim().isMongoId().withMessage('interviewId không hợp lệ'),
 ], interviewerController.submitTotalScore);
+router.get('/statistics', middleware_1.isAuth, interviewerController.interviewerStatistics);
 exports.default = router;

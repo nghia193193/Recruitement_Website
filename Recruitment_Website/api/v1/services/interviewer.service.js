@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
+exports.interviewerStatistics = exports.submitTotalScore = exports.deleteAssignQuestion = exports.updateQuestions = exports.assignQuestions = exports.getAssignQuestions = exports.getSkillQuestion = exports.deleteQuestion = exports.updateQuestion = exports.getSingleQuestion = exports.getAllQuestions = exports.createQuestion = exports.getSingleInterview = exports.getAllInterviews = exports.getSingleApplicant = exports.getAllApplicants = exports.getInformation = exports.saveInformation = void 0;
 const user_1 = require("../models/user");
 const questionCandidate_1 = require("../models/questionCandidate");
 const question_1 = require("../models/question");
@@ -867,3 +867,27 @@ const submitTotalScore = async (interviewerId, interviewId) => {
     await interview.save();
 };
 exports.submitTotalScore = submitTotalScore;
+const interviewerStatistics = async (interviewerId) => {
+    const interviewer = await user_1.User.findById(interviewerId).populate('roleId');
+    if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+        const error = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const interviewNumber = await interviewerInterview_1.InterviewerInterview.find({ interviewersId: interviewer._id.toString() }).countDocuments();
+    const interviewQuestion = await questionCandidate_1.QuestionCandidate.find({ owner: interviewer._id.toString() });
+    let contributedQuestionNumber;
+    if (!interviewQuestion) {
+        contributedQuestionNumber = 0;
+    }
+    else {
+        contributedQuestionNumber = interviewQuestion.reduce((totalQuestion, interview) => {
+            return totalQuestion + interview.questions.length;
+        }, 0);
+    }
+    const scoredInterviewNumber = await questionCandidate_1.QuestionCandidate.find({ owner: interviewer._id.toString(), totalScore: { $exists: true } }).countDocuments();
+    const incompleteInterviewNumber = interviewNumber - scoredInterviewNumber;
+    return { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber };
+};
+exports.interviewerStatistics = interviewerStatistics;

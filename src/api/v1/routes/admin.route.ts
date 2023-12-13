@@ -495,4 +495,6 @@ router.get('/events', isAuth, [
         }),
 ], adminController.getAllEvents);
 
+router.get('/statistics', isAuth, adminController.adminStatistics);
+
 export default router

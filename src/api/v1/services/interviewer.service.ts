@@ -419,7 +419,7 @@ export const getAllInterviews = async (interviewerId: string, page: number, limi
         { $skip: (page - 1) * limit },
         { $limit: limit }
     ]);
-    
+
     const returnListInterviews = listInterviews.map(interview => {
         const listInterviewers = interview.interviewers.map((interviewer: any) => {
             return interviewer.fullName;
@@ -734,7 +734,7 @@ export const getAssignQuestions = async (interviewerId: string, interviewId: str
         error.result = [];
         throw error;
     }
-    
+
     const returnQuestions = questionCandidate.questions.map(question => {
         return {
             questionId: (question.questionId as any)._id.toString(),
@@ -853,4 +853,27 @@ export const submitTotalScore = async (interviewerId: string, interviewId: strin
     }
     interview.state = "COMPLETED";
     await interview.save();
+}
+
+export const interviewerStatistics = async (interviewerId: string) => {
+    const interviewer = await User.findById(interviewerId).populate('roleId');
+    if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const interviewNumber = await InterviewerInterview.find({ interviewersId: interviewer._id.toString() }).countDocuments();
+    const interviewQuestion = await QuestionCandidate.find({ owner: interviewer._id.toString() });
+    let contributedQuestionNumber;
+    if (!interviewQuestion) {
+        contributedQuestionNumber = 0;
+    } else {
+        contributedQuestionNumber = interviewQuestion.reduce((totalQuestion, interview) => {
+            return totalQuestion + interview.questions.length;
+        }, 0)
+    }
+    const scoredInterviewNumber = await QuestionCandidate.find({ owner: interviewer._id.toString(), totalScore: { $exists: true } }).countDocuments();
+    const incompleteInterviewNumber = interviewNumber - scoredInterviewNumber;
+    return { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber }
 }

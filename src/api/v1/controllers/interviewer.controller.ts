@@ -468,3 +468,25 @@ export const submitTotalScore = async (req: Request, res: Response, next: NextFu
     }
 };
 
+export const interviewerStatistics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const interviewerId = decodedToken.userId;
+        const { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber } = await interviewerService.interviewerStatistics(interviewerId);
+        res.status(200).json({ success: true, message: 'Get statistics successfully.', result: {
+            interviewCount: interviewNumber,
+            contributedQuestionCount: contributedQuestionNumber,
+            scoredInterviewCount: scoredInterviewNumber,
+            incompleteInterviewCount: incompleteInterviewNumber
+        } });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+

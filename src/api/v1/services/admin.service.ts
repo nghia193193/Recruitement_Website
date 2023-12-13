@@ -10,8 +10,8 @@ import { User } from "../models/user";
 import * as bcrypt from 'bcryptjs';
 
 export const getAllAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -138,8 +138,8 @@ export const getAllAccounts = async (adminId: string, searchText: any, searchBy:
 };
 
 export const getAllRecruiterAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -265,8 +265,8 @@ export const getAllRecruiterAccounts = async (adminId: string, searchText: any, 
 };
 
 export const getAllInterviewerAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -392,8 +392,8 @@ export const getAllInterviewerAccounts = async (adminId: string, searchText: any
 };
 
 export const getAllCandidateAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -519,8 +519,8 @@ export const getAllCandidateAccounts = async (adminId: string, searchText: any, 
 };
 
 export const getAllBlackListAccounts = async (adminId: string, searchText: any, searchBy: any, active: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -637,8 +637,8 @@ export const getAllBlackListAccounts = async (adminId: string, searchText: any, 
 };
 
 export const addBlackList = async (adminId: string, userId: string) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -660,8 +660,8 @@ export const addBlackList = async (adminId: string, userId: string) => {
 };
 
 export const removeBlackList = async (adminId: string, candidateId: string) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = {
@@ -683,8 +683,8 @@ export const removeBlackList = async (adminId: string, candidateId: string) => {
 };
 
 export const createAccount = async (adminId: string, fullName: string, email: string, password: string, phone: string, position: string) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = null;
@@ -726,8 +726,8 @@ export const createAccount = async (adminId: string, fullName: string, email: st
 };
 
 export const getAllJobs = async (adminId: string, recruiterName: any, jobName: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = null;
@@ -735,7 +735,7 @@ export const getAllJobs = async (adminId: string, recruiterName: any, jobName: a
     }
     const query: any = {};
     if (recruiterName) {
-        const roleId = await Role.findOne({roleName: "RECRUITER"});
+        const roleId = await Role.findOne({ roleName: "RECRUITER" });
         const authorId = await User.findOne({ fullName: recruiterName, roleId: roleId?._id.toString() });
         if (!authorId) {
             const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy recruiter');
@@ -805,8 +805,8 @@ export const getAllJobs = async (adminId: string, recruiterName: any, jobName: a
 };
 
 export const getAllEvents = async (adminId: string, recruiterName: any, eventName: any, page: number, limit: number) => {
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
         const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
         error.statusCode = 401;
         error.result = null;
@@ -814,7 +814,7 @@ export const getAllEvents = async (adminId: string, recruiterName: any, eventNam
     }
     const query: any = {};
     if (recruiterName) {
-        const roleId = await Role.findOne({roleName: "RECRUITER"});
+        const roleId = await Role.findOne({ roleName: "RECRUITER" });
         const authorId = await User.findOne({ fullName: recruiterName, roleId: roleId?._id.toString() });
         if (!authorId) {
             const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy recruiter');
@@ -855,4 +855,19 @@ export const getAllEvents = async (adminId: string, recruiterName: any, eventNam
         }
     });
     return { eventLength, listEvents };
+};
+
+export const adminStatistics = async (adminId: string) => {
+    const admin = await User.findById(adminId).populate('roleId');
+    if (admin?.get('roleId.roleName') !== 'ADMIN') {
+        const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
+        error.statusCode = 401;
+        error.result = null;
+        throw error;
+    }
+    const jobNumber = await Job.find().countDocuments();
+    const eventNumber = await Event.find().countDocuments();
+    const blackListNumber = await User.find({ blackList: true }).countDocuments();
+    const candidatePassNumber = await JobApply.find({ status: 'PASS' }).countDocuments();
+    return { jobNumber, eventNumber, blackListNumber, candidatePassNumber };
 };

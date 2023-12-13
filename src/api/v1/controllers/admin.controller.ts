@@ -349,4 +349,28 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+export const adminStatistics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const authHeader = req.get('Authorization') as string;
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken: any = await verifyToken(accessToken);
+        const adminId = decodedToken.userId;
+        const { jobNumber, eventNumber, blackListNumber, candidatePassNumber } = await adminService.adminStatistics(adminId);
+        res.status(200).json({
+            success: true, message: "Get statistics successfully!", result: {
+                jobCount: jobNumber,
+                eventCount: eventNumber,
+                blackListCount: blackListNumber,
+                candidatePassCount: candidatePassNumber
+            }
+        });
+    } catch (err) {
+        if (!(err as any).statusCode) {
+            (err as any).statusCode = 500;
+            (err as any).result = null;
+        }
+        next(err);
+    }
+};
+
 

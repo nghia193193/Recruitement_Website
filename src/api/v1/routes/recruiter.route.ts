@@ -677,4 +677,6 @@ router.get('/interviewers/:interviewerId/interviews', isAuth, [
         }),
 ], recruiterController.getInterviewsOfInterviewer);
 
+router.get('/statistics', isAuth, recruiterController.recruiterStatistics);
+
 export default router;

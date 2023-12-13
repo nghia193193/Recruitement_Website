@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInterviewsOfInterviewer = exports.getInterviewsOfCandidate = exports.GetJobSuggestedCandidates = exports.updateCandidateState = exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
+exports.recruiterStatistics = exports.getInterviewsOfInterviewer = exports.getInterviewsOfCandidate = exports.GetJobSuggestedCandidates = exports.updateCandidateState = exports.createMeeting = exports.getSingleApplicantsJob = exports.getApplicantsJob = exports.GetSingleApplicants = exports.GetAllApplicants = exports.GetSingleInterviewer = exports.GetAllInterviewers = exports.DeleteEvent = exports.UpdateEvent = exports.CreateEvent = exports.GetSingleEvent = exports.GetAllEvents = exports.DeleteJob = exports.UpdateJob = exports.GetSingleJob = exports.CreateJob = exports.GetAllJobs = void 0;
 const utils_1 = require("../utils");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../models/user");
@@ -49,6 +49,7 @@ const interview_1 = require("../models/interview");
 const interviewerInterview_1 = require("../models/interviewerInterview");
 const questionCandidate_1 = require("../models/questionCandidate");
 const mongoose_1 = __importDefault(require("mongoose"));
+const recruiterService = __importStar(require("../services/recruiter.service"));
 const GetAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
@@ -1457,7 +1458,8 @@ const createMeeting = async (req, res, next) => {
             jobApplyId: jobApplyId,
             time: startDateTime.toISOString(),
             interviewLink: meetingUrl,
-            state: 'PENDING'
+            state: 'PENDING',
+            authorId: recruiter._id.toString()
         });
         await interview.save();
         const interviewerInterview = new interviewerInterview_1.InterviewerInterview({
@@ -1569,6 +1571,7 @@ const updateCandidateState = async (req, res, next) => {
             throw error;
         }
         jobApply.status = state;
+        jobApply.authorId = recruiter._id;
         await jobApply.save();
         res.status(200).json({ success: true, message: 'Update state successfully', result: null });
     }
@@ -1945,3 +1948,36 @@ const getInterviewsOfInterviewer = async (req, res, next) => {
     }
 };
 exports.getInterviewsOfInterviewer = getInterviewsOfInterviewer;
+const recruiterStatistics = async (req, res, next) => {
+    try {
+        const authHeader = req.get('Authorization');
+        const accessToken = authHeader.split(' ')[1];
+        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const recruiterId = decodedToken.userId;
+        const recruiter = await user_1.User.findById(decodedToken.userId).populate('roleId');
+        if (recruiter?.get('roleId.roleName') !== 'RECRUITER') {
+            const error = new Error('UnAuthorized');
+            error.statusCode = 401;
+            error.result = null;
+            throw error;
+        }
+        ;
+        const { jobNumber, eventNumber, interviewNumber, candidatePassNumber } = await recruiterService.recruiterStatistics(recruiterId);
+        res.status(200).json({
+            success: true, message: 'Get statistics successfully', result: {
+                createdJobCount: jobNumber,
+                createdEventCount: eventNumber,
+                createdInterviewCount: interviewNumber,
+                candidatePassCount: candidatePassNumber
+            }
+        });
+    }
+    catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+            err.result = null;
+        }
+        next(err);
+    }
+};
+exports.recruiterStatistics = recruiterStatistics;
