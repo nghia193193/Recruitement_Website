@@ -34,7 +34,7 @@ const router = (0, express_1.Router)();
 router.post('/register', [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
-        .custom((value, { req }) => {
+        .custom((value) => {
         const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
         if (!regex.test(value)) {
             throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
@@ -46,7 +46,7 @@ router.post('/register', [
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
     (0, express_validator_1.body)('phone').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         // Định dạng số điện thoại của Việt Nam
         const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
         if (!phonePattern.test(value)) {
@@ -56,7 +56,7 @@ router.post('/register', [
     }),
     (0, express_validator_1.body)('password').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
-        .customSanitizer((value, { req }) => {
+        .customSanitizer((value) => {
         const sanitizedValue = (0, sanitize_html_1.default)(value);
         return sanitizedValue;
     }),
@@ -69,7 +69,7 @@ router.post('/verifyOTP', [
         .normalizeEmail(),
     (0, express_validator_1.body)('otp').trim()
         .isLength({ min: 6, max: 6 }).withMessage('Mã OTP gồm 6 số')
-        .custom((value, { req }) => {
+        .custom((value) => {
         const regex = /^[0-9]+$/; // Chỉ cho phép số
         if (!regex.test(value)) {
             throw new Error('Mã OTP gồm 6 số');
@@ -80,7 +80,7 @@ router.post('/verifyOTP', [
 ], authController.VerifyOTP);
 router.post('/login', [
     (0, express_validator_1.body)('credentialId').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
         const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
         if (!emailPattern.test(value) && !phonePattern.test(value)) {

@@ -23,7 +23,7 @@ router.post('/jobs/:jobId', isAuth, [
 
 router.get('/jobs/applicants', isAuth, [
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -34,7 +34,7 @@ router.get('/jobs/applicants', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -54,7 +54,7 @@ router.get('/information', isAuth, candidateController.getInformation);
 
 router.get('/interviews', isAuth, [
     query('page').trim()
-        .custom((value, {req}) => {
+        .custom((value) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {
@@ -65,7 +65,7 @@ router.get('/interviews', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value, {req}) => {
+        .custom((value) => {
             if (value) {
                 const regex = /^[0-9]+$/; // Chỉ cho phép số
                 if (!regex.test(value)) {

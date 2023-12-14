@@ -8,7 +8,7 @@ const router = Router();
 
 router.get('/users', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -22,7 +22,7 @@ router.get('/users', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -36,7 +36,7 @@ router.get('/users', isAuth, [
             return true;
         }),
     query('active').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validActive = ['true', 'false'];
                 if (!validActive.includes(value)) {
@@ -47,7 +47,7 @@ router.get('/users', isAuth, [
             return true;
         }),
     query('searchBy').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validSearchBy = ['name', 'email', 'phone'];
                 if (!validSearchBy.includes(value)) {
@@ -58,7 +58,7 @@ router.get('/users', isAuth, [
             return true;
         }),
     query('searchText').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 if (value) {
                     const regex = /^[\p{L} ]+$/u;
@@ -75,7 +75,7 @@ router.get('/users', isAuth, [
 
 router.get('/users/recruiter', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -89,7 +89,7 @@ router.get('/users/recruiter', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -103,7 +103,7 @@ router.get('/users/recruiter', isAuth, [
             return true;
         }),
     query('active').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validActive = ['true', 'false'];
                 if (!validActive.includes(value)) {
@@ -114,7 +114,7 @@ router.get('/users/recruiter', isAuth, [
             return true;
         }),
     query('searchBy').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validSearchBy = ['name', 'email', 'phone'];
                 if (!validSearchBy.includes(value)) {
@@ -125,7 +125,7 @@ router.get('/users/recruiter', isAuth, [
             return true;
         }),
     query('searchText').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 if (value) {
                     const regex = /^[\p{L} ]+$/u;
@@ -142,7 +142,7 @@ router.get('/users/recruiter', isAuth, [
 
 router.get('/users/interviewer', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -156,7 +156,7 @@ router.get('/users/interviewer', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -170,7 +170,7 @@ router.get('/users/interviewer', isAuth, [
             return true;
         }),
     query('active').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validActive = ['true', 'false'];
                 if (!validActive.includes(value)) {
@@ -181,7 +181,7 @@ router.get('/users/interviewer', isAuth, [
             return true;
         }),
     query('searchBy').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validSearchBy = ['name', 'email', 'phone'];
                 if (!validSearchBy.includes(value)) {
@@ -192,7 +192,7 @@ router.get('/users/interviewer', isAuth, [
             return true;
         }),
     query('searchText').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 if (value) {
                     const regex = /^[\p{L} ]+$/u;
@@ -209,7 +209,7 @@ router.get('/users/interviewer', isAuth, [
 
 router.get('/users/candidate', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -223,7 +223,7 @@ router.get('/users/candidate', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -237,7 +237,7 @@ router.get('/users/candidate', isAuth, [
             return true;
         }),
     query('active').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validActive = ['true', 'false'];
                 if (!validActive.includes(value)) {
@@ -248,7 +248,7 @@ router.get('/users/candidate', isAuth, [
             return true;
         }),
     query('searchBy').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validSearchBy = ['name', 'email', 'phone'];
                 if (!validSearchBy.includes(value)) {
@@ -259,7 +259,7 @@ router.get('/users/candidate', isAuth, [
             return true;
         }),
     query('searchText').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 if (value) {
                     const regex = /^[\p{L} ]+$/u;
@@ -276,7 +276,7 @@ router.get('/users/candidate', isAuth, [
 
 router.get('/users/blacklist', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -290,7 +290,7 @@ router.get('/users/blacklist', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -304,7 +304,7 @@ router.get('/users/blacklist', isAuth, [
             return true;
         }),
     query('active').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validActive = ['true', 'false'];
                 if (!validActive.includes(value)) {
@@ -315,7 +315,7 @@ router.get('/users/blacklist', isAuth, [
             return true;
         }),
     query('searchBy').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const validSearchBy = ['name', 'email', 'phone'];
                 if (!validSearchBy.includes(value)) {
@@ -326,7 +326,7 @@ router.get('/users/blacklist', isAuth, [
             return true;
         }),
     query('searchText').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 if (value) {
                     const regex = /^[\p{L} ]+$/u;
@@ -352,7 +352,7 @@ router.delete('/candidate/:candidateId', isAuth, [
 router.post('/create_account', isAuth, [
     body('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
-        .custom((value) => {
+        .custom((value: string) => {
             const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
             if (!regex.test(value)) {
                 throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
@@ -363,7 +363,7 @@ router.post('/create_account', isAuth, [
         .isEmail().withMessage('Email không hợp lệ')
         .normalizeEmail(),
     body('phone').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             // Định dạng số điện thoại của Việt Nam
             const phonePattern = /^(0[2-9]|1[0-9]|2[0-8]|3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5])[0-9]{8}$/;
             if (!phonePattern.test(value)) {
@@ -380,7 +380,7 @@ router.post('/create_account', isAuth, [
     body('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu'),
     body('position').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             const validPosition = ['INTERVIEWER', 'RECRUITER'];
             if (!validPosition.includes(value)) {
                 throw new Error('Chỉ cho phép vị trí interviewer/recruiter');
@@ -391,7 +391,7 @@ router.post('/create_account', isAuth, [
 
 router.get('/jobs', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -405,7 +405,7 @@ router.get('/jobs', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -419,7 +419,7 @@ router.get('/jobs', isAuth, [
             return true;
         }),
     query('recruiterName').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[\p{L} ]+$/u;
                 if (!regex.test(value)) {
@@ -430,7 +430,7 @@ router.get('/jobs', isAuth, [
             return true
         }),
     query('jobName').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[\p{L} #+]+$/u;
                 if (!regex.test(value)) {
@@ -444,7 +444,7 @@ router.get('/jobs', isAuth, [
 
 router.get('/events', isAuth, [
     query('page').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -458,7 +458,7 @@ router.get('/events', isAuth, [
             return true;
         }),
     query('limit').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[0-9]+$/;
                 if (!regex.test(value)) {
@@ -472,7 +472,7 @@ router.get('/events', isAuth, [
             return true;
         }),
     query('recruiterName').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[\p{L} ]+$/u;
                 if (!regex.test(value)) {
@@ -483,7 +483,7 @@ router.get('/events', isAuth, [
             return true
         }),
     query('eventName').trim()
-        .custom((value) => {
+        .custom((value: string) => {
             if (value) {
                 const regex = /^[\p{L} #+]+$/u;
                 if (!regex.test(value)) {

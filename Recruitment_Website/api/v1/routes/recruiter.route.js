@@ -22,11 +22,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const recruiterController = __importStar(require("../controllers/recruiter.controller"));
 const express_validator_1 = require("express-validator");
 const jobPosition_1 = require("../models/jobPosition");
+const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const jobType_1 = require("../models/jobType");
 const jobLocation_1 = require("../models/jobLocation");
 const skill_1 = require("../models/skill");
@@ -36,19 +40,14 @@ const user_1 = require("../models/user");
 const router = (0, express_1.Router)();
 router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
-        .custom((value, { req }) => {
+        .customSanitizer((value) => {
         if (value) {
-            const regex = /^[\p{L} 0-9#+]+$/u;
-            if (!regex.test(value)) {
-                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách, #+');
-            }
-            ;
-            return true;
+            const sanitizedValue = (0, sanitize_html_1.default)(value);
+            return sanitizedValue;
         }
-        return true;
     }),
     (0, express_validator_1.query)('position').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             return jobPosition_1.JobPosition.findOne({ name: value })
                 .then(pos => {
@@ -61,7 +60,7 @@ router.get('/jobs', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('type').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             return jobType_1.JobType.findOne({ name: value })
                 .then(type => {
@@ -74,7 +73,7 @@ router.get('/jobs', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('location').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             return jobLocation_1.JobLocation.findOne({ name: value })
                 .then(loc => {
@@ -87,7 +86,7 @@ router.get('/jobs', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -103,7 +102,7 @@ router.get('/jobs', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -121,18 +120,14 @@ router.get('/jobs', middleware_1.isAuth, [
 ], recruiterController.GetAllJobs);
 router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('name').trim()
-        .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} ,\/#0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
-        }
-        ;
-        return true;
+        .isLength({ min: 5, max: 200 }).withMessage('Tên công việc trong khoảng 5-200 ký tự')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const type = await jobType_1.JobType.findOne({ name: value });
         if (!type) {
             return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
@@ -143,38 +138,26 @@ router.post('/job', middleware_1.isAuth, [
         .notEmpty().withMessage('Vui lòng nhập số lượng')
         .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     (0, express_validator_1.body)('benefit').trim()
-        .isLength({ min: 5, max: 200 }).withMessage('Benefit trong khoảng 5-200 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .isLength({ min: 5, max: 500 }).withMessage('Benefit trong khoảng 5-500 ký tự')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
-        .custom((value, { req }) => {
-        const regex = /^[A-Za-z0-9\s$-]+$/;
-        if (!regex.test(value)) {
-            throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('requirement').trim()
-        .isLength({ min: 5, max: 200 }).withMessage('Requirement trong khoảng 5-200 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .notEmpty().withMessage('Vui lòng nhập requirement')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const location = await jobLocation_1.JobLocation.findOne({ name: value });
         if (!location) {
             throw new Error(`Failed to convert 'location' with value: '${value}'`);
@@ -183,20 +166,16 @@ router.post('/job', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
         .isDate().withMessage('deadline không hợp lệ'),
     (0, express_validator_1.body)('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const pos = await jobPosition_1.JobPosition.findOne({ name: value });
         if (!pos) {
             throw new Error(`Failed to convert 'position' with value: '${value}'`);
@@ -205,7 +184,7 @@ router.post('/job', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const errors = [];
         for (const skill of value) {
             const s = await skill_1.Skill.findOne({ name: skill });
@@ -223,18 +202,14 @@ router.get('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('
 router.put('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.body)('name').trim()
-        .isLength({ min: 5, max: 50 }).withMessage('Tên công việc trong khoảng 5-50 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} ,\/0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Tên công việc không được chứa ký tự đặc biệt trừ dấu cách');
-        }
-        ;
-        return true;
+        .isLength({ min: 5, max: 200 }).withMessage('Tên công việc trong khoảng 5-200 ký tự')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const type = await jobType_1.JobType.findOne({ name: value });
         if (!type) {
             return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
@@ -245,38 +220,26 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
         .notEmpty().withMessage('Vui lòng nhập số lượng')
         .isInt({ min: 1 }).withMessage('Số lượng phải là số nguyên dương'),
     (0, express_validator_1.body)('benefit').trim()
-        .isLength({ min: 5, max: 200 }).withMessage('Benefit trong khoảng 5-200 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Benefit không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .isLength({ min: 5, max: 500 }).withMessage('Benefit trong khoảng 5-500 ký tự')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
-        .custom((value, { req }) => {
-        const regex = /^[A-Za-z0-9\s$-]+$/;
-        if (!regex.test(value)) {
-            throw new Error('Salary Range không được chứa ký tự đặc biệt trừ dấu cách $-');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('requirement').trim()
-        .isLength({ min: 5, max: 200 }).withMessage('Requirement trong khoảng 5-200 ký tự')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Requirement không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .notEmpty().withMessage('Vui lòng nhập requirement')
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const location = await jobLocation_1.JobLocation.findOne({ name: value });
         if (!location) {
             throw new Error(`Failed to convert 'location' with value: '${value}'`);
@@ -285,20 +248,16 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
         .isISO8601().toDate().withMessage('deadline không hợp lệ'),
     (0, express_validator_1.body)('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const pos = await jobPosition_1.JobPosition.findOne({ name: value });
         if (!pos) {
             throw new Error(`Failed to convert 'position' with value: '${value}'`);
@@ -307,7 +266,7 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         const errors = [];
         for (const skill of value) {
             const s = await skill_1.Skill.findOne({ name: skill });
@@ -324,19 +283,14 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
 router.delete('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteJob);
 router.get('/events', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
-        .custom((value, { req }) => {
+        .customSanitizer((value) => {
         if (value) {
-            const regex = /^[\p{L} 0-9]+$/u;
-            if (!regex.test(value)) {
-                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
-            }
-            ;
-            return true;
+            const sanitizedValue = (0, sanitize_html_1.default)(value);
+            return sanitizedValue;
         }
-        return true;
     }),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -351,7 +305,7 @@ router.get('/events', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -370,37 +324,25 @@ router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.para
 router.post('/events', middleware_1.isAuth, [
     (0, express_validator_1.body)('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} ,\/0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách ,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} ,\/0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách ,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (!(0, utils_1.isValidTimeFormat)(value)) {
             throw new Error('Thời gian không hợp lệ.');
         }
@@ -408,7 +350,7 @@ router.post('/events', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
-        .custom((value, { req }) => {
+        .custom((value) => {
         return jobLocation_1.JobLocation.findOne({ name: value })
             .then(job => {
             if (!job) {
@@ -428,37 +370,25 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.body)('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Title không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
-        .custom((value, { req }) => {
-        const regex = /^[\p{L} .,\/:0-9]+$/u;
-        if (!regex.test(value)) {
-            throw new Error('Description không được chứa ký tự đặc biệt trừ dấu cách .,/:');
-        }
-        ;
-        return true;
+        .customSanitizer((value) => {
+        const sanitizedValue = (0, sanitize_html_1.default)(value);
+        return sanitizedValue;
     }),
     (0, express_validator_1.body)('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (!(0, utils_1.isValidTimeFormat)(value)) {
             throw new Error('Thời gian không hợp lệ.');
         }
@@ -466,7 +396,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
-        .custom((value, { req }) => {
+        .custom((value) => {
         return jobLocation_1.JobLocation.findOne({ name: value })
             .then(job => {
             if (!job) {
@@ -485,7 +415,7 @@ router.put('/events/:eventId', middleware_1.isAuth, [
 router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
 router.get('/interviewers', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[\p{L} ]+$/u;
             if (!regex.test(value)) {
@@ -497,7 +427,7 @@ router.get('/interviewers', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('skill').trim()
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         if (value) {
             const skill = await skill_1.Skill.findOne({ name: value });
             if (!skill) {
@@ -512,7 +442,7 @@ router.get('/interviewers/:interviewerId', middleware_1.isAuth, [
 ], recruiterController.GetSingleInterviewer);
 router.get('/applied-candidates', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[\p{L} ]+$/u;
             if (!regex.test(value)) {
@@ -524,7 +454,7 @@ router.get('/applied-candidates', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('skill').trim()
-        .custom(async (value, { req }) => {
+        .custom(async (value) => {
         if (value) {
             const skill = await skill_1.Skill.findOne({ name: value });
             if (!skill) {
@@ -534,7 +464,7 @@ router.get('/applied-candidates', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -549,7 +479,7 @@ router.get('/applied-candidates', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -570,7 +500,7 @@ router.get('/applied-candidates/:userId', middleware_1.isAuth, [
 router.get('/jobs/:jobId/candidates', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -585,7 +515,7 @@ router.get('/jobs/:jobId/candidates', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -637,7 +567,7 @@ router.get('/jobs/:jobId/suggested-user', middleware_1.isAuth, [
 router.get('/candidates/:candidateId/interviews', middleware_1.isAuth, [
     (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -652,7 +582,7 @@ router.get('/candidates/:candidateId/interviews', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -670,7 +600,7 @@ router.get('/candidates/:candidateId/interviews', middleware_1.isAuth, [
 router.get('/interviewers/:interviewerId/interviews', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewerId').trim().isMongoId().withMessage('interviewerId không hợp lệ'),
     (0, express_validator_1.query)('page').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/;
             if (!regex.test(value)) {
@@ -685,7 +615,7 @@ router.get('/interviewers/:interviewerId/interviews', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('limit').trim()
-        .custom((value, { req }) => {
+        .custom((value) => {
         if (value) {
             const regex = /^[0-9]+$/;
             if (!regex.test(value)) {
