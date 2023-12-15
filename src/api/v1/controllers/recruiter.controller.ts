@@ -952,7 +952,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
         })
 
         const getHash = (obj: any): string => JSON.stringify(obj);
-        const returnApplicants = Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
+        const returnApplicants = Array.from(new Set(mappedApplicants.map(getHash))).map((hash) => JSON.parse(hash));
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
         res.status(200).json({

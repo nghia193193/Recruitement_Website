@@ -978,7 +978,7 @@ const GetAllApplicants = async (req, res, next) => {
             };
         });
         const getHash = (obj) => JSON.stringify(obj);
-        const returnApplicants = Array.from(new Set(mappedApplicants.filter(applicant => applicant !== null).map(getHash))).map((hash) => JSON.parse(hash));
+        const returnApplicants = Array.from(new Set(mappedApplicants.map(getHash))).map((hash) => JSON.parse(hash));
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
         res.status(200).json({

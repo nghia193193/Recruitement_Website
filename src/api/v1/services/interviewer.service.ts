@@ -848,12 +848,17 @@ export const submitTotalScore = async (interviewerId: string, interviewId: strin
         error.result = null;
         throw error;
     }
-    const score = questionCandidate.questions.reduce((totalScore, question) => {
-        if (question.score) {
-            return totalScore + question.score;
-        } else return totalScore + 0;
-    }, 0);
-    const submitScore = `${score}/${questionCandidate.questions.length * 10}`;
+    let totalScore = 0;
+    for (let i=0; i<questionCandidate.questions.length; i++) {
+        if (!questionCandidate.questions[i].score) {
+            const error: Error & { statusCode?: any, result?: any } = new Error('Vui lòng chấm điểm hết câu hỏi');
+            error.statusCode = 400;
+            error.result = null;
+            throw error;
+        }
+        totalScore += (questionCandidate.questions[i].score as number);
+    }
+    const submitScore = `${totalScore}/${questionCandidate.questions.length * 10}`;
     questionCandidate.totalScore = submitScore;
     await questionCandidate.save()
     const interview = await Interview.findById(interviewId);
