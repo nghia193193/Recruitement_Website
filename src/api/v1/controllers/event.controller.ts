@@ -9,7 +9,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const query: any = {
             isActive: true,
-            startAt: { $gt: new Date() }
+            deadline: { $gt: new Date() }
         };
         if (name) {
             query['name'] = name;

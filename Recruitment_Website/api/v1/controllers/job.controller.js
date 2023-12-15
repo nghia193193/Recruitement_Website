@@ -21,7 +21,8 @@ const GetJobs = async (req, res, next) => {
         }
         ;
         const query = {
-            isActive: true
+            isActive: true,
+            deadline: { $gt: new Date() }
         };
         if (req.query['name']) {
             query['name'] = new RegExp(req.query['name'], 'i');
@@ -76,13 +77,15 @@ const GetJobs = async (req, res, next) => {
                 skills: listSkills
             };
         });
-        res.status(200).json({ success: true, message: 'Successfully', statusCode: 200, result: {
+        res.status(200).json({
+            success: true, message: 'Successfully', statusCode: 200, result: {
                 pageNumber: page,
                 totalPages: Math.ceil(jobLength / limit),
                 limit: limit,
                 totalElements: jobLength,
                 content: listjobs
-            } });
+            }
+        });
     }
     catch (err) {
         if (!err.statusCode) {

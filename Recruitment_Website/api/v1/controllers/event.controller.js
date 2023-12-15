@@ -10,7 +10,7 @@ const GetAllEvents = async (req, res, next) => {
         const limit = req.query.limit ? +req.query.limit : 10;
         const query = {
             isActive: true,
-            startAt: { $gt: new Date() }
+            deadline: { $gt: new Date() }
         };
         if (name) {
             query['name'] = name;
