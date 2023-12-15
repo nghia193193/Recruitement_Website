@@ -533,12 +533,13 @@ const getSingleInterview = async (interviewerId, interviewId) => {
         candidate: {
             candidateId: interview.get('interviewId.candidateId._id'),
             candidateFullName: interview.get('interviewId.candidateId.fullName'),
+            avatar: interview.get('interviewId.candidateId.avatar.url'),
             email: interview.get('interviewId.candidateId.email'),
             phone: interview.get('interviewId.candidateId.phone'),
             about: interview.get('interviewId.candidateId.about'),
             address: interview.get('interviewId.candidateId.address'),
             dateOfBirth: interview.get('interviewId.candidateId.dateOfBirth'),
-            cv: jobApply?.get('resumeId.resumeUpload'),
+            cv: jobApply?.get('resumeId.resumeUpload') ? jobApply?.get('resumeId.resumeUpload') : null,
             information: {
                 education: returnEducationList,
                 experience: returnExperienceList,
