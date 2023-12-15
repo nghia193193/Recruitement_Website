@@ -5,18 +5,19 @@ import { validationResult } from "express-validator";
 export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const name = req.query.name;
-        const page: number = req.query.page ? +req.query.page : 1; 
+        const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
         const query: any = {
-            isActive: true
+            isActive: true,
+            startAt: { $gt: new Date() }
         };
         if (name) {
             query['name'] = name;
         };
-        
+
         const eventLength = await Event.find(query).countDocuments();
         if (eventLength === 0) {
-            const error: Error & {statusCode?: any, success?: any, result?: any} = new Error('Không tìm thấy sự kiện nào');
+            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy sự kiện nào');
             error.statusCode = 200;
             error.success = true;
             error.result = {
@@ -27,12 +28,12 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
 
         const events = await Event.find(query)
             .populate('authorId')
-            .sort({updatedAt: -1})
+            .sort({ updatedAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
-        
+
         const listEvents = events.map(e => {
-            const {_id, authorId, ...rest} = e;
+            const { _id, authorId, ...rest } = e;
             delete (rest as any)._doc._id;
             delete (rest as any)._doc.authorId;
             return {
@@ -41,14 +42,16 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
                 ...(rest as any)._doc
             }
         });
-        
-        res.status(200).json({success: true, message: 'Successfully!', result: {
-            pageNumber: page,
-            totalPages: Math.ceil(eventLength/limit),
-            limit: limit,
-            totalElements: eventLength,
-            content: listEvents
-        }});
+
+        res.status(200).json({
+            success: true, message: 'Successfully!', result: {
+                pageNumber: page,
+                totalPages: Math.ceil(eventLength / limit),
+                limit: limit,
+                totalElements: eventLength,
+                content: listEvents
+            }
+        });
 
     } catch (err) {
         if (!(err as any).statusCode) {
@@ -71,21 +74,21 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
         };
         const event = await Event.findById(eventId).populate('authorId');
         if (!event) {
-            const error: Error & {statusCode?: any, result?: any} = new Error('Không tìm thấy sự kiện');
+            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy sự kiện');
             error.statusCode = 400;
             error.result = null;
             throw error;
         };
-        const {_id, authorId, ...rest} = event;
+        const { _id, authorId, ...rest } = event;
         delete (rest as any)._doc._id;
         delete (rest as any)._doc.authorId;
-        
+
         const returnEvent = {
             eventId: _id.toString(),
             author: (authorId as any).fullName,
             ...(rest as any)._doc,
         };
-        res.status(200).json({success: true, message: 'Successfully!', result: returnEvent});
+        res.status(200).json({ success: true, message: 'Successfully!', result: returnEvent });
 
     } catch (err) {
         if (!(err as any).statusCode) {

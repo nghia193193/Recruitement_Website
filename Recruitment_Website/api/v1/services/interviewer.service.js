@@ -245,16 +245,28 @@ const getAllApplicants = async (interviewerId, page, limit) => {
                     return interviewer.fullName;
                 });
                 const scoreInterviewer = await questionCandidate_1.QuestionCandidate.find({ interviewId: interview.interviewId._id.toString() });
-                const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
-                    return (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer.totalScore);
-                }, "0/0");
-                const [numerator, denominator] = score.split('/').map(Number);
                 let totalScore;
-                if (denominator === 0) {
-                    totalScore = null;
+                if (scoreInterviewer) {
+                    totalScore = "0/0";
+                    for (let i = 0; i < scoreInterviewer.length; i++) {
+                        if (!scoreInterviewer[i].totalScore) {
+                            totalScore = null;
+                            break;
+                        }
+                        (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer[i].totalScore);
+                    }
+                    if (totalScore) {
+                        const [numerator, denominator] = totalScore.split('/').map(Number);
+                        if (denominator === 0) {
+                            totalScore = null;
+                        }
+                        else {
+                            totalScore = `${numerator * 100 / denominator}/100`;
+                        }
+                    }
                 }
                 else {
-                    totalScore = `${numerator * 100 / denominator}/100`;
+                    totalScore = null;
                 }
                 return {
                     candidateId: interview.get('interviewId.candidateId._id'),
@@ -287,7 +299,7 @@ const getAllApplicants = async (interviewerId, page, limit) => {
                 return null;
             }
         }));
-        return mappedApplicants.filter(applicant => applicant !== null);
+        return mappedApplicants;
     };
     const listApplicants = await returnListApplicants().then(mappedApplicants => {
         return mappedApplicants;

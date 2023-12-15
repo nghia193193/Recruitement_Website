@@ -193,7 +193,7 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
-
+    
     const returnListApplicants = async () => {
         const mappedApplicants = await Promise.all(
             listInterviews.map(async (interview) => {
@@ -240,15 +240,26 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                         return (interviewer as any).fullName;
                     })
                     const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview.interviewId._id.toString() });
-                    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
-                        return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
-                    }, "0/0")
-                    const [numerator, denominator] = score.split('/').map(Number);
                     let totalScore;
-                    if (denominator === 0) {
-                        totalScore = null;
+                    if (scoreInterviewer) {
+                        totalScore = "0/0";
+                        for (let i=0; i< scoreInterviewer.length; i++) {
+                            if (!scoreInterviewer[i].totalScore) {
+                                totalScore = null;
+                                break;
+                            }
+                            addFractionStrings(totalScore, scoreInterviewer[i].totalScore as string);
+                        }
+                        if (totalScore) {
+                            const [numerator, denominator] = totalScore.split('/').map(Number);
+                            if (denominator === 0) {
+                                totalScore = null;
+                            } else {
+                                totalScore = `${numerator * 100 / denominator}/100`;
+                            }
+                        }
                     } else {
-                        totalScore = `${numerator * 100 / denominator}/100`;
+                        totalScore = null;
                     }
                     return {
                         candidateId: interview.get('interviewId.candidateId._id'),
@@ -281,7 +292,7 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                 }
             })
         )
-        return mappedApplicants.filter(applicant => applicant !== null);
+        return mappedApplicants;
     }
     const listApplicants = await returnListApplicants().then(mappedApplicants => {
         return mappedApplicants

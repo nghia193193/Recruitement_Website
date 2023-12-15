@@ -9,7 +9,8 @@ const GetAllEvents = async (req, res, next) => {
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
         const query = {
-            isActive: true
+            isActive: true,
+            startAt: { $gt: new Date() }
         };
         if (name) {
             query['name'] = name;
@@ -41,13 +42,15 @@ const GetAllEvents = async (req, res, next) => {
                 ...rest._doc
             };
         });
-        res.status(200).json({ success: true, message: 'Successfully!', result: {
+        res.status(200).json({
+            success: true, message: 'Successfully!', result: {
                 pageNumber: page,
                 totalPages: Math.ceil(eventLength / limit),
                 limit: limit,
                 totalElements: eventLength,
                 content: listEvents
-            } });
+            }
+        });
     }
     catch (err) {
         if (!err.statusCode) {

@@ -929,7 +929,9 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
                 }
             }
         ]).sort({ updatedAt: -1 })
-
+        listApplicants.forEach(applicant => {
+            console.log(applicant.applicants)
+        })
         const mappedApplicants = listApplicants.map(applicant => {
             let listSkill = [];
             for (let i = 0; i < applicant.skills.length; i++) {
@@ -938,7 +940,7 @@ export const GetAllApplicants = async (req: Request, res: Response, next: NextFu
             return {
                 candidateId: applicant.candidateId._id.toString(),
                 blackList: applicant.applicants[0].blackList,
-                avatar: applicant.applicants[0].avatar.url,
+                avatar: applicant.applicants[0].avatar ? applicant.applicants[0].avatar.url : null ,
                 candidateFullName: applicant.applicants[0].fullName,
                 candidateEmail: applicant.applicants[0].email,
                 about: applicant.applicants[0].about,
