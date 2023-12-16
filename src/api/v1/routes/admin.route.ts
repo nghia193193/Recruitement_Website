@@ -360,8 +360,7 @@ router.post('/create_account', isAuth, [
             return true;
         }),
     body('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
+        .isEmail().withMessage('Email không hợp lệ'),
     body('phone').trim()
         .custom((value: string) => {
             // Định dạng số điện thoại của Việt Nam

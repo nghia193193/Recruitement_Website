@@ -395,8 +395,7 @@ router.post('/create_account', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.body)('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
+        .isEmail().withMessage('Email không hợp lệ'),
     (0, express_validator_1.body)('phone').trim()
         .custom((value) => {
         // Định dạng số điện thoại của Việt Nam

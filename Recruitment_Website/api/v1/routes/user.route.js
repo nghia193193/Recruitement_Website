@@ -81,8 +81,7 @@ router.put('/change-password', middleware_1.isAuth, [
 ], userController.ChangePassword);
 router.put('/avatar', middleware_1.isAuth, userController.ChangeAvatar);
 router.post('/forgot-password', (0, express_validator_1.body)('email').trim()
-    .isEmail().withMessage('Email không hợp lệ')
-    .normalizeEmail(), userController.ForgotPassword);
+    .isEmail().withMessage('Email không hợp lệ'), userController.ForgotPassword);
 router.post('/reset-password', [
     (0, express_validator_1.body)('newPassword').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')

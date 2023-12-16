@@ -57,7 +57,6 @@ router.put('/avatar',isAuth, userController.ChangeAvatar);
 router.post('/forgot-password',
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail()
 , userController.ForgotPassword);
 
 router.post('/reset-password',[

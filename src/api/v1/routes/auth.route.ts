@@ -17,8 +17,7 @@ router.post('/register',[
             return true;
         }),
     body('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
+        .isEmail().withMessage('Email không hợp lệ'),
     body('phone').trim()
         .custom((value: string) => {
             // Định dạng số điện thoại của Việt Nam
@@ -40,8 +39,7 @@ router.post('/register',[
 
 router.post('/verifyOTP',[
     body('email').trim()
-        .isEmail().withMessage('Email không hợp lệ')
-        .normalizeEmail(),
+        .isEmail().withMessage('Email không hợp lệ'),
     body('otp').trim()
         .isLength({min: 6, max: 6}).withMessage('Mã OTP gồm 6 số')
         .custom((value: string) => {
