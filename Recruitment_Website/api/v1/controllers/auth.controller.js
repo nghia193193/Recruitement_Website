@@ -95,7 +95,7 @@ const Signup = async (req, res, next) => {
                 <h2>Welcome</h2>
                 <span style="margin: 1px">Your OTP confirmation code is: <b>${otp}</b></span>
                 <p style="margin-top: 0px">Click this link below to verify your account.</p>
-                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="https://recruiment-website.vercel.app/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
                 <p>Thank you for joining us!</p>
                 <p style="color: red">Note: This link is only valid in 10 minutes!</p>
             </div>
