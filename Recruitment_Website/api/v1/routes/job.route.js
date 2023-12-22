@@ -111,9 +111,9 @@ router.get('/', [
         }
         return true;
     }),
-], jobController.GetJobs);
-router.get('/location', jobController.GetLocation);
-router.get('/position', jobController.GetPosition);
-router.get('/type', jobController.GetType);
-router.get('/:jobId', (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), jobController.GetSingleJob);
+], jobController.getJobs);
+router.get('/location', jobController.getLocation);
+router.get('/position', jobController.getPosition);
+router.get('/type', jobController.getType);
+router.get('/:jobId', (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), jobController.getSingleJob);
 exports.default = router;

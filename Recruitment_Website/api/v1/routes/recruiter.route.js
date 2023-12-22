@@ -117,7 +117,7 @@ router.get('/jobs', middleware_1.isAuth, [
         }
         return true;
     }),
-], recruiterController.GetAllJobs);
+], recruiterController.getAllJobs);
 router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('name').trim()
         .isLength({ min: 5, max: 200 }).withMessage('Tên công việc trong khoảng 5-200 ký tự')
@@ -197,8 +197,8 @@ router.post('/job', middleware_1.isAuth, [
         }
         return true;
     })
-], recruiterController.CreateJob);
-router.get('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleJob);
+], recruiterController.createJob);
+router.get('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.getSingleJob);
 router.put('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.body)('name').trim()
@@ -279,8 +279,8 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
         }
         return true;
     })
-], recruiterController.UpdateJob);
-router.delete('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteJob);
+], recruiterController.updateJob);
+router.delete('/jobs/:jobId', middleware_1.isAuth, (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.deleteJob);
 router.get('/events', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
         .customSanitizer((value) => {
@@ -319,8 +319,8 @@ router.get('/events', middleware_1.isAuth, [
         }
         return true;
     }),
-], recruiterController.GetAllEvents);
-router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.GetSingleEvent);
+], recruiterController.getAllEvents);
+router.get('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.getSingleEvent);
 router.post('/events', middleware_1.isAuth, [
     (0, express_validator_1.body)('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
@@ -365,7 +365,7 @@ router.post('/events', middleware_1.isAuth, [
     (0, express_validator_1.body)('startAt').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
-], recruiterController.CreateEvent);
+], recruiterController.createEvent);
 router.put('/events/:eventId', middleware_1.isAuth, [
     (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.body)('title').trim()
@@ -411,8 +411,8 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     (0, express_validator_1.body)('startAt').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
-], recruiterController.UpdateEvent);
-router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.DeleteEvent);
+], recruiterController.updateEvent);
+router.delete('/events/:eventId', middleware_1.isAuth, (0, express_validator_1.param)('eventId').trim().isMongoId().withMessage('Id không hợp lệ'), recruiterController.deleteEvent);
 router.get('/interviewers', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
         .custom((value) => {
@@ -436,10 +436,10 @@ router.get('/interviewers', middleware_1.isAuth, [
         }
         return true;
     })
-], recruiterController.GetAllInterviewers);
+], recruiterController.getAllInterviewers);
 router.get('/interviewers/:interviewerId', middleware_1.isAuth, [
     (0, express_validator_1.param)('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
-], recruiterController.GetSingleInterviewer);
+], recruiterController.getSingleInterviewer);
 router.get('/applied-candidates', middleware_1.isAuth, [
     (0, express_validator_1.query)('name').trim()
         .custom((value) => {
@@ -493,10 +493,10 @@ router.get('/applied-candidates', middleware_1.isAuth, [
         }
         return true;
     }),
-], recruiterController.GetAllApplicants);
+], recruiterController.getAllApplicants);
 router.get('/applied-candidates/:userId', middleware_1.isAuth, [
     (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('Id không hợp lệ')
-], recruiterController.GetSingleApplicants);
+], recruiterController.getSingleApplicant);
 router.get('/jobs/:jobId/candidates', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     (0, express_validator_1.query)('page').trim()
@@ -533,7 +533,7 @@ router.get('/jobs/:jobId/candidates', middleware_1.isAuth, [
 router.get('/jobs/:jobId/candidates/:candidateId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
-], recruiterController.getSingleApplicantsJob);
+], recruiterController.getSingleApplicantJob);
 router.post('/interviews', middleware_1.isAuth, [
     (0, express_validator_1.body)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
     (0, express_validator_1.body)('jobApplyId').trim().isMongoId().withMessage('jobApplyId không hợp lệ'),
@@ -563,7 +563,7 @@ router.put('/candidates/state', middleware_1.isAuth, [
 ], recruiterController.updateCandidateState);
 router.get('/jobs/:jobId/suggested-user', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
-], recruiterController.GetJobSuggestedCandidates);
+], recruiterController.getJobSuggestedCandidates);
 router.get('/candidates/:candidateId/interviews', middleware_1.isAuth, [
     (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
     (0, express_validator_1.query)('page').trim()

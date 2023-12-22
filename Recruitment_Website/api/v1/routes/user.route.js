@@ -32,7 +32,7 @@ const express_validator_1 = require("express-validator");
 const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const middleware_1 = require("../middleware");
 const router = (0, express_1.Router)();
-router.get('/profile', middleware_1.isAuth, userController.GetProfile);
+router.get('/profile', middleware_1.isAuth, userController.getProfile);
 router.put('/update', middleware_1.isAuth, [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
@@ -65,7 +65,7 @@ router.put('/update', middleware_1.isAuth, [
         ;
         return true;
     })
-], userController.UpdateProfile);
+], userController.updateProfile);
 router.put('/change-password', middleware_1.isAuth, [
     (0, express_validator_1.body)('newPassword').isLength({ min: 8, max: 32 }).withMessage('Mật khẩu mới phải có độ dài từ 8-32 ký tự')
         .customSanitizer((value, { req }) => {
@@ -78,10 +78,10 @@ router.put('/change-password', middleware_1.isAuth, [
         }
         return true;
     })
-], userController.ChangePassword);
-router.put('/avatar', middleware_1.isAuth, userController.ChangeAvatar);
+], userController.changePassword);
+router.put('/avatar', middleware_1.isAuth, userController.changeAvatar);
 router.post('/forgot-password', (0, express_validator_1.body)('email').trim()
-    .isEmail().withMessage('Email không hợp lệ'), userController.ForgotPassword);
+    .isEmail().withMessage('Email không hợp lệ'), userController.forgetPassword);
 router.post('/reset-password', [
     (0, express_validator_1.body)('newPassword').trim()
         .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
@@ -93,5 +93,5 @@ router.post('/reset-password', [
     (0, express_validator_1.body)('token').trim()
         .isLength({ min: 64, max: 64 }).withMessage('Token không hợp lệ')
         .isHexadecimal().withMessage('Token không hợp lệ')
-], userController.ResetPassword);
+], userController.resetPassword);
 exports.default = router;

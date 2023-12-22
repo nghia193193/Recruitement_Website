@@ -839,7 +839,6 @@ const getAllEvents = async (adminId, recruiterName, eventName, page, limit) => {
     if (eventName) {
         query['name'] = new RegExp(eventName, 'i');
     }
-    console.log(query);
     const eventLength = await event_1.Event.find(query).countDocuments();
     if (eventLength === 0) {
         const error = new Error('Không tìm thấy sự kiện nào');

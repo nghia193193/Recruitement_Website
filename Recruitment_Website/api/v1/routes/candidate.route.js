@@ -28,16 +28,16 @@ const candidateController = __importStar(require("../controllers/candidate.contr
 const middleware_1 = require("../middleware");
 const express_validator_1 = require("express-validator");
 const router = (0, express_1.Router)();
-router.get('/resumes', middleware_1.isAuth, candidateController.GetResumes);
-router.put('/resumes', middleware_1.isAuth, candidateController.UploadResume);
-router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.DeleteResume);
+router.get('/resumes', middleware_1.isAuth, candidateController.getResumes);
+router.put('/resumes', middleware_1.isAuth, candidateController.uploadResume);
+router.delete('/resumes/:resumeId', middleware_1.isAuth, (0, express_validator_1.param)('resumeId').trim().isMongoId().withMessage('Id không hợp lệ'), candidateController.deleteResume);
 router.get('/applied-jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-], candidateController.CheckApply);
+], candidateController.checkApply);
 router.post('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.param)('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     (0, express_validator_1.body)('resumeId').trim().isMongoId().withMessage('resumeId không hợp lệ')
-], candidateController.ApplyJob);
+], candidateController.applyJob);
 router.get('/jobs/applicants', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -63,7 +63,7 @@ router.get('/jobs/applicants', middleware_1.isAuth, [
         }
         return true;
     })
-], candidateController.GetAppliedJobs);
+], candidateController.getAppliedJobs);
 router.put('/information', middleware_1.isAuth, [], candidateController.saveInformation);
 router.get('/information', middleware_1.isAuth, candidateController.getInformation);
 router.get('/interviews', middleware_1.isAuth, [

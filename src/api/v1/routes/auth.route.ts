@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import * as authController from '../controllers/auth.controller';
-import { User } from '../models/user';
 import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
@@ -35,7 +34,7 @@ router.post('/register',[
         }),
     body('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
-], authController.Signup);
+], authController.signUp);
 
 router.post('/verifyOTP',[
     body('email').trim()
@@ -49,7 +48,7 @@ router.post('/verifyOTP',[
             };
             return true;
         })
-], authController.VerifyOTP);
+], authController.verifyOTP);
 
 router.post('/login',[
     body('credentialId').trim()
@@ -63,8 +62,8 @@ router.post('/login',[
         }),
     body('password').trim()
         .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
-], authController.Login);
+], authController.login);
 
-router.post('/refresh-access-token', authController.RefreshAccessToken);
+router.post('/refresh-access-token', authController.refreshAccessToken);
 
 export default router;

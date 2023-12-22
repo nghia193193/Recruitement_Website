@@ -6,20 +6,20 @@ import mongoose from "mongoose";
 
 const router = Router();
 
-router.get('/resumes',isAuth, candidateController.GetResumes);
-router.put('/resumes',isAuth, candidateController.UploadResume);
+router.get('/resumes',isAuth, candidateController.getResumes);
+router.put('/resumes',isAuth, candidateController.uploadResume);
 router.delete('/resumes/:resumeId',isAuth,
     param('resumeId').trim().isMongoId().withMessage('Id không hợp lệ')
-, candidateController.DeleteResume);
+, candidateController.deleteResume);
 
 router.get('/applied-jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-], candidateController.CheckApply);
+], candidateController.checkApply);
 
 router.post('/jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     body('resumeId').trim().isMongoId().withMessage('resumeId không hợp lệ')
-], candidateController.ApplyJob);
+], candidateController.applyJob);
 
 router.get('/jobs/applicants', isAuth, [
     query('page').trim()
@@ -44,7 +44,7 @@ router.get('/jobs/applicants', isAuth, [
             }
             return true;
         })
-], candidateController.GetAppliedJobs);
+], candidateController.getAppliedJobs);
 
 router.put('/information', isAuth, [
 

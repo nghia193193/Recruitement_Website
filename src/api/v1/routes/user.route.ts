@@ -5,7 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 import { isAuth } from '../middleware';
 const router = Router();
 
-router.get('/profile',isAuth, userController.GetProfile);
+router.get('/profile',isAuth, userController.getProfile);
 router.put('/update',isAuth ,[
     body('fullName').trim()
         .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
@@ -35,7 +35,7 @@ router.put('/update',isAuth ,[
             };
             return true;
         })
-], userController.UpdateProfile);
+], userController.updateProfile);
 
 router.put('/change-password',isAuth, [
     body('newPassword').isLength({min: 8, max: 32}).withMessage('Mật khẩu mới phải có độ dài từ 8-32 ký tự')
@@ -50,14 +50,14 @@ router.put('/change-password',isAuth, [
         return true;
     })
 ]
-,userController.ChangePassword);
+,userController.changePassword);
 
-router.put('/avatar',isAuth, userController.ChangeAvatar);
+router.put('/avatar',isAuth, userController.changeAvatar);
 
 router.post('/forgot-password',
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ')
-, userController.ForgotPassword);
+, userController.forgetPassword);
 
 router.post('/reset-password',[
     body('newPassword').trim()
@@ -70,6 +70,6 @@ router.post('/reset-password',[
     body('token').trim()
         .isLength({min: 64, max: 64}).withMessage('Token không hợp lệ')
         .isHexadecimal().withMessage('Token không hợp lệ')
-], userController.ResetPassword)
+], userController.resetPassword)
 
 export default router;

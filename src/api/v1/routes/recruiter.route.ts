@@ -2,7 +2,6 @@ import { Router } from "express";
 import * as recruiterController from '../controllers/recruiter.controller';
 import { body, param, query } from 'express-validator';
 import { JobPosition } from "../models/jobPosition";
-import { Job } from "../models/job";
 import sanitizeHtml from "sanitize-html";
 import { JobType } from "../models/jobType";
 import { JobLocation } from "../models/jobLocation";
@@ -91,7 +90,7 @@ router.get('/jobs', isAuth, [
             }
             return true;
         }),
-], recruiterController.GetAllJobs);
+], recruiterController.getAllJobs);
 
 router.post('/job', isAuth, [
     body('name').trim()
@@ -172,11 +171,11 @@ router.post('/job', isAuth, [
             }
             return true;
         })
-], recruiterController.CreateJob);
+], recruiterController.createJob);
 
 router.get('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.GetSingleJob);
+    , recruiterController.getSingleJob);
 
 router.put('/jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
@@ -258,11 +257,11 @@ router.put('/jobs/:jobId', isAuth, [
             }
             return true;
         })
-], recruiterController.UpdateJob);
+], recruiterController.updateJob);
 
 router.delete('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.DeleteJob);
+    , recruiterController.deleteJob);
 
 router.get('/events', isAuth, [
     query('name').trim()
@@ -300,11 +299,11 @@ router.get('/events', isAuth, [
             }
             return true;
         }),
-], recruiterController.GetAllEvents);
+], recruiterController.getAllEvents);
 
 router.get('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.GetSingleEvent);
+    , recruiterController.getSingleEvent);
 
 router.post('/events', isAuth, [
     body('title').trim()
@@ -350,7 +349,7 @@ router.post('/events', isAuth, [
     body('startAt').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
-], recruiterController.CreateEvent);
+], recruiterController.createEvent);
 
 router.put('/events/:eventId', isAuth, [
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ'),
@@ -397,11 +396,11 @@ router.put('/events/:eventId', isAuth, [
     body('startAt').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian bắt đầu')
         .isISO8601().toDate().withMessage('Thời gian bắt đầu không hợp lệ')
-], recruiterController.UpdateEvent)
+], recruiterController.updateEvent)
 
 router.delete('/events/:eventId', isAuth,
     param('eventId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.DeleteEvent);
+    , recruiterController.deleteEvent);
 
 router.get('/interviewers', isAuth, [
     query('name').trim()
@@ -425,11 +424,11 @@ router.get('/interviewers', isAuth, [
             }
             return true;
         })
-], recruiterController.GetAllInterviewers);
+], recruiterController.getAllInterviewers);
 
 router.get('/interviewers/:interviewerId', isAuth, [
     param('interviewerId').trim().isMongoId().withMessage('Id không hợp lệ')
-], recruiterController.GetSingleInterviewer);
+], recruiterController.getSingleInterviewer);
 
 router.get('/applied-candidates', isAuth, [
     query('name').trim()
@@ -481,11 +480,11 @@ router.get('/applied-candidates', isAuth, [
             }
             return true;
         }),
-], recruiterController.GetAllApplicants);
+], recruiterController.getAllApplicants);
 
 router.get('/applied-candidates/:userId', isAuth, [
     param('userId').trim().isMongoId().withMessage('Id không hợp lệ')
-], recruiterController.GetSingleApplicants);
+], recruiterController.getSingleApplicant);
 
 router.get('/jobs/:jobId/candidates', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
@@ -522,7 +521,7 @@ router.get('/jobs/:jobId/candidates', isAuth, [
 router.get('/jobs/:jobId/candidates/:candidateId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
-], recruiterController.getSingleApplicantsJob);
+], recruiterController.getSingleApplicantJob);
 
 router.post('/interviews', isAuth, [
     body('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),
@@ -555,7 +554,7 @@ router.put('/candidates/state', isAuth, [
 
 router.get('/jobs/:jobId/suggested-user', isAuth, [
     param('jobId').trim().isMongoId().withMessage('jobId không hợp lệ'),
-], recruiterController.GetJobSuggestedCandidates);
+], recruiterController.getJobSuggestedCandidates);
 
 router.get('/candidates/:candidateId/interviews', isAuth, [
     param('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ'),

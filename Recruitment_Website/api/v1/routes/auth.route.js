@@ -61,7 +61,7 @@ router.post('/register', [
     }),
     (0, express_validator_1.body)('confirmPassword').trim()
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
-], authController.Signup);
+], authController.signUp);
 router.post('/verifyOTP', [
     (0, express_validator_1.body)('email').trim()
         .isEmail().withMessage('Email không hợp lệ'),
@@ -75,7 +75,7 @@ router.post('/verifyOTP', [
         ;
         return true;
     })
-], authController.VerifyOTP);
+], authController.verifyOTP);
 router.post('/login', [
     (0, express_validator_1.body)('credentialId').trim()
         .custom((value) => {
@@ -88,6 +88,6 @@ router.post('/login', [
     }),
     (0, express_validator_1.body)('password').trim()
         .notEmpty().withMessage('Vui lòng nhập mật khẩu'),
-], authController.Login);
-router.post('/refresh-access-token', authController.RefreshAccessToken);
+], authController.login);
+router.post('/refresh-access-token', authController.refreshAccessToken);
 exports.default = router;

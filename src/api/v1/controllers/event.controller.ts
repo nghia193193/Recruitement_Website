@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { Event } from "../models/event";
 import { validationResult } from "express-validator";
+import * as eventService from '../services/event.service';
 
-export const GetAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const name = req.query.name;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -14,35 +14,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
         if (name) {
             query['name'] = name;
         };
-
-        const eventLength = await Event.find(query).countDocuments();
-        if (eventLength === 0) {
-            const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy sự kiện nào');
-            error.statusCode = 200;
-            error.success = true;
-            error.result = {
-                content: []
-            };
-            throw error;
-        };
-
-        const events = await Event.find(query)
-            .populate('authorId')
-            .sort({ updatedAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit);
-
-        const listEvents = events.map(e => {
-            const { _id, authorId, ...rest } = e;
-            delete (rest as any)._doc._id;
-            delete (rest as any)._doc.authorId;
-            return {
-                eventId: _id.toString(),
-                author: (authorId as any).fullName,
-                ...(rest as any)._doc
-            }
-        });
-
+        const { listEvents, eventLength } = await eventService.getAllEvents(query, page, limit);
         res.status(200).json({
             success: true, message: 'Successfully!', result: {
                 pageNumber: page,
@@ -62,7 +34,7 @@ export const GetAllEvents = async (req: Request, res: Response, next: NextFuncti
     };
 };
 
-export const GetSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getSingleEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const eventId = req.params.eventId;
         const errors = validationResult(req);
@@ -72,22 +44,7 @@ export const GetSingleEvent = async (req: Request, res: Response, next: NextFunc
             error.result = null;
             throw error;
         };
-        const event = await Event.findById(eventId).populate('authorId');
-        if (!event) {
-            const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy sự kiện');
-            error.statusCode = 400;
-            error.result = null;
-            throw error;
-        };
-        const { _id, authorId, ...rest } = event;
-        delete (rest as any)._doc._id;
-        delete (rest as any)._doc.authorId;
-
-        const returnEvent = {
-            eventId: _id.toString(),
-            author: (authorId as any).fullName,
-            ...(rest as any)._doc,
-        };
+        const returnEvent = await eventService.getSingleEvent(eventId);
         res.status(200).json({ success: true, message: 'Successfully!', result: returnEvent });
 
     } catch (err) {
