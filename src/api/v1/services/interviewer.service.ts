@@ -248,14 +248,14 @@ export const getAllApplicants = async (interviewerId: string, page: number, limi
                                 totalScore = null;
                                 break;
                             }
-                            addFractionStrings(totalScore, scoreInterviewer[i].totalScore as string);
+                            totalScore = addFractionStrings(totalScore, scoreInterviewer[i].totalScore as string);
                         }
                         if (totalScore) {
                             const [numerator, denominator] = totalScore.split('/').map(Number);
                             if (denominator === 0) {
                                 totalScore = null;
                             } else {
-                                totalScore = `${numerator * 100 / denominator}/100`;
+                                totalScore = `${(numerator * 100 / denominator).toFixed(0)}/100`;
                             }
                         }
                     } else {

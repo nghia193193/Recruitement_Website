@@ -253,7 +253,7 @@ const getAllApplicants = async (interviewerId, page, limit) => {
                             totalScore = null;
                             break;
                         }
-                        (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer[i].totalScore);
+                        totalScore = (0, utils_1.addFractionStrings)(totalScore, scoreInterviewer[i].totalScore);
                     }
                     if (totalScore) {
                         const [numerator, denominator] = totalScore.split('/').map(Number);
@@ -261,7 +261,7 @@ const getAllApplicants = async (interviewerId, page, limit) => {
                             totalScore = null;
                         }
                         else {
-                            totalScore = `${numerator * 100 / denominator}/100`;
+                            totalScore = `${(numerator * 100 / denominator).toFixed(0)}/100`;
                         }
                     }
                 }
