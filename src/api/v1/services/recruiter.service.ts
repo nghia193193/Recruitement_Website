@@ -22,7 +22,7 @@ import { ClientSecretCredential, ClientSecretCredentialOptions } from '@azure/id
 import * as GraphClient from "@microsoft/microsoft-graph-client";
 
 
-export const getAllJobs = async (recruiterId: string, name: any, type: any, position: any, 
+export const getAllJobs = async (recruiterId: string, name: any, type: any, position: any,
     location: any, active: any, page: number, limit: number) => {
     const recruiter = await User.findById(recruiterId).populate('roleId');
     if (!recruiter) {
@@ -846,15 +846,26 @@ export const getApplicantsJob = async (recruiterId: string, jobId: string, page:
                         return (interviewer as any).fullName;
                     })
                     const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview?._id.toString() });
-                    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
-                        return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
-                    }, "0/0")
-                    const [numerator, denominator] = score.split('/').map(Number);
                     let totalScore;
-                    if (denominator === 0) {
-                        totalScore = null;
+                    if (scoreInterviewer) {
+                        totalScore = "0/0";
+                        for (let i = 0; i < scoreInterviewer.length; i++) {
+                            if (!scoreInterviewer[i].totalScore) {
+                                totalScore = null;
+                                break;
+                            }
+                            addFractionStrings(totalScore, scoreInterviewer[i].totalScore as string);
+                        }
+                        if (totalScore) {
+                            const [numerator, denominator] = totalScore.split('/').map(Number);
+                            if (denominator === 0) {
+                                totalScore = null;
+                            } else {
+                                totalScore = `${numerator * 100 / denominator}/100`;
+                            }
+                        }
                     } else {
-                        totalScore = `${numerator * 100 / denominator}/100`;
+                        totalScore = null;
                     }
                     return {
                         candidateId: applicant.candidateId._id.toString(),
@@ -965,15 +976,26 @@ export const getSingleApplicantJob = async (recruiterId: string, jobId: string, 
         return (interviewer as any).fullName;
     })
     const scoreInterviewer = await QuestionCandidate.find({ interviewId: interview?._id.toString() });
-    const score = scoreInterviewer.reduce((totalScore, scoreInterviewer) => {
-        return addFractionStrings(totalScore, scoreInterviewer.totalScore as string);
-    }, "0/0")
-    const [numerator, denominator] = score.split('/').map(Number);
     let totalScore;
-    if (denominator === 0) {
-        totalScore = null;
+    if (scoreInterviewer) {
+        totalScore = "0/0";
+        for (let i = 0; i < scoreInterviewer.length; i++) {
+            if (!scoreInterviewer[i].totalScore) {
+                totalScore = null;
+                break;
+            }
+            addFractionStrings(totalScore, scoreInterviewer[i].totalScore as string);
+        }
+        if (totalScore) {
+            const [numerator, denominator] = totalScore.split('/').map(Number);
+            if (denominator === 0) {
+                totalScore = null;
+            } else {
+                totalScore = `${numerator * 100 / denominator}/100`;
+            }
+        }
     } else {
-        totalScore = `${numerator * 100 / denominator}/100`;
+        totalScore = null;
     }
     const returnApplicant = {
         candidateId: applicant.candidateId._id.toString(),

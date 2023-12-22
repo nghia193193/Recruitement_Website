@@ -201,7 +201,7 @@ router.put('/interview-questions/:questionId', isAuth, [
     body('content').trim()
         .notEmpty().withMessage('Vui lòng nhập nội dung câu hỏi')
         .custom((value: string) => {
-            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            const regex = /^[\p{L} ,.?()\n\/:0-9]+$/u;
             if (!regex.test(value)) {
                 throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
             };
@@ -227,7 +227,7 @@ router.put('/interview-questions/:questionId', isAuth, [
     body('note').trim()
         .custom((value: string) => {
             if (value) {
-                const regex = /^[\p{L} ,.?()%\/:0-9]+$/u;
+                const regex = /^[\p{L} ,.?()%\n\/:0-9]+$/u;
                 if (!regex.test(value)) {
                     throw new Error('Ghi chú không được chứa ký tự đặc biệt trừ (dấu cách ,.?()%/:)');
                 };
@@ -257,7 +257,7 @@ router.post('/interview/:interviewId/questions', isAuth, [
             if (questionCandidate) {
                 throw new Error(`QuestionId: '${value[i].questionId}' đã tồn tại`);
             }
-            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            const regex = /^[\p{L} ,.?()\n\/:0-9]+$/u;
             if (value[i].note) {
                 if (!regex.test(value[i].note)) {
                     throw new Error('Note không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
@@ -287,7 +287,7 @@ router.put('/interview/:interviewId/questions', isAuth, [
             if (!questionCandidate) {
                 throw new Error(`QuestionId: '${value[i].questionId}' không tồn tại`);
             }
-            const regex = /^[\p{L} ,.?()\/:0-9]+$/u;
+            const regex = /^[\p{L} ,.?()\n\/:0-9]+$/u;
             if (!regex.test(value[i].content)) {
                 throw new Error('Nội dung không được chứa ký tự đặc biệt trừ (dấu cách ,.?()/:)');
             }
