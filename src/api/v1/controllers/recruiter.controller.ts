@@ -112,8 +112,8 @@ export const updateJob = async (req: Request, res: Response, next: NextFunction)
             error.result = null;
             throw error;
         };
-        await recruiterService.updateJob(recruiterId, jobId, name, jobType, quantity, benefit, salaryRange, requirement, location,
-            description, position, deadline, skillRequired);
+        await recruiterService.updateJob(recruiterId, jobId, name, position, jobType, quantity, benefit, salaryRange, requirement, location,
+            description, deadline, skillRequired);
         res.status(200).json({ sucess: true, message: 'Update job thành công', result: null });
     } catch (err) {
         if (!(err as any).statusCode) {
