@@ -10,7 +10,8 @@ module.exports = {
       MAIL_PASS: "rtasipfgjrhvcwdj",
       CLOUD_NAME: "de84ozlrg",
       API_KEY: "991416757427279",
-      API_SECRET: "PXfZ-BvJ5MUwUIxIw8-rD0AekMM"
+      API_SECRET: "PXfZ-BvJ5MUwUIxIw8-rD0AekMM",
+      CLIENT_SECRET: "lSJ8Q~2ZODyaLROwQ6ZBaNEb057oUR7nNUkdiaea"
     }
   }]
 }

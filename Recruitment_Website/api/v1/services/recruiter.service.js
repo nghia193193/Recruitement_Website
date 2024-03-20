@@ -68,8 +68,22 @@ const getAllJobs = async (recruiterId, name, type, position, location, active, p
     ;
     const query = {
         authorId: recruiterId,
-        isActive: active ? active : true
     };
+    switch (active) {
+        case undefined:
+            query['isActive'] = true;
+            query['deadline'] = { $gt: new Date() };
+            break;
+        case 'false':
+            query['$or'] = [
+                { deadline: { $lt: new Date() } },
+                { isActive: false }
+            ];
+            break;
+        case 'true':
+            query['isActive'] = true;
+            query['deadline'] = { $gt: new Date() };
+    }
     if (name) {
         query['name'] = new RegExp(name, 'i');
     }
@@ -89,6 +103,7 @@ const getAllJobs = async (recruiterId, name, type, position, location, active, p
         query['locationId'] = jobLoc?._id;
     }
     ;
+    console.log(query);
     const jobLength = await job_1.Job.find(query).countDocuments();
     if (jobLength === 0) {
         const error = new Error('Không tìm thấy job');
