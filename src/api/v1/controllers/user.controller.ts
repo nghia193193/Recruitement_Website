@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { verifyToken } from '../utils';
+import { verifyAccessToken } from '../utils';
 import { validationResult } from 'express-validator';
 import { UploadedFile } from 'express-fileupload';
 import * as userService from '../services/user.service';
@@ -8,7 +8,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const userId = decodedToken.userId;
         const returnUser = await userService.getProfile(userId);
         res.status(200).json({
@@ -30,7 +30,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const userId = decodedToken.userId;
         const { fullName, address, dateOfBirth, about } = req.body;
         const errors = validationResult(req);
@@ -60,7 +60,7 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const userId = decodedToken.userId;
         const currentPassword: string = req.body.currentPassword;
         const newPassword: string = req.body.newPassword;
@@ -87,7 +87,7 @@ export const changeAvatar = async (req: Request, res: Response, next: NextFuncti
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const userId = decodedToken.userId;
         if (!req.files || !req.files.avatarFile) {
             const error: Error & { statusCode?: number, result?: any } = new Error('Không có tệp nào được tải lên!');

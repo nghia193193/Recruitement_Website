@@ -2,7 +2,8 @@ import { User } from '../models/user';
 import { Role } from '../models/role';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { secretKey, refreshKey, transporter } from '../utils';
+import { secretKey, refreshKey, signAccessToken, signRefreshToken } from '../utils';
+import {transporter} from '../utils/sendMail';
 
 export const signUp = async (fullName: string, email: string, phone: string, password: string) => {
     const emailUser = await User.findOne({ email: email });
@@ -40,7 +41,7 @@ export const signUp = async (fullName: string, email: string, phone: string, pas
     });
     await user.save();
     let mailDetails = {
-        from: 'nguyennghia193913@gmail.com',
+        from: `${process.env.MAIL_SEND}`,
         to: email,
         subject: 'Register Account',
         html: ` 
@@ -49,7 +50,7 @@ export const signUp = async (fullName: string, email: string, phone: string, pas
                 <h2>Welcome</h2>
                 <span style="margin: 1px">Your OTP confirmation code is: <b>${otp}</b></span>
                 <p style="margin-top: 0px">Click this link below to verify your account.</p>
-                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="https://recruiment-website-vmc4-huutrong1101.vercel.app/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
                 <p>Thank you for joining us!</p>
                 <p style="color: red">Note: This link is only valid in 10 minutes!</p>
             </div>
@@ -59,10 +60,7 @@ export const signUp = async (fullName: string, email: string, phone: string, pas
         const error: Error = new Error('Gửi mail thất bại');
         throw error;
     });
-    const payload = {
-        userId: user._id
-    };
-    const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+    const accessToken = await signAccessToken(user._id);
     return { accessToken };
 };
 
@@ -124,30 +122,9 @@ export const login = async (credentialId: string, password: string) => {
         error.result = null;
         throw error;
     };
-    const payload = {
-        userId: user._id.toString()
-    };
-    const accessToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-    const refreshToken = jwt.sign(payload, refreshKey, { expiresIn: '7d' });
-    user.accessToken = accessToken;
-    user.refreshToken = refreshToken;
+    
+    const accessToken = await signAccessToken(user._id);
+    const refreshToken = await signRefreshToken(user._id);
     await user.save();
     return { accessToken, refreshToken }
-}
-
-export const refreshAccessToken = async (userId: string) => {
-    const newAccessToken = jwt.sign(
-        {
-            userId: userId
-        }, secretKey, { expiresIn: '1h' });
-    const user = await User.findById(userId);
-    if (!user) {
-        const error: Error & { statusCode?: number, result?: any } = new Error('Không tìm thấy user');
-        error.statusCode = 409;
-        error.result = null;
-        throw error;
-    }
-    user.accessToken = newAccessToken;
-    await user.save();
-    return { newAccessToken };
 }

@@ -1,15 +1,10 @@
 import { Router } from "express";
 import * as recruiterController from '../controllers/recruiter.controller';
 import { body, param, query } from 'express-validator';
-import { JobPosition } from "../models/jobPosition";
 import sanitizeHtml from "sanitize-html";
-import { JobType } from "../models/jobType";
-import { JobLocation } from "../models/jobLocation";
-import { Skill } from "../models/skill";
 import { isAuth } from '../middleware';
-import { isValidTimeFormat, applyStatus } from "../utils";
+import { isValidTimeFormat, applyStatus, jobPosition, jobType, jobLocation, skills } from "../utils";
 import { User } from "../models/user";
-
 
 const router = Router();
 
@@ -24,39 +19,27 @@ router.get('/jobs', isAuth, [
     query('position').trim()
         .custom((value) => {
             if (value) {
-                return JobPosition.findOne({ name: value })
-                    .then(pos => {
-                        if (!pos) {
-                            return Promise.reject(`Failed to convert 'position' with value: '${value}'`)
-                        }
-                        return true;
-                    })
+                if (!jobPosition.includes(value)) {
+                    throw new Error(`Failed to convert 'position' with value: '${value}'`);
+                }
             }
             return true
         }),
     query('type').trim()
         .custom((value) => {
             if (value) {
-                return JobType.findOne({ name: value })
-                    .then(type => {
-                        if (!type) {
-                            return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
-                        }
-                        return true
-                    })
+                if (!jobType.includes(value)) {
+                    throw new Error(`Failed to convert 'position' with value: '${value}'`);
+                }
             }
             return true
         }),
     query('location').trim()
         .custom((value) => {
             if (value) {
-                return JobLocation.findOne({ name: value })
-                    .then(loc => {
-                        if (!loc) {
-                            return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
-                        }
-                        return true
-                    })
+                if (!jobLocation.includes(value)) {
+                    throw new Error(`Failed to convert 'position' with value: '${value}'`);
+                }
             }
             return true
         }),
@@ -102,11 +85,10 @@ router.post('/job', isAuth, [
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
         .custom(async (value: string) => {
-            const type = await JobType.findOne({ name: value })
-            if (!type) {
-                return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
+            if (!jobType.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
-            return true
+            return true;
         }),
     body('quantity').trim()
         .notEmpty().withMessage('Vui lòng nhập số lượng')
@@ -132,9 +114,8 @@ router.post('/job', isAuth, [
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
         .custom(async (value: string) => {
-            const location = await JobLocation.findOne({ name: value })
-            if (!location) {
-                throw new Error(`Failed to convert 'location' with value: '${value}'`);
+            if (!jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true;
         }),
@@ -150,19 +131,17 @@ router.post('/job', isAuth, [
     body('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
         .custom(async (value: string) => {
-            const pos = await JobPosition.findOne({ name: value })
-            if (!pos) {
+            if (!jobPosition.includes(value)) {
                 throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true;
         }),
     body('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value: string[]) => {
+        .custom((value: string[]) => {
             const errors = [];
             for (const skill of value) {
-                const s = await Skill.findOne({ name: skill });
-                if (!s) {
+                if (!skills.includes(skill)) {
                     errors.push(`Skill: '${skill}' không hợp lệ`);
                 }
             }
@@ -175,7 +154,7 @@ router.post('/job', isAuth, [
 
 router.get('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-    , recruiterController.getSingleJob);
+, recruiterController.getSingleJob);
 
 router.put('/jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
@@ -187,10 +166,9 @@ router.put('/jobs/:jobId', isAuth, [
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value) => {
-            const type = await JobType.findOne({ name: value })
-            if (!type) {
-                return Promise.reject(`Failed to convert 'type' with value: '${value}'`)
+        .custom((value) => {
+            if (!jobType.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true
         }),
@@ -218,9 +196,8 @@ router.put('/jobs/:jobId', isAuth, [
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
         .custom(async (value) => {
-            const location = await JobLocation.findOne({ name: value })
-            if (!location) {
-                throw new Error(`Failed to convert 'location' with value: '${value}'`);
+            if (!jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true;
         }),
@@ -236,19 +213,17 @@ router.put('/jobs/:jobId', isAuth, [
     body('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
         .custom(async (value: string) => {
-            const pos = await JobPosition.findOne({ name: value })
-            if (!pos) {
+            if (!jobPosition.includes(value)) {
                 throw new Error(`Failed to convert 'position' with value: '${value}'`);
             }
             return true;
         }),
     body('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value: string[]) => {
+        .custom((value: string[]) => {
             const errors = [];
             for (const skill of value) {
-                const s = await Skill.findOne({ name: skill });
-                if (!s) {
+                if (!skills.includes(skill)) {
                     errors.push(`Skill: '${skill}' không hợp lệ`);
                 }
             }
@@ -335,13 +310,10 @@ router.post('/events', isAuth, [
     body('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value: string) => {
-            return JobLocation.findOne({ name: value })
-                .then(job => {
-                    if (!job) {
-                        return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
-                    }
-                    return true
-                })
+            if (!jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
+            return true;
         }),
     body('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -382,13 +354,10 @@ router.put('/events/:eventId', isAuth, [
     body('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value: string) => {
-            return JobLocation.findOne({ name: value })
-                .then(job => {
-                    if (!job) {
-                        return Promise.reject(`Failed to convert 'location' with value: '${value}'`)
-                    }
-                    return true
-                })
+            if (!jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
+            return true;
         }),
     body('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -410,15 +379,14 @@ router.get('/interviewers', isAuth, [
                 if (!regex.test(value)) {
                     throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách');
                 };
-                return true
+                return true;
             }
             return true;
         }),
     query('skill').trim()
-        .custom(async (value) => {
+        .custom((value) => {
             if (value) {
-                const skill = await Skill.findOne({ name: value });
-                if (!skill) {
+                if (!skills.includes(value)) {
                     throw new Error(`Skill: '${value}' không hợp lệ`);
                 }
             }
@@ -443,10 +411,9 @@ router.get('/applied-candidates', isAuth, [
             return true;
         }),
     query('skill').trim()
-        .custom(async (value) => {
+        .custom((value) => {
             if (value) {
-                const skill = await Skill.findOne({ name: value });
-                if (!skill) {
+                if (!skills.includes(value)) {
                     throw new Error(`Skill: '${value}' không hợp lệ`);
                 }
             }

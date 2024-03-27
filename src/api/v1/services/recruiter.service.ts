@@ -3,10 +3,6 @@ import { Event } from "../models/event";
 import { Interview } from "../models/interview";
 import { Job } from "../models/job";
 import { JobApply } from "../models/jobApply";
-import { JobLocation } from "../models/jobLocation";
-import { JobPosition } from "../models/jobPosition";
-import { JobType } from "../models/jobType";
-import { Skill } from "../models/skill";
 import { User } from "../models/user";
 import { UploadedFile } from 'express-fileupload';
 import { Role } from '../models/role';
@@ -17,7 +13,8 @@ import { Certificate } from '../models/certificate';
 import mongoose from 'mongoose';
 import { InterviewerInterview } from '../models/interviewerInterview';
 import { QuestionCandidate } from '../models/questionCandidate';
-import { addFractionStrings, createICalEvent, formatDateToJSDateObject, transporter } from '../utils';
+import { addFractionStrings, createICalEvent, formatDateToJSDateObject } from '../utils';
+import { transporter } from '../utils/sendMail';
 import { ClientSecretCredential, ClientSecretCredentialOptions } from '@azure/identity';
 import * as GraphClient from "@microsoft/microsoft-graph-client";
 
@@ -43,11 +40,11 @@ export const getAllJobs = async (recruiterId: string, name: any, type: any, posi
         authorId: recruiterId,
     };
     switch (active) {
-        case undefined: 
+        case undefined:
             query['isActive'] = true;
-            query['deadline'] = { $gt: new Date()};
+            query['deadline'] = { $gt: new Date() };
             break;
-        case 'false':  
+        case 'false':
             query['$or'] = [
                 { deadline: { $lt: new Date() } },
                 { isActive: false }
@@ -55,24 +52,20 @@ export const getAllJobs = async (recruiterId: string, name: any, type: any, posi
             break;
         case 'true':
             query['isActive'] = true;
-            query['deadline'] = { $gt: new Date()};
+            query['deadline'] = { $gt: new Date() };
     }
     if (name) {
-        query['name'] = new RegExp((name as any), 'i');
+        query['name'] = new RegExp(name, 'i');
     };
     if (type) {
-        const jobType = await JobType.findOne({ name: type });
-        query['typeId'] = jobType?._id;
+        query['type'] = type;
     };
     if (position) {
-        const jobPos = await JobPosition.findOne({ name: position });
-        query['positionId'] = jobPos?._id;
+        query['position'] = position;
     };
     if (location) {
-        const jobLoc = await JobLocation.findOne({ name: location });
-        query['locationId'] = jobLoc?._id;
+        query['location'] = location;
     };
-    console.log(query)
     const jobLength = await Job.find(query).countDocuments();
     if (jobLength === 0) {
         const error: Error & { statusCode?: any, success?: any, result?: any } = new Error('Không tìm thấy job');
@@ -84,28 +77,24 @@ export const getAllJobs = async (recruiterId: string, name: any, type: any, posi
         throw error;
     };
 
-    const jobs = await Job.find(query).populate('positionId locationId typeId skills.skillId')
+    const jobs = await Job.find(query)
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
 
     const listjobs = jobs.map(job => {
-        const { _id, skills, positionId, locationId, typeId, ...rest } = job;
-        delete (rest as any)._doc._id;
-        delete (rest as any)._doc.skills;
-        delete (rest as any)._doc.positionId;
-        delete (rest as any)._doc.locationId;
-        delete (rest as any)._doc.typeId;
-        const listSkills = skills.map(skill => {
-            return (skill as any).skillId.name
-        });
         return {
-            jobId: _id.toString(),
-            position: (positionId as any).name,
-            location: (locationId as any).name,
-            jobType: (typeId as any).name,
-            ...(rest as any)._doc,
-            skills: listSkills
+            jobId: job._id.toString(),
+            name: job.name,
+            quantity: job.quantity,
+            benefit: job.benefit,
+            salaryRange: job.salaryRange,
+            requirement: job.requirement,
+            description: job.description,
+            position: job.position,
+            location: job.location,
+            jobType: job.type,
+            skills: job.skills
         };
     });
     return { listjobs, jobLength };
@@ -133,31 +122,20 @@ export const createJob = async (recruiterId: string, name: string, position: str
         error.result = null;
         throw error;
     }
-
-    const pos = await JobPosition.findOne({ name: position });
-    const type = await JobType.findOne({ name: jobType });
-    const loc = await JobLocation.findOne({ name: location });
-
-    let listSkill = [];
-    for (let skill of skillRequired) {
-        const s = await Skill.findOne({ name: skill });
-        listSkill.push({ skillId: (s as any)._id });
-    };
-
     const job = new Job({
         name: name,
-        positionId: (pos as any)._id.toString(),
-        typeId: (type as any)._id.toString(),
+        position: position,
+        type: jobType,
         authorId: recruiter._id.toString(),
         quantity: +quantity,
         benefit: benefit,
         salaryRange: salaryRange,
         requirement: requirement,
-        locationId: (loc as any)._id.toString(),
+        location: location,
         description: description,
         isActive: true,
         deadline: deadline,
-        skills: listSkill
+        skills: skillRequired
     });
     await job.save();
 }
@@ -176,30 +154,25 @@ export const getSingleJob = async (recruiterId: string, jobId: string) => {
         error.result = null;
         throw error;
     };
-    const job = await Job.findOne({ authorId: recruiter._id, _id: jobId })
-        .populate('positionId locationId typeId skills.skillId');
+    const job = await Job.findOne({ authorId: recruiter._id, _id: jobId });
     if (!job) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
         error.statusCode = 409;
         error.result = null;
         throw error;
     }
-    const { _id, skills, positionId, locationId, typeId, ...rest } = job;
-    delete (rest as any)._doc._id;
-    delete (rest as any)._doc.skills;
-    delete (rest as any)._doc.positionId;
-    delete (rest as any)._doc.locationId;
-    delete (rest as any)._doc.typeId;
-    const listSkills = skills.map(skill => {
-        return (skill as any).skillId.name
-    });
     const returnJob = {
-        jobId: _id.toString(),
-        position: (positionId as any).name,
-        location: (locationId as any).name,
-        jobType: (typeId as any).name,
-        ...(rest as any)._doc,
-        skills: listSkills
+        jobId: job._id.toString(),
+        name: job.name,
+        quantity: job.quantity,
+        benefit: job.benefit,
+        salaryRange: job.salaryRange,
+        requirement: job.requirement,
+        description: job.description,
+        position: job.position,
+        location: job.location,
+        jobType: job.type,
+        skills: job.skills
     };
     return returnJob;
 }
@@ -220,16 +193,7 @@ export const updateJob = async (recruiterId: string, jobId: string, name: string
         error.result = null;
         throw error;
     };
-    const pos = await JobPosition.findOne({ name: position });
-    const type = await JobType.findOne({ name: jobType });
-    const loc = await JobLocation.findOne({ name: location });
-
-    let listSkill = [];
-    for (let skill of skillRequired) {
-        const s = await Skill.findOne({ name: skill });
-        listSkill.push({ skillId: (s as any)._id });
-    };
-
+    
     const job = await Job.findOne({ authorId: recruiter._id, _id: jobId });
     if (!job) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Không tìm thấy job');
@@ -238,16 +202,16 @@ export const updateJob = async (recruiterId: string, jobId: string, name: string
         throw error;
     };
     job.name = name;
-    job.positionId = (pos as any)._id.toString();
-    job.typeId = (type as any)._id.toString();
+    job.position = position;
+    job.type = jobType;
     job.quantity = +quantity;
     job.benefit = benefit;
     job.salaryRange = salaryRange;
     job.requirement = requirement;
-    job.locationId = (loc as any)._id.toString();
+    job.location = location;
     job.description = description;
     job.deadline = deadline;
-    job.skills = listSkill;
+    job.skills = skillRequired;
     await job.save();
 }
 
@@ -512,23 +476,23 @@ export const getAllInterviewers = async (recruiterId: string, name: any, skill: 
         roleId: roleInterviewerId?._id.toString()
     };
     if (name) {
-        query['fullName'] = new RegExp((name as any), 'i');
+        query['fullName'] = new RegExp(name, 'i');
     };
-    if (skill) {
-        const skillId = await Skill.findOne({ name: skill });
-        query['skills.skillId'] = skillId;
-    }
+    // if (skill) {
+    //     const skillId = await Skill.findOne({ name: skill });
+    //     query['skills.skillId'] = skillId;
+    // }
     const interviewerLength = await User.find(query).countDocuments();
-    const interviewerList = await User.find(query).populate('roleId skills.skillId')
+    const interviewerList = await User.find(query).populate('roleId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
 
     const mappedInterviewers = interviewerList.map(interviewer => {
-        let listSkill = [];
-        for (let i = 0; i < interviewer.skills.length; i++) {
-            listSkill.push({ label: (interviewer.skills[i].skillId as any).name, value: i });
-        }
+        // let listSkill = [];
+        // for (let i = 0; i < interviewer.skills.length; i++) {
+        //     listSkill.push({ label: (interviewer.skills[i].skillId as any).name, value: i });
+        // }
         return {
             interviewerId: interviewer._id.toString(),
             avatar: interviewer.avatar?.url,
@@ -538,7 +502,7 @@ export const getAllInterviewers = async (recruiterId: string, name: any, skill: 
             dateOfBirth: interviewer.dateOfBirth,
             address: interviewer.address,
             phone: interviewer.phone,
-            skills: listSkill
+            // skills: listSkill
         }
     })
     return { mappedInterviewers, interviewerLength };
@@ -558,7 +522,7 @@ export const getSingleInterviewer = async (recruiterId: string, interviewerId: s
         error.result = null;
         throw error;
     };
-    const interviewer = await User.findById(interviewerId).populate('roleId skills.skillId')
+    const interviewer = await User.findById(interviewerId).populate('roleId')
     if (!interviewer) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Interviewer không tồn tại');
         error.statusCode = 409;
@@ -601,7 +565,7 @@ export const getSingleInterviewer = async (recruiterId: string, interviewerId: s
     })
     let listSkill = [];
     for (let i = 0; i < interviewer.skills.length; i++) {
-        listSkill.push({ label: (interviewer.skills[i].skillId as any).name, value: i });
+        listSkill.push({ label: interviewer.skills[i], value: i });
     }
     const returnInterviewer = {
         fullName: interviewer.fullName,
@@ -611,7 +575,6 @@ export const getSingleInterviewer = async (recruiterId: string, interviewerId: s
         dateOfBirth: interviewer.dateOfBirth,
         address: interviewer.address,
         phone: interviewer.phone,
-        skills: listSkill,
         information: {
             education: returnEducationList,
             experience: returnExperienceList,
@@ -655,25 +618,17 @@ export const getAllApplicants = async (recruiterId: string, name: any, skill: an
             }
         },
         {
-            $lookup: {
-                from: 'skills',
-                localField: 'applicants.skills.skillId',
-                foreignField: '_id',
-                as: 'skills'
-            }
-        },
-        {
             $match: {
                 "jobs.authorId": new mongoose.Types.ObjectId(recruiter._id.toString()),
                 "applicants.fullName": name ? new RegExp((name as any), 'i') : { $exists: true },
-                "skills.name": skill ? skill : { $exists: true },
+                "applicants.skills": skill ? skill : { $exists: true },
             }
         }
     ]).sort({ updatedAt: -1 })
     const mappedApplicants = listApplicants.map(applicant => {
         let listSkill = [];
         for (let i = 0; i < applicant.skills.length; i++) {
-            listSkill.push({ label: applicant.skills[i].name, value: i });
+            listSkill.push({ label: applicant.skills[i], value: i });
         }
         return {
             candidateId: applicant.candidateId._id.toString(),
@@ -712,7 +667,7 @@ export const getSingleApplicant = async (recruiterId: string, applicantId: strin
         error.result = null;
         throw error;
     };
-    const applicant = await User.findById(applicantId).populate('roleId skills.skillId')
+    const applicant = await User.findById(applicantId).populate('roleId')
     if (!applicant) {
         const error: Error & { statusCode?: any, result?: any } = new Error('Ứng viên không tồn tại');
         error.statusCode = 409;
@@ -755,7 +710,7 @@ export const getSingleApplicant = async (recruiterId: string, applicantId: strin
     })
     let listSkill = [];
     for (let i = 0; i < applicant.skills.length; i++) {
-        listSkill.push({ label: (applicant.skills[i].skillId as any).name, value: i });
+        listSkill.push({ label: applicant.skills[i], value: i });
     }
     const returnApplicant = {
         candidateId: applicant._id.toString(),
@@ -805,10 +760,6 @@ export const getApplicantsJob = async (recruiterId: string, jobId: string, page:
         .populate({
             path: 'candidateId',
             model: User,
-            populate: {
-                path: 'skills.skillId',
-                model: Skill
-            }
         })
         .populate('resumeId')
         .skip((page - 1) * limit)
@@ -853,7 +804,7 @@ export const getApplicantsJob = async (recruiterId: string, jobId: string, page:
                     })
                     let listSkill = [];
                     for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
-                        listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
+                        listSkill.push({ label: applicant.get('candidateId.skills')[i], value: i });
                     }
                     const interview = await Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
                     const interviewers = await InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
@@ -936,10 +887,6 @@ export const getSingleApplicantJob = async (recruiterId: string, jobId: string, 
         .populate({
             path: 'candidateId',
             model: User,
-            populate: {
-                path: 'skills.skillId',
-                model: Skill
-            }
         })
         .populate('resumeId');
     if (!applicant) {
@@ -983,7 +930,7 @@ export const getSingleApplicantJob = async (recruiterId: string, jobId: string, 
     })
     let listSkill = [];
     for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
-        listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
+        listSkill.push({ label: applicant.get('candidateId.skills')[i], value: i });
     }
     const interview = await Interview.findOne({ jobApplyId: jobId, candidateId: candidateId });
     const interviewers = await InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');
@@ -1145,7 +1092,7 @@ export const createMeeting = async (recruiterId: string, candidateId: string, in
     }
     let attendees = interviewersMail.concat(candidate.email) as string[];
     let mailDetails = {
-        from: 'nguyennghia193913@gmail.com',
+        from: `${process.env.MAIL_SEND}`,
         cc: attendees.join(','),
         subject: 'Interview Information',
         html: ` 
@@ -1249,10 +1196,6 @@ export const getJobSuggestedCandidates = async (recruiterId: string, jobId: stri
         .populate({
             path: 'candidateId',
             model: User,
-            populate: {
-                path: 'skills.skillId',
-                model: Skill
-            }
         })
         .populate('resumeId')
         .skip((page - 1) * limit)
@@ -1297,7 +1240,7 @@ export const getJobSuggestedCandidates = async (recruiterId: string, jobId: stri
                     })
                     let listSkill = [];
                     for (let i = 0; i < applicant.get('candidateId.skills').length; i++) {
-                        listSkill.push({ label: (applicant.get('candidateId.skills')[i].skillId as any).name, value: i });
+                        listSkill.push({ label: applicant.get('candidateId.skills')[i], value: i });
                     }
                     const interview = await Interview.findOne({ jobApplyId: applicant.jobAppliedId._id.toString(), candidateId: applicant.candidateId._id.toString() });
                     const interviewers = await InterviewerInterview.findOne({ interviewId: interview?._id.toString() }).populate('interviewersId');

@@ -22,11 +22,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshAccessToken = exports.login = exports.verifyOTP = exports.signUp = void 0;
 const express_validator_1 = require("express-validator");
 const utils_1 = require("../utils");
 const authService = __importStar(require("../services/auth.service"));
+const http_errors_1 = __importDefault(require("http-errors"));
 const signUp = async (req, res, next) => {
     try {
         const { fullName, email, phone, password, confirmPassword } = req.body;
@@ -118,14 +122,18 @@ exports.login = login;
 const refreshAccessToken = async (req, res, next) => {
     try {
         const refreshToken = req.body.refreshToken;
-        const decodedToken = await (0, utils_1.verifyRefreshToken)(refreshToken);
-        const userId = decodedToken.userId;
-        const { newAccessToken } = await authService.refreshAccessToken(userId);
+        if (!refreshToken) {
+            throw http_errors_1.default.BadRequest();
+        }
+        const { userId } = await (0, utils_1.verifyRefreshToken)(refreshToken);
+        const accessToken = await (0, utils_1.signAccessToken)(userId);
+        const rfToken = await (0, utils_1.signRefreshToken)(userId);
         res.status(200).json({
             success: true,
             message: "Làm mới token thành công",
             result: {
-                accessToken: newAccessToken
+                accessToken: accessToken,
+                refreshToken: rfToken
             },
             statusCode: 200
         });

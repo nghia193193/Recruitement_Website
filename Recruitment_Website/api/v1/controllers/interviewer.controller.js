@@ -32,7 +32,7 @@ const saveInformation = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const { education, experience, certificate, project, skills } = req.body;
         await interviewerService.saveInformation(interviewerId, education, experience, certificate, project, skills);
@@ -51,7 +51,7 @@ const getInformation = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const result = await interviewerService.getInformation(interviewerId);
         res.status(200).json({ success: true, message: "Successfully!", result: result });
@@ -69,7 +69,7 @@ const getAllApplicants = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
@@ -106,7 +106,7 @@ const getSingleApplicant = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const candidateId = req.params.candidateId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -132,7 +132,7 @@ const getAllInterviews = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const page = req.query.page ? +req.query.page : 1;
         const limit = req.query.limit ? +req.query.limit : 10;
@@ -169,7 +169,7 @@ const getSingleInterview = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -195,7 +195,7 @@ const createQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const { content, type, skill, note } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -221,7 +221,7 @@ const getAllQuestions = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const { skill, type, content } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -259,7 +259,7 @@ const getSingleQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -285,7 +285,7 @@ const updateQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const { content, type, skill, note } = req.body;
@@ -312,7 +312,7 @@ const deleteQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -338,7 +338,7 @@ const getSkillQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const returnSkills = await interviewerService.getSkillQuestion(interviewerId);
         res.status(200).json({ success: true, message: 'Get question skills successfully.', result: returnSkills });
@@ -356,7 +356,7 @@ const getTypeQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewer = await user_1.User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
             const error = new Error('UnAuthorized');
@@ -381,7 +381,7 @@ const getAssignQuestions = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -407,7 +407,7 @@ const assignQuestions = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questions = req.body.questions;
         const interviewId = req.params.interviewId;
@@ -434,7 +434,7 @@ const updateQuestions = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questions = req.body.questions;
         const interviewId = req.params.interviewId;
@@ -461,7 +461,7 @@ const deleteAssignQuestion = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const interviewId = req.params.interviewId;
@@ -488,7 +488,7 @@ const submitTotalScore = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -514,7 +514,7 @@ const interviewerStatistics = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const interviewerId = decodedToken.userId;
         const { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber } = await interviewerService.interviewerStatistics(interviewerId);
         res.status(200).json({ success: true, message: 'Get statistics successfully.', result: {

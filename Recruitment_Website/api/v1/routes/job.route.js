@@ -22,62 +22,48 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const jobController = __importStar(require("../controllers/job.controller"));
-const jobPosition_1 = require("../models/jobPosition");
-const jobType_1 = require("../models/jobType");
-const jobLocation_1 = require("../models/jobLocation");
+const utils_1 = require("../utils");
+const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const router = (0, express_1.Router)();
 router.get('/', [
-    (0, express_validator_1.query)('name').trim().custom((value, { req }) => {
+    (0, express_validator_1.query)('name').trim()
+        .customSanitizer((value) => {
         if (value) {
-            const regex = /^[\p{L} 0-9#+]+$/u;
-            if (!regex.test(value)) {
-                throw new Error('Tên không được chứa ký tự đặc biệt trừ dấu cách, #+');
-            }
-            ;
-            return true;
+            const sanitizedValue = (0, sanitize_html_1.default)(value);
+            return sanitizedValue;
         }
-        return true;
     }),
     (0, express_validator_1.query)('position').trim()
         .custom((value, { req }) => {
         if (value) {
-            return jobPosition_1.JobPosition.findOne({ name: value })
-                .then(jobPos => {
-                if (!jobPos) {
-                    return Promise.reject(`Failed to convert 'position' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobPosition.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),
     (0, express_validator_1.query)('type').trim()
         .custom((value, { req }) => {
         if (value) {
-            return jobType_1.JobType.findOne({ name: value })
-                .then(job => {
-                if (!job) {
-                    return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobType.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),
     (0, express_validator_1.query)('location').trim()
         .custom((value, { req }) => {
         if (value) {
-            return jobLocation_1.JobLocation.findOne({ name: value })
-                .then(job => {
-                if (!job) {
-                    return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),

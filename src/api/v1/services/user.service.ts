@@ -2,7 +2,7 @@ import { User } from "../models/user";
 import * as bcrypt from 'bcryptjs';
 import { v2 as cloudinary } from 'cloudinary';
 import { randomBytes } from 'crypto';
-import { transporter } from "../utils";
+import { transporter } from "../utils/sendMail";
 
 export const getProfile = async (userId: string) => {
     const user = await User.findById(userId).populate('roleId') as any;
@@ -123,7 +123,7 @@ export const forgetPassword = async (email: string) => {
     user.resetTokenExpired = new Date(Date.now() + 5 * 60 * 1000);
     await user.save();
     let mailDetails = {
-        from: 'nguyennghia193913@gmail.com',
+        from: `${process.env.MAIL_SEND}`,
         to: email,
         subject: 'Reset Password',
         html: ` 
@@ -132,7 +132,7 @@ export const forgetPassword = async (email: string) => {
             <h2>Reset Password</h2>
             <p style="margin: 1px">A password change has been requested to your account.</p>
             <p style="margin-top: 0px">If this was you, please use the link below to reset your password</p>
-            <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/forget-password/confirm-password?token=${token}" style="font-size: 15px;color: white; text-decoration: none">Reset Password</a></button>
+            <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="https://recruiment-website-vmc4-huutrong1101.vercel.app/forget-password/confirm-password?token=${token}" style="font-size: 15px;color: white; text-decoration: none">Reset Password</a></button>
             <p>Thank you for joining us!</p>
             <p style="color: red">Note: This link is only valid in 5 minutes!</p>
             

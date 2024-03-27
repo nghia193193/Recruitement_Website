@@ -31,7 +31,7 @@ const getAllAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -69,7 +69,7 @@ const getAllRecruiterAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -107,7 +107,7 @@ const getAllInterviewerAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -145,7 +145,7 @@ const getAllCandidateAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -183,7 +183,7 @@ const getAllBlackListAccounts = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -221,7 +221,7 @@ const addBlackList = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const userId = req.params.userId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -249,7 +249,7 @@ const removeBlackList = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const candidateId = req.params.candidateId;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -277,7 +277,7 @@ const createAccount = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { fullName, email, password, confirmPassword, phone, position } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -311,7 +311,7 @@ const getAllJobs = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { recruiterName, jobName } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -349,7 +349,7 @@ const getAllEvents = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { recruiterName, eventName } = req.query;
         const page = req.query.page ? +req.query.page : 1;
@@ -387,7 +387,7 @@ const adminStatistics = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const adminId = decodedToken.userId;
         const { jobNumber, eventNumber, blackListNumber, candidatePassNumber } = await adminService.adminStatistics(adminId);
         res.status(200).json({

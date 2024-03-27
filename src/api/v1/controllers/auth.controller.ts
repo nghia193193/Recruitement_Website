@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { verifyRefreshToken } from '../utils';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils';
 import * as authService from '../services/auth.service';
+import createHttpError from 'http-errors';
 
 
 export const signUp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -86,15 +87,19 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refreshToken: string = req.body.refreshToken;
-        const decodedToken: any = await verifyRefreshToken(refreshToken);
-        const userId = decodedToken.userId;
-        const { newAccessToken } = await authService.refreshAccessToken(userId);
+        if (!refreshToken) {
+            throw createHttpError.BadRequest();
+        }
+        const { userId }: any = await verifyRefreshToken(refreshToken);
+        const accessToken = await signAccessToken(userId);
+        const rfToken = await signRefreshToken(userId);
         res.status(200).json(
             {
                 success: true,
                 message: "Làm mới token thành công",
                 result: {
-                    accessToken: newAccessToken
+                    accessToken: accessToken,
+                    refreshToken: rfToken
                 },
                 statusCode: 200
             }

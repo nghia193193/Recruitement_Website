@@ -31,7 +31,7 @@ const getProfile = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const userId = decodedToken.userId;
         const returnUser = await userService.getProfile(userId);
         res.status(200).json({
@@ -56,7 +56,7 @@ const updateProfile = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const userId = decodedToken.userId;
         const { fullName, address, dateOfBirth, about } = req.body;
         const errors = (0, express_validator_1.validationResult)(req);
@@ -90,7 +90,7 @@ const changePassword = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const userId = decodedToken.userId;
         const currentPassword = req.body.currentPassword;
         const newPassword = req.body.newPassword;
@@ -120,7 +120,7 @@ const changeAvatar = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken = await (0, utils_1.verifyToken)(accessToken);
+        const decodedToken = await (0, utils_1.verifyAccessToken)(accessToken);
         const userId = decodedToken.userId;
         if (!req.files || !req.files.avatarFile) {
             const error = new Error('Không có tệp nào được tải lên!');

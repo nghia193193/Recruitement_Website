@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
@@ -7,14 +8,12 @@ const jobSchema = new Schema(
             type: String,
             required: true
         },  
-        positionId: {
-            type: Schema.Types.ObjectId,
-            ref: 'JobPosition',
+        position: {
+            type: String,
             required: true
         },
-        typeId: {
-            type: Schema.Types.ObjectId,
-            ref: 'JobType',
+        type: {
+            type: String,
             required: true
         },
         authorId: {
@@ -38,9 +37,8 @@ const jobSchema = new Schema(
             type: String,
             required: true
         },
-        locationId: {
-            type: Schema.Types.ObjectId,
-            ref: 'JobLocation',
+        location: {
+            type: String,
             required: true
         },
         description: {
@@ -55,18 +53,35 @@ const jobSchema = new Schema(
             type: Date,
             required: true
         },
-        skills: [
-            {
-                skillId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'Skill',
-                    required: true
-                }
-        }]
+        skills: {
+            type: Array,
+            default: []
+        }
     },
     {
         timestamps: true
     }
 );
+
+jobSchema.statics.getJobDetail = async (jobId) => {
+    const job = await Job.findById(jobId).populate('authorId');
+    if (!job) {
+        throw createHttpError.NotFound('Job not found');
+    }
+    return {
+        jobId: job._id.toString(),
+        name: job.name,
+        quantity: job.quantity,
+        benefit: job.benefit,
+        salaryRange: job.salaryRange,
+        requirement: job.requirement,
+        description: job.description,
+        author: (job.authorId as any).name,
+        position: job.position,
+        location: job.location,
+        jobType: job.type,
+        skills: job.skills
+    }
+}
 
 export const Job = mongoose.model('Job', jobSchema);

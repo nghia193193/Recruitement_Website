@@ -23,12 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.login = exports.verifyOTP = exports.signUp = void 0;
+exports.login = exports.verifyOTP = exports.signUp = void 0;
 const user_1 = require("../models/user");
 const role_1 = require("../models/role");
 const bcrypt = __importStar(require("bcryptjs"));
-const jwt = __importStar(require("jsonwebtoken"));
 const utils_1 = require("../utils");
+const sendMail_1 = require("../utils/sendMail");
 const signUp = async (fullName, email, phone, password) => {
     const emailUser = await user_1.User.findOne({ email: email });
     if (emailUser) {
@@ -68,7 +68,7 @@ const signUp = async (fullName, email, phone, password) => {
     });
     await user.save();
     let mailDetails = {
-        from: 'nguyennghia193913@gmail.com',
+        from: `${process.env.MAIL_SEND}`,
         to: email,
         subject: 'Register Account',
         html: ` 
@@ -77,20 +77,17 @@ const signUp = async (fullName, email, phone, password) => {
                 <h2>Welcome</h2>
                 <span style="margin: 1px">Your OTP confirmation code is: <b>${otp}</b></span>
                 <p style="margin-top: 0px">Click this link below to verify your account.</p>
-                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="http://localhost:5173/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
+                <button style="background-color: #008000; padding: 10px 50px; border-radius: 5px; border-style: none"><a href="https://recruiment-website-vmc4-huutrong1101.vercel.app/otp?email=${email}" style="font-size: 15px;color: white; text-decoration: none">Verify</a></button>
                 <p>Thank you for joining us!</p>
                 <p style="color: red">Note: This link is only valid in 10 minutes!</p>
             </div>
             `
     };
-    utils_1.transporter.sendMail(mailDetails, err => {
+    sendMail_1.transporter.sendMail(mailDetails, err => {
         const error = new Error('Gửi mail thất bại');
         throw error;
     });
-    const payload = {
-        userId: user._id
-    };
-    const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
+    const accessToken = await (0, utils_1.signAccessToken)(user._id);
     return { accessToken };
 };
 exports.signUp = signUp;
@@ -161,30 +158,9 @@ const login = async (credentialId, password) => {
         throw error;
     }
     ;
-    const payload = {
-        userId: user._id.toString()
-    };
-    const accessToken = jwt.sign(payload, utils_1.secretKey, { expiresIn: '1h' });
-    const refreshToken = jwt.sign(payload, utils_1.refreshKey, { expiresIn: '7d' });
-    user.accessToken = accessToken;
-    user.refreshToken = refreshToken;
+    const accessToken = await (0, utils_1.signAccessToken)(user._id);
+    const refreshToken = await (0, utils_1.signRefreshToken)(user._id);
     await user.save();
     return { accessToken, refreshToken };
 };
 exports.login = login;
-const refreshAccessToken = async (userId) => {
-    const newAccessToken = jwt.sign({
-        userId: userId
-    }, utils_1.secretKey, { expiresIn: '1h' });
-    const user = await user_1.User.findById(userId);
-    if (!user) {
-        const error = new Error('Không tìm thấy user');
-        error.statusCode = 409;
-        error.result = null;
-        throw error;
-    }
-    user.accessToken = newAccessToken;
-    await user.save();
-    return { newAccessToken };
-};
-exports.refreshAccessToken = refreshAccessToken;

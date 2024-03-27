@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { verifyToken } from '../utils';
+import { verifyAccessToken } from '../utils';
 import { validationResult } from 'express-validator';
-import { User } from '../models/user';
 import { UploadedFile } from 'express-fileupload';
 import * as recruiterService from '../services/recruiter.service';
 
@@ -10,7 +9,7 @@ export const getAllJobs = async (req: Request, res: Response, next: NextFunction
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { name, type, position, location, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -51,7 +50,7 @@ export const createJob = async (req: Request, res: Response, next: NextFunction)
         const { name, jobType, quantity, benefit, salaryRange,
             requirement, location, description, deadline, position, skillRequired } = req.body;
         const errors = validationResult(req);
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         if (!errors.isEmpty()) {
             const error: Error & { statusCode?: any, result?: any } = new Error(errors.array()[0].msg);
@@ -75,7 +74,7 @@ export const getSingleJob = async (req: Request, res: Response, next: NextFuncti
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const jobId = req.params.jobId;
         const errors = validationResult(req);
@@ -100,7 +99,7 @@ export const updateJob = async (req: Request, res: Response, next: NextFunction)
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const jobId = req.params.jobId;
         const { name, jobType, quantity, benefit, salaryRange,
@@ -128,7 +127,7 @@ export const deleteJob = async (req: Request, res: Response, next: NextFunction)
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const jobId = req.params.jobId;
         const errors = validationResult(req);
@@ -153,7 +152,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const name = req.query.name;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -198,7 +197,7 @@ export const getSingleEvent = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const eventId = req.params.eventId;
         const errors = validationResult(req);
@@ -224,7 +223,7 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { title, name, description, time, location, deadline, startAt } = req.body;
         const errors = validationResult(req);
@@ -263,7 +262,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const eventId = req.params.eventId;
         const { title, name, description, time, location, deadline, startAt } = req.body;
@@ -291,7 +290,7 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const eventId = req.params.eventId;
         const errors = validationResult(req);
@@ -317,7 +316,7 @@ export const getAllInterviewers = async (req: Request, res: Response, next: Next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { name, skill } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -355,7 +354,7 @@ export const getSingleInterviewer = async (req: Request, res: Response, next: Ne
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const interviewerId = req.params.interviewerId;
         const errors = validationResult(req);
@@ -381,7 +380,7 @@ export const getAllApplicants = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { name, skill } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -417,7 +416,7 @@ export const getSingleApplicant = async (req: Request, res: Response, next: Next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const applicantId = req.params.userId;
         const errors = validationResult(req);
@@ -442,7 +441,7 @@ export const getApplicantsJob = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const jobId = req.params.jobId;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -480,7 +479,7 @@ export const getSingleApplicantJob = async (req: Request, res: Response, next: N
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { jobId, candidateId } = req.params;
         const errors = validationResult(req);
@@ -507,7 +506,7 @@ export const createMeeting = async (req: Request, res: Response, next: NextFunct
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { candidateId, interviewersId, time, jobApplyId } = req.body;
         const errors = validationResult(req);
@@ -534,7 +533,7 @@ export const updateCandidateState = async (req: Request, res: Response, next: Ne
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { candidateId, jobId, state } = req.body;
         const errors = validationResult(req);
@@ -560,7 +559,7 @@ export const getJobSuggestedCandidates = async (req: Request, res: Response, nex
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const jobId = req.params.jobId;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -595,7 +594,7 @@ export const getInterviewsOfCandidate = async (req: Request, res: Response, next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const candidateId = req.params.candidateId;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -630,7 +629,7 @@ export const getInterviewsOfInterviewer = async (req: Request, res: Response, ne
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const interviewerId = req.params.interviewerId;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -665,7 +664,7 @@ export const recruiterStatistics = async (req: Request, res: Response, next: Nex
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const recruiterId = decodedToken.userId;
         const { jobNumber, eventNumber, interviewNumber, candidatePassNumber } = await recruiterService.recruiterStatistics(recruiterId);
         res.status(200).json({

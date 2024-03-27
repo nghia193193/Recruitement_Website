@@ -1,17 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetAllSkills = void 0;
-const skill_1 = require("../models/skill");
+const utils_1 = require("../utils");
 const GetAllSkills = async (req, res, next) => {
     try {
-        const skills = await skill_1.Skill.find().sort({ updatedAt: -1 });
-        const listSkills = skills.map(skill => {
-            return {
-                skillId: skill._id,
-                name: skill.name
-            };
-        });
-        res.status(200).json({ success: true, message: 'Lấy list skills thành công', result: listSkills });
+        res.status(200).json({ success: true, message: 'Lấy list skills thành công', result: utils_1.skills });
     }
     catch (err) {
         if (!err.statusCode) {

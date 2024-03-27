@@ -2,10 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSingleJob = exports.getType = exports.getPosition = exports.getLocation = exports.getJobs = void 0;
 const job_1 = require("../models/job");
-const jobLocation_1 = require("../models/jobLocation");
-const jobPosition_1 = require("../models/jobPosition");
-const jobType_1 = require("../models/jobType");
-const getJobs = async (query, page, limit) => {
+const utils_1 = require("../utils");
+const getJobs = async (name, type, position, location, page, limit) => {
+    const query = {
+        isActive: true,
+        deadline: { $gt: new Date() }
+    };
+    if (name) {
+        query['name'] = new RegExp(name, 'i');
+    }
+    ;
+    if (type) {
+        query['type'] = type;
+    }
+    ;
+    if (position) {
+        query['position'] = position;
+    }
+    ;
+    if (location) {
+        query['location'] = location;
+    }
+    ;
     const jobLength = await job_1.Job.find(query).countDocuments();
     if (jobLength === 0) {
         const error = new Error('Không tìm thấy job');
@@ -17,85 +35,42 @@ const getJobs = async (query, page, limit) => {
         throw error;
     }
     ;
-    const jobs = await job_1.Job.find(query).populate('positionId locationId typeId skills.skillId')
+    const jobs = await job_1.Job.find(query).populate('authorId')
         .sort({ updatedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
     const listjobs = jobs.map(job => {
-        const { _id, skills, positionId, locationId, typeId, ...rest } = job;
-        delete rest._doc._id;
-        delete rest._doc.skills;
-        delete rest._doc.positionId;
-        delete rest._doc.locationId;
-        delete rest._doc.typeId;
-        const listSkills = skills.map(skill => {
-            return skill.skillId.name;
-        });
         return {
-            jobId: _id.toString(),
-            position: positionId.name,
-            location: locationId.name,
-            jobType: typeId.name,
-            ...rest._doc,
-            skills: listSkills
+            jobId: job._id.toString(),
+            name: job.name,
+            quantity: job.quantity,
+            benefit: job.benefit,
+            salaryRange: job.salaryRange,
+            requirement: job.requirement,
+            description: job.description,
+            author: job.authorId.name,
+            position: job.position,
+            location: job.location,
+            jobType: job.type,
+            skills: job.skills
         };
     });
     return { listjobs, jobLength };
 };
 exports.getJobs = getJobs;
-const getLocation = async () => {
-    const jobs = await jobLocation_1.JobLocation.find();
-    let listLocation = jobs.map(job => {
-        return job.name;
-    });
-    listLocation = [...new Set(listLocation)];
-    return listLocation;
+const getLocation = () => {
+    return utils_1.jobLocation;
 };
 exports.getLocation = getLocation;
-const getPosition = async () => {
-    const jobPos = await jobPosition_1.JobPosition.find();
-    let listPosition = jobPos.map(job => {
-        return job.name;
-    });
-    listPosition = [...new Set(listPosition)];
-    return listPosition;
+const getPosition = () => {
+    return utils_1.jobPosition;
 };
 exports.getPosition = getPosition;
-const getType = async () => {
-    const jobs = await jobType_1.JobType.find();
-    let listType = jobs.map(job => {
-        return job.name;
-    });
-    listType = [...new Set(listType)];
-    return listType;
+const getType = () => {
+    return utils_1.jobType;
 };
 exports.getType = getType;
 const getSingleJob = async (jobId) => {
-    const job = await job_1.Job.findById(jobId).populate('positionId locationId typeId skills.skillId');
-    if (!job) {
-        const error = new Error('Không tìm thấy job');
-        error.statusCode = 400;
-        error.result = null;
-        throw error;
-    }
-    ;
-    const { _id, skills, positionId, locationId, typeId, ...rest } = job;
-    delete rest._doc._id;
-    delete rest._doc.skills;
-    delete rest._doc.positionId;
-    delete rest._doc.locationId;
-    delete rest._doc.typeId;
-    const listSkills = skills.map(skill => {
-        return skill.skillId.name;
-    });
-    const returnJob = {
-        jobId: _id.toString(),
-        position: positionId.name,
-        location: locationId.name,
-        jobType: typeId.name,
-        ...rest._doc,
-        skills: listSkills
-    };
-    return returnJob;
+    return await job_1.Job.getJobDetail(jobId);
 };
 exports.getSingleJob = getSingleJob;

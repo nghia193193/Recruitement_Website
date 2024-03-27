@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Job = void 0;
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const Schema = mongoose_1.default.Schema;
 const jobSchema = new Schema({
@@ -11,14 +12,12 @@ const jobSchema = new Schema({
         type: String,
         required: true
     },
-    positionId: {
-        type: Schema.Types.ObjectId,
-        ref: 'JobPosition',
+    position: {
+        type: String,
         required: true
     },
-    typeId: {
-        type: Schema.Types.ObjectId,
-        ref: 'JobType',
+    type: {
+        type: String,
         required: true
     },
     authorId: {
@@ -42,9 +41,8 @@ const jobSchema = new Schema({
         type: String,
         required: true
     },
-    locationId: {
-        type: Schema.Types.ObjectId,
-        ref: 'JobLocation',
+    location: {
+        type: String,
         required: true
     },
     description: {
@@ -59,16 +57,31 @@ const jobSchema = new Schema({
         type: Date,
         required: true
     },
-    skills: [
-        {
-            skillId: {
-                type: Schema.Types.ObjectId,
-                ref: 'Skill',
-                required: true
-            }
-        }
-    ]
+    skills: {
+        type: Array,
+        default: []
+    }
 }, {
     timestamps: true
 });
+jobSchema.statics.getJobDetail = async (jobId) => {
+    const job = await exports.Job.findById(jobId).populate('authorId');
+    if (!job) {
+        throw http_errors_1.default.NotFound('Job not found');
+    }
+    return {
+        jobId: job._id.toString(),
+        name: job.name,
+        quantity: job.quantity,
+        benefit: job.benefit,
+        salaryRange: job.salaryRange,
+        requirement: job.requirement,
+        description: job.description,
+        author: job.authorId.name,
+        position: job.position,
+        location: job.location,
+        jobType: job.type,
+        skills: job.skills
+    };
+};
 exports.Job = mongoose_1.default.model('Job', jobSchema);

@@ -1,8 +1,7 @@
 import { Router } from "express";
-import * as candidateController from '../controllers/candidate.controller';
+import {candidateController} from '../controllers/candidate.controller';
 import { isAuth } from '../middleware';
 import { body, param, query } from "express-validator";
-import mongoose from "mongoose";
 
 const router = Router();
 
@@ -77,6 +76,11 @@ router.get('/interviews', isAuth, [
         })
 ], candidateController.getAllInterviews)
 
+router.put('/favorite-jobs/:jobId', isAuth, [
+    param('jobId').trim().notEmpty().isMongoId().withMessage('jobId không hợp lệ')
+], candidateController.addFavoriteJob);
+
+router.get('/favorite-jobs', isAuth, candidateController.getFavoriteJob);
 
 export default router;
 

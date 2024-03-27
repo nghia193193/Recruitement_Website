@@ -22,31 +22,78 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addFractionStrings = exports.createICalEvent = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyToken = exports.transporter = exports.questionType = exports.applyStatus = exports.refreshKey = exports.secretKey = void 0;
+exports.addFractionStrings = exports.createICalEvent = exports.formatDateToJSDateObject = exports.isValidTimeFormat = exports.isPDF = exports.verifyRefreshToken = exports.verifyAccessToken = exports.signRefreshToken = exports.signAccessToken = exports.questionType = exports.applyStatus = exports.skills = exports.jobType = exports.jobPosition = exports.jobLocation = exports.refreshKey = exports.secretKey = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
-const nodemailer = __importStar(require("nodemailer"));
-exports.secretKey = 'nghiatrongrecruitementwebsitenam42023secretkey';
-exports.refreshKey = 'nghiatrongrecruitementwebsitenam42023refreshkey';
+const http_errors_1 = __importDefault(require("http-errors"));
+const redis_config_1 = require("../../../config/redis.config");
+exports.secretKey = process.env.JWT_SECRET_KEY;
+exports.refreshKey = process.env.JWT_REFRESH_KEY;
+exports.jobLocation = ['FTOWN1', 'FTOWN2', 'FTOWN3'];
+exports.jobPosition = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'DEVOPS', 'TESTER', 'ANDROID'];
+exports.jobType = ['PART_TIME', 'FULL_TIME', 'REMOTE'];
+exports.skills = [
+    'Java', 'Python', 'C#', 'C++', 'PHP', 'JavaScript', 'Node.js', 'React.js', 'TypeScript',
+    'GraphQL', 'Next.js', 'Tailwind CSS', 'REST APIs', 'CSS', 'HTML', 'Back-End Development', 'Front-End Development',
+    'AWS', 'CICD', 'DevOps', 'SQL', 'NoSQL', 'API Testing', 'Software Testing', 'Test Cases', 'Test Data', 'Test Planning',
+    'Test Scripts', 'Communication', 'Consultation', 'Negotiation', 'Optimization', 'Problem Solving',
+];
 exports.applyStatus = ['PENDING', 'REVIEWING', 'PASS', 'FAIL'];
 exports.questionType = ['Technical', 'SoftSkill', 'English'];
-exports.transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-    }
-});
-async function verifyToken(accessToken) {
+const signAccessToken = async (userId) => {
+    return new Promise((resole, reject) => {
+        const payload = {
+            userId
+        };
+        const options = {
+            expiresIn: '1h'
+        };
+        jwt.sign(payload, exports.secretKey, options, (err, token) => {
+            if (err)
+                reject(err);
+            resole(token);
+        });
+    });
+};
+exports.signAccessToken = signAccessToken;
+const signRefreshToken = async (userId) => {
+    return new Promise((resolve, reject) => {
+        const payload = {
+            userId
+        };
+        const options = {
+            expiresIn: '1y'
+        };
+        jwt.sign(payload, exports.refreshKey, options, async (err, token) => {
+            if (err)
+                return reject(err);
+            try {
+                const key = userId.toString();
+                const value = token;
+                await redis_config_1.client.set(key, value, { EX: 365 * 24 * 60 * 60 });
+                resolve(token);
+            }
+            catch (error) {
+                console.log(error);
+                reject(error);
+            }
+        });
+    });
+};
+exports.signRefreshToken = signRefreshToken;
+async function verifyAccessToken(accessToken) {
     return new Promise((resolve, reject) => {
         jwt.verify(accessToken, exports.secretKey, (err, decoded) => {
             if (err) {
-                console.log(err);
-                const error = new Error('Invalid or expired access token');
-                error.statusCode = 401;
-                throw error;
+                // invalid error,...
+                if (err.name === 'JsonWebTokenError') {
+                    return reject(http_errors_1.default.Unauthorized());
+                }
+                // token expired error
+                return reject(http_errors_1.default.Unauthorized(err.message));
             }
             else {
                 resolve(decoded);
@@ -54,20 +101,24 @@ async function verifyToken(accessToken) {
         });
     });
 }
-exports.verifyToken = verifyToken;
+exports.verifyAccessToken = verifyAccessToken;
 ;
 async function verifyRefreshToken(refreshToken) {
     return new Promise((resolve, reject) => {
-        jwt.verify(refreshToken, exports.refreshKey, (err, decoded) => {
+        jwt.verify(refreshToken, exports.refreshKey, async (err, decoded) => {
             if (err) {
-                console.log(err);
-                const error = new Error('Invalid or expired refresh token');
-                error.statusCode = 401;
-                throw error;
+                // invalid error,...
+                if (err.name === 'JsonWebTokenError') {
+                    return reject(http_errors_1.default.Unauthorized());
+                }
+                // token expired error
+                return reject(http_errors_1.default.Unauthorized(err.message));
             }
-            else {
-                resolve(decoded);
+            const storedRT = await redis_config_1.client.get(decoded.userId);
+            if (storedRT !== refreshToken) {
+                return reject(http_errors_1.default.Unauthorized());
             }
+            resolve(decoded);
         });
     });
 }

@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import * as adminService from '../services/admin.service';
-import { verifyToken } from '../utils';
+import { verifyAccessToken } from '../utils';
 import { validationResult } from 'express-validator';
 
 export const getAllAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -44,7 +44,7 @@ export const getAllRecruiterAccounts = async (req: Request, res: Response, next:
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -81,7 +81,7 @@ export const getAllInterviewerAccounts = async (req: Request, res: Response, nex
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -118,7 +118,7 @@ export const getAllCandidateAccounts = async (req: Request, res: Response, next:
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -155,7 +155,7 @@ export const getAllBlackListAccounts = async (req: Request, res: Response, next:
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { searchText, searchBy, active } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -192,7 +192,7 @@ export const addBlackList = async (req: Request, res: Response, next: NextFuncti
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const userId = req.params.userId;
         const errors = validationResult(req);
@@ -219,7 +219,7 @@ export const removeBlackList = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const candidateId = req.params.candidateId;
         const errors = validationResult(req);
@@ -246,7 +246,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { fullName, email, password, confirmPassword, phone, position } = req.body;
         const errors = validationResult(req);
@@ -279,7 +279,7 @@ export const getAllJobs = async (req: Request, res: Response, next: NextFunction
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { recruiterName, jobName } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -316,7 +316,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { recruiterName, eventName } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -353,7 +353,7 @@ export const adminStatistics = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const adminId = decodedToken.userId;
         const { jobNumber, eventNumber, blackListNumber, candidatePassNumber } = await adminService.adminStatistics(adminId);
         res.status(200).json({

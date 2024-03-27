@@ -28,13 +28,10 @@ const userSchema = new Schema(
             publicId: String,
             url: String
         },
-        skills: [
-            {
-                skillId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'Skill',
-                }
-        }],
+        skills: {
+            type: Array,
+            default: []
+        },
         blackList: Boolean,
         isVerifiedEmail: Boolean,
         address: String,
@@ -46,8 +43,6 @@ const userSchema = new Schema(
         resetTokenExpired: Date,
         otp: String,
         otpExpired: Date,
-        accessToken: String,
-        refreshToken: String
     },
     {
         timestamps: true

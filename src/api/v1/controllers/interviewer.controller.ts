@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { verifyToken, questionType } from '../utils';
+import { verifyAccessToken, questionType } from '../utils';
 import { validationResult } from 'express-validator';
 import { User } from '../models/user';
 import * as interviewerService from '../services/interviewer.service';
@@ -8,7 +8,7 @@ export const saveInformation = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const { education, experience, certificate, project, skills } = req.body;
         await interviewerService.saveInformation(interviewerId, education, experience, certificate, project, skills);
@@ -26,7 +26,7 @@ export const getInformation = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const result = await interviewerService.getInformation(interviewerId);
         res.status(200).json({ success: true, message: "Successfully!", result: result });
@@ -43,7 +43,7 @@ export const getAllApplicants = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
@@ -79,7 +79,7 @@ export const getSingleApplicant = async (req: Request, res: Response, next: Next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const candidateId = req.params.candidateId;
         const errors = validationResult(req);
@@ -104,7 +104,7 @@ export const getAllInterviews = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const page: number = req.query.page ? +req.query.page : 1;
         const limit: number = req.query.limit ? +req.query.limit : 10;
@@ -140,7 +140,7 @@ export const getSingleInterview = async (req: Request, res: Response, next: Next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = validationResult(req);
@@ -165,7 +165,7 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const { content, type, skill, note } = req.body;
         const errors = validationResult(req);
@@ -190,7 +190,7 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const { skill, type, content } = req.query;
         const page: number = req.query.page ? +req.query.page : 1;
@@ -227,7 +227,7 @@ export const getSingleQuestion = async (req: Request, res: Response, next: NextF
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const errors = validationResult(req);
@@ -252,7 +252,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const { content, type, skill, note } = req.body;
@@ -278,7 +278,7 @@ export const deleteQuestion = async (req: Request, res: Response, next: NextFunc
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const errors = validationResult(req);
@@ -303,7 +303,7 @@ export const getSkillQuestion = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const returnSkills = await interviewerService.getSkillQuestion(interviewerId);
         res.status(200).json({ success: true, message: 'Get question skills successfully.', result: returnSkills });
@@ -321,7 +321,7 @@ export const getTypeQuestion = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewer = await User.findById(decodedToken.userId).populate('roleId');
         if (interviewer?.get('roleId.roleName') !== 'INTERVIEWER') {
             const error: Error & { statusCode?: number, result?: any } = new Error('UnAuthorized');
@@ -344,7 +344,7 @@ export const getAssignQuestions = async (req: Request, res: Response, next: Next
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = validationResult(req);
@@ -369,7 +369,7 @@ export const assignQuestions = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questions = req.body.questions;
         const interviewId = req.params.interviewId;
@@ -395,7 +395,7 @@ export const updateQuestions = async (req: Request, res: Response, next: NextFun
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questions = req.body.questions;
         const interviewId = req.params.interviewId;
@@ -421,7 +421,7 @@ export const deleteAssignQuestion = async (req: Request, res: Response, next: Ne
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const questionId = req.params.questionId;
         const interviewId = req.params.interviewId;
@@ -447,7 +447,7 @@ export const submitTotalScore = async (req: Request, res: Response, next: NextFu
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const interviewId = req.params.interviewId;
         const errors = validationResult(req);
@@ -472,7 +472,7 @@ export const interviewerStatistics = async (req: Request, res: Response, next: N
     try {
         const authHeader = req.get('Authorization') as string;
         const accessToken = authHeader.split(' ')[1];
-        const decodedToken: any = await verifyToken(accessToken);
+        const decodedToken: any = await verifyAccessToken(accessToken);
         const interviewerId = decodedToken.userId;
         const { interviewNumber, contributedQuestionNumber, scoredInterviewNumber, incompleteInterviewNumber } = await interviewerService.interviewerStatistics(interviewerId);
         res.status(200).json({ success: true, message: 'Get statistics successfully.', result: {

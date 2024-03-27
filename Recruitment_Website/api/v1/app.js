@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const path_1 = __importDefault(require("path"));
 const routes_1 = __importDefault(require("./routes"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
@@ -22,7 +21,6 @@ app.use((0, cors_1.default)());
 app.use((0, helmet_1.default)());
 app.use(body_parser_1.default.json());
 app.use(config_1.fileConfig);
-app.use('/images', express_1.default.static(path_1.default.join(__dirname, 'public/images')));
 cloudinary_1.v2.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.API_KEY,
@@ -36,17 +34,15 @@ app.use((req, res, next) => {
 });
 app.use(routes_1.default);
 app.use((error, req, res, next) => {
-    console.log(error);
     const status = error.statusCode || 500;
     const message = error.message;
     const result = error.result;
-    if (result) {
-        res.status(status).json({ success: error.success || false, message: message, result: { ...result }, statusCode: status });
-    }
-    else {
-        res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
-    }
-    ;
+    res.status(status).json({
+        success: error.success || false,
+        message: message,
+        result: result ? { ...result } : null,
+        statusCode: status
+    });
 });
 mongoose_1.default.connect(MONGO_URI, { minPoolSize: 5, maxPoolSize: 100 })
     .then(result => {

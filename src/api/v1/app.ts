@@ -20,7 +20,6 @@ app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
 app.use(fileConfig);
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 cloudinary.config({ 
     cloud_name: process.env.CLOUD_NAME, 
@@ -38,16 +37,15 @@ app.use((req, res, next) => {
 app.use(routes);
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-    console.log(error);
     const status = error.statusCode || 500;
     const message = error.message;
     const result = error.result;
-    if (result) {
-        res.status(status).json({ success: error.success || false, message: message, result: {...result}, statusCode: status });
-    } else {
-        res.status(status).json({ success: error.success || false, message: message, result: result, statusCode: status });
-    };
-    
+    res.status(status).json({ 
+        success: error.success || false, 
+        message: message, 
+        result: result ? {...result} : null, 
+        statusCode: status 
+    });
 });
 
 mongoose.connect(MONGO_URI, {minPoolSize: 5 ,maxPoolSize: 100})

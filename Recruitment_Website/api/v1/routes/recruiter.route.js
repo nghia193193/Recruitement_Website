@@ -29,11 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const recruiterController = __importStar(require("../controllers/recruiter.controller"));
 const express_validator_1 = require("express-validator");
-const jobPosition_1 = require("../models/jobPosition");
 const sanitize_html_1 = __importDefault(require("sanitize-html"));
-const jobType_1 = require("../models/jobType");
-const jobLocation_1 = require("../models/jobLocation");
-const skill_1 = require("../models/skill");
 const middleware_1 = require("../middleware");
 const utils_1 = require("../utils");
 const user_1 = require("../models/user");
@@ -49,39 +45,27 @@ router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('position').trim()
         .custom((value) => {
         if (value) {
-            return jobPosition_1.JobPosition.findOne({ name: value })
-                .then(pos => {
-                if (!pos) {
-                    return Promise.reject(`Failed to convert 'position' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobPosition.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),
     (0, express_validator_1.query)('type').trim()
         .custom((value) => {
         if (value) {
-            return jobType_1.JobType.findOne({ name: value })
-                .then(type => {
-                if (!type) {
-                    return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobType.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),
     (0, express_validator_1.query)('location').trim()
         .custom((value) => {
         if (value) {
-            return jobLocation_1.JobLocation.findOne({ name: value })
-                .then(loc => {
-                if (!loc) {
-                    return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
-                }
-                return true;
-            });
+            if (!utils_1.jobLocation.includes(value)) {
+                throw new Error(`Failed to convert 'position' with value: '${value}'`);
+            }
         }
         return true;
     }),
@@ -128,9 +112,8 @@ router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
         .custom(async (value) => {
-        const type = await jobType_1.JobType.findOne({ name: value });
-        if (!type) {
-            return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
+        if (!utils_1.jobType.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
@@ -158,9 +141,8 @@ router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
         .custom(async (value) => {
-        const location = await jobLocation_1.JobLocation.findOne({ name: value });
-        if (!location) {
-            throw new Error(`Failed to convert 'location' with value: '${value}'`);
+        if (!utils_1.jobLocation.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
@@ -176,19 +158,17 @@ router.post('/job', middleware_1.isAuth, [
     (0, express_validator_1.body)('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
         .custom(async (value) => {
-        const pos = await jobPosition_1.JobPosition.findOne({ name: value });
-        if (!pos) {
+        if (!utils_1.jobPosition.includes(value)) {
             throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
     (0, express_validator_1.body)('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value) => {
+        .custom((value) => {
         const errors = [];
         for (const skill of value) {
-            const s = await skill_1.Skill.findOne({ name: skill });
-            if (!s) {
+            if (!utils_1.skills.includes(skill)) {
                 errors.push(`Skill: '${skill}' không hợp lệ`);
             }
         }
@@ -209,10 +189,9 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     }),
     (0, express_validator_1.body)('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
-        .custom(async (value) => {
-        const type = await jobType_1.JobType.findOne({ name: value });
-        if (!type) {
-            return Promise.reject(`Failed to convert 'type' with value: '${value}'`);
+        .custom((value) => {
+        if (!utils_1.jobType.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
@@ -240,9 +219,8 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
         .custom(async (value) => {
-        const location = await jobLocation_1.JobLocation.findOne({ name: value });
-        if (!location) {
-            throw new Error(`Failed to convert 'location' with value: '${value}'`);
+        if (!utils_1.jobLocation.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
@@ -258,19 +236,17 @@ router.put('/jobs/:jobId', middleware_1.isAuth, [
     (0, express_validator_1.body)('position').trim()
         .notEmpty().withMessage('Vui lòng nhập position')
         .custom(async (value) => {
-        const pos = await jobPosition_1.JobPosition.findOne({ name: value });
-        if (!pos) {
+        if (!utils_1.jobPosition.includes(value)) {
             throw new Error(`Failed to convert 'position' with value: '${value}'`);
         }
         return true;
     }),
     (0, express_validator_1.body)('skillRequired')
         .isArray().withMessage('Skills không hợp lệ')
-        .custom(async (value) => {
+        .custom((value) => {
         const errors = [];
         for (const skill of value) {
-            const s = await skill_1.Skill.findOne({ name: skill });
-            if (!s) {
+            if (!utils_1.skills.includes(skill)) {
                 errors.push(`Skill: '${skill}' không hợp lệ`);
             }
         }
@@ -351,13 +327,10 @@ router.post('/events', middleware_1.isAuth, [
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value) => {
-        return jobLocation_1.JobLocation.findOne({ name: value })
-            .then(job => {
-            if (!job) {
-                return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
-            }
-            return true;
-        });
+        if (!utils_1.jobLocation.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
+        }
+        return true;
     }),
     (0, express_validator_1.body)('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -397,13 +370,10 @@ router.put('/events/:eventId', middleware_1.isAuth, [
     (0, express_validator_1.body)('location').trim()
         .notEmpty().withMessage('Vui lòng nhập địa điểm')
         .custom((value) => {
-        return jobLocation_1.JobLocation.findOne({ name: value })
-            .then(job => {
-            if (!job) {
-                return Promise.reject(`Failed to convert 'location' with value: '${value}'`);
-            }
-            return true;
-        });
+        if (!utils_1.jobLocation.includes(value)) {
+            throw new Error(`Failed to convert 'position' with value: '${value}'`);
+        }
+        return true;
     }),
     (0, express_validator_1.body)('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -427,10 +397,9 @@ router.get('/interviewers', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('skill').trim()
-        .custom(async (value) => {
+        .custom((value) => {
         if (value) {
-            const skill = await skill_1.Skill.findOne({ name: value });
-            if (!skill) {
+            if (!utils_1.skills.includes(value)) {
                 throw new Error(`Skill: '${value}' không hợp lệ`);
             }
         }
@@ -454,10 +423,9 @@ router.get('/applied-candidates', middleware_1.isAuth, [
         return true;
     }),
     (0, express_validator_1.query)('skill').trim()
-        .custom(async (value) => {
+        .custom((value) => {
         if (value) {
-            const skill = await skill_1.Skill.findOne({ name: value });
-            if (!skill) {
+            if (!utils_1.skills.includes(value)) {
                 throw new Error(`Skill: '${value}' không hợp lệ`);
             }
         }
