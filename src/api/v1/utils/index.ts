@@ -5,14 +5,14 @@ import { client } from '../../../config/redis.config';
 
 export const secretKey = process.env.JWT_SECRET_KEY as string;
 export const refreshKey = process.env.JWT_REFRESH_KEY as string;
-export const jobLocation = ['FTOWN1', 'FTOWN2', 'FTOWN3'];
+export const jobLocation = ['FTOWN1', 'FTOWN2', 'FTOWN3', 'REMOTE'];
 export const jobPosition = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'DEVOPS', 'TESTER', 'ANDROID'];
 export const jobType = ['PART_TIME', 'FULL_TIME', 'REMOTE'];
 export const skills = [
   'Java', 'Python', 'C#', 'C++', 'PHP', 'JavaScript', 'Node.js', 'React.js', 'TypeScript',
   'GraphQL', 'Next.js', 'Tailwind CSS', 'REST APIs', 'CSS', 'HTML', 'Back-End Development', 'Front-End Development',
   'AWS', 'CICD', 'DevOps', 'SQL', 'NoSQL', 'API Testing', 'Software Testing', 'Test Cases', 'Test Data', 'Test Planning',
-  'Test Scripts', 'Communication', 'Consultation', 'Negotiation', 'Optimization', 'Problem Solving',
+  'Test Scripts', 'Communication', 'Consultation', 'Negotiation', 'Optimization', 'Problem Solving'
 ];
 export const applyStatus = ['PENDING', 'REVIEWING', 'PASS', 'FAIL'];
 export const questionType = ['Technical', 'SoftSkill', 'English'];

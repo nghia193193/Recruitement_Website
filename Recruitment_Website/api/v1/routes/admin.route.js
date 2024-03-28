@@ -1,33 +1,10 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const adminController = __importStar(require("../controllers/admin.controller"));
+const admin_controller_1 = require("../controllers/admin.controller");
 const middleware_1 = require("../middleware");
 const express_validator_1 = require("express-validator");
 const sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -100,7 +77,7 @@ router.get('/users', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.getAllAccounts);
+], admin_controller_1.adminController.getAllAccounts);
 router.get('/users/recruiter', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -169,7 +146,7 @@ router.get('/users/recruiter', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.getAllRecruiterAccounts);
+], admin_controller_1.adminController.getAllRecruiterAccounts);
 router.get('/users/interviewer', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -238,7 +215,7 @@ router.get('/users/interviewer', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.getAllInterviewerAccounts);
+], admin_controller_1.adminController.getAllInterviewerAccounts);
 router.get('/users/candidate', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -307,7 +284,7 @@ router.get('/users/candidate', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.getAllCandidateAccounts);
+], admin_controller_1.adminController.getAllCandidateAccounts);
 router.get('/users/blacklist', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -376,13 +353,13 @@ router.get('/users/blacklist', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.getAllBlackListAccounts);
+], admin_controller_1.adminController.getAllBlackListAccounts);
 router.post('/users/blacklist/:userId', middleware_1.isAuth, [
     (0, express_validator_1.param)('userId').trim().isMongoId().withMessage('userId không hợp lệ')
-], adminController.addBlackList);
+], admin_controller_1.adminController.addBlackList);
 router.delete('/candidate/:candidateId', middleware_1.isAuth, [
     (0, express_validator_1.param)('candidateId').trim().isMongoId().withMessage('candidateId không hợp lệ')
-], adminController.removeBlackList);
+], admin_controller_1.adminController.removeBlackList);
 router.post('/create_account', middleware_1.isAuth, [
     (0, express_validator_1.body)('fullName').trim()
         .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
@@ -421,7 +398,7 @@ router.post('/create_account', middleware_1.isAuth, [
         }
         return true;
     })
-], adminController.createAccount);
+], admin_controller_1.adminController.createAccount);
 router.get('/jobs', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -477,7 +454,7 @@ router.get('/jobs', middleware_1.isAuth, [
         }
         return true;
     }),
-], adminController.getAllJobs);
+], admin_controller_1.adminController.getAllJobs);
 router.get('/events', middleware_1.isAuth, [
     (0, express_validator_1.query)('page').trim()
         .custom((value) => {
@@ -533,6 +510,6 @@ router.get('/events', middleware_1.isAuth, [
         }
         return true;
     }),
-], adminController.getAllEvents);
-router.get('/statistics', middleware_1.isAuth, adminController.adminStatistics);
+], admin_controller_1.adminController.getAllEvents);
+router.get('/statistics', middleware_1.isAuth, admin_controller_1.adminController.adminStatistics);
 exports.default = router;

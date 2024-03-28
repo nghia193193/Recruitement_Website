@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { body, query, param } from 'express-validator';
-import * as jobController from '../controllers/job.controller';
+import { query, param } from 'express-validator';
+import { jobController } from '../controllers/job.controller';
 import { jobLocation, jobPosition, jobType } from '../utils';
 import sanitizeHtml from 'sanitize-html';
 

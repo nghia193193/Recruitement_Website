@@ -1,149 +1,124 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.login = exports.verifyOTP = exports.signUp = void 0;
+exports.authController = void 0;
 const express_validator_1 = require("express-validator");
 const utils_1 = require("../utils");
-const authService = __importStar(require("../services/auth.service"));
+const auth_service_1 = require("../services/auth.service");
 const http_errors_1 = __importDefault(require("http-errors"));
-const signUp = async (req, res, next) => {
-    try {
-        const { fullName, email, phone, password, confirmPassword } = req.body;
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (!errors.isEmpty()) {
-            const error = new Error(errors.array()[0].msg);
-            error.statusCode = 400;
-            error.result = null;
-            throw error;
+exports.authController = {
+    signUp: async (req, res, next) => {
+        try {
+            const { fullName, email, phone, password, confirmPassword } = req.body;
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                const error = new Error(errors.array()[0].msg);
+                error.statusCode = 400;
+                error.result = null;
+                throw error;
+            }
+            ;
+            if (confirmPassword !== password) {
+                const error = new Error('Mật khẩu xác nhận không chính xác');
+                error.statusCode = 400;
+                error.result = null;
+                throw error;
+            }
+            ;
+            const { accessToken } = await auth_service_1.authService.signUp(fullName, email, phone, password);
+            res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
+        }
+        catch (err) {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+                err.result = null;
+            }
+            next(err);
         }
         ;
-        if (confirmPassword !== password) {
-            const error = new Error('Mật khẩu xác nhận không chính xác');
-            error.statusCode = 400;
-            error.result = null;
-            throw error;
+    },
+    verifyOTP: async (req, res, next) => {
+        try {
+            const { email, otp } = req.body;
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                const error = new Error(errors.array()[0].msg);
+                error.statusCode = 400;
+                error.result = null;
+                throw error;
+            }
+            ;
+            await auth_service_1.authService.verifyOTP(email, otp);
+            res.status(200).json({ success: true, message: 'Xác thực thành công', statusCode: 200 });
+        }
+        catch (err) {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+                err.result = null;
+            }
+            ;
+            next(err);
         }
         ;
-        const { accessToken } = await authService.signUp(fullName, email, phone, password);
-        res.status(200).json({ success: true, message: 'Sing up success!', result: accessToken, statusCode: 200 });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
+    },
+    login: async (req, res, next) => {
+        try {
+            const { credentialId, password } = req.body;
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                const error = new Error(errors.array()[0].msg);
+                error.statusCode = 400;
+                error.result = null;
+                throw error;
+            }
+            ;
+            const { accessToken, refreshToken } = await auth_service_1.authService.login(credentialId, password);
+            res.status(200).json({
+                success: true,
+                message: "Login successful!",
+                result: {
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                },
+                statusCode: 200
+            });
         }
-        next(err);
+        catch (err) {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+                err.result = null;
+            }
+            next(err);
+        }
+        ;
+    },
+    refreshAccessToken: async (req, res, next) => {
+        try {
+            const refreshToken = req.body.refreshToken;
+            if (!refreshToken) {
+                throw http_errors_1.default.BadRequest();
+            }
+            const { userId } = await (0, utils_1.verifyRefreshToken)(refreshToken);
+            const accessToken = await (0, utils_1.signAccessToken)(userId);
+            const rfToken = await (0, utils_1.signRefreshToken)(userId);
+            res.status(200).json({
+                success: true,
+                message: "Làm mới token thành công",
+                result: {
+                    accessToken: accessToken,
+                    refreshToken: rfToken
+                },
+                statusCode: 200
+            });
+        }
+        catch (err) {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+                err.result = null;
+            }
+            next(err);
+        }
     }
-    ;
 };
-exports.signUp = signUp;
-const verifyOTP = async (req, res, next) => {
-    try {
-        const { email, otp } = req.body;
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (!errors.isEmpty()) {
-            const error = new Error(errors.array()[0].msg);
-            error.statusCode = 400;
-            error.result = null;
-            throw error;
-        }
-        ;
-        await authService.verifyOTP(email, otp);
-        res.status(200).json({ success: true, message: 'Xác thực thành công', statusCode: 200 });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
-        }
-        ;
-        next(err);
-    }
-    ;
-};
-exports.verifyOTP = verifyOTP;
-const login = async (req, res, next) => {
-    try {
-        const { credentialId, password } = req.body;
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (!errors.isEmpty()) {
-            const error = new Error(errors.array()[0].msg);
-            error.statusCode = 400;
-            error.result = null;
-            throw error;
-        }
-        ;
-        const { accessToken, refreshToken } = await authService.login(credentialId, password);
-        res.status(200).json({
-            success: true,
-            message: "Login successful!",
-            result: {
-                accessToken: accessToken,
-                refreshToken: refreshToken
-            },
-            statusCode: 200
-        });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
-        }
-        next(err);
-    }
-    ;
-};
-exports.login = login;
-const refreshAccessToken = async (req, res, next) => {
-    try {
-        const refreshToken = req.body.refreshToken;
-        if (!refreshToken) {
-            throw http_errors_1.default.BadRequest();
-        }
-        const { userId } = await (0, utils_1.verifyRefreshToken)(refreshToken);
-        const accessToken = await (0, utils_1.signAccessToken)(userId);
-        const rfToken = await (0, utils_1.signRefreshToken)(userId);
-        res.status(200).json({
-            success: true,
-            message: "Làm mới token thành công",
-            result: {
-                accessToken: accessToken,
-                refreshToken: rfToken
-            },
-            statusCode: 200
-        });
-    }
-    catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-            err.result = null;
-        }
-        next(err);
-    }
-};
-exports.refreshAccessToken = refreshAccessToken;

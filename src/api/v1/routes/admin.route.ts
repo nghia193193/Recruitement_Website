@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as adminController from '../controllers/admin.controller';
+import { adminController } from '../controllers/admin.controller';
 import { isAuth } from '../middleware';
 import { body, param, query } from 'express-validator';
 import sanitizeHtml from 'sanitize-html';

@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import * as authController from '../controllers/auth.controller';
+import { authController } from '../controllers/auth.controller';
 import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
 
-router.post('/register',[
+router.post('/register', [
     body('fullName').trim()
-        .isLength({min: 5, max:50}).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
+        .isLength({ min: 5, max: 50 }).withMessage('Độ dài của họ và tên trong khoảng 5-50 ký tự')
         .custom((value: string) => {
             const regex = /^[\p{L} ]+$/u; // Cho phép chữ, số và dấu cách
             if (!regex.test(value)) {
@@ -27,7 +27,7 @@ router.post('/register',[
             return true;
         }),
     body('password').trim()
-        .isLength({min: 8, max: 32}).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
+        .isLength({ min: 8, max: 32 }).withMessage('Mật khẩu có độ dài từ 8-32 ký tự')
         .customSanitizer((value: string) => {
             const sanitizedValue = sanitizeHtml(value);
             return sanitizedValue;
@@ -36,11 +36,11 @@ router.post('/register',[
         .notEmpty().withMessage('Vui lòng xác nhận mật khẩu')
 ], authController.signUp);
 
-router.post('/verifyOTP',[
+router.post('/verifyOTP', [
     body('email').trim()
         .isEmail().withMessage('Email không hợp lệ'),
     body('otp').trim()
-        .isLength({min: 6, max: 6}).withMessage('Mã OTP gồm 6 số')
+        .isLength({ min: 6, max: 6 }).withMessage('Mã OTP gồm 6 số')
         .custom((value: string) => {
             const regex = /^[0-9]+$/; // Chỉ cho phép số
             if (!regex.test(value)) {
@@ -50,7 +50,7 @@ router.post('/verifyOTP',[
         })
 ], authController.verifyOTP);
 
-router.post('/login',[
+router.post('/login', [
     body('credentialId').trim()
         .custom((value: string) => {
             const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;

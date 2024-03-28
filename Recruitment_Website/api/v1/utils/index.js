@@ -32,14 +32,14 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const redis_config_1 = require("../../../config/redis.config");
 exports.secretKey = process.env.JWT_SECRET_KEY;
 exports.refreshKey = process.env.JWT_REFRESH_KEY;
-exports.jobLocation = ['FTOWN1', 'FTOWN2', 'FTOWN3'];
+exports.jobLocation = ['FTOWN1', 'FTOWN2', 'FTOWN3', 'REMOTE'];
 exports.jobPosition = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'DEVOPS', 'TESTER', 'ANDROID'];
 exports.jobType = ['PART_TIME', 'FULL_TIME', 'REMOTE'];
 exports.skills = [
     'Java', 'Python', 'C#', 'C++', 'PHP', 'JavaScript', 'Node.js', 'React.js', 'TypeScript',
     'GraphQL', 'Next.js', 'Tailwind CSS', 'REST APIs', 'CSS', 'HTML', 'Back-End Development', 'Front-End Development',
     'AWS', 'CICD', 'DevOps', 'SQL', 'NoSQL', 'API Testing', 'Software Testing', 'Test Cases', 'Test Data', 'Test Planning',
-    'Test Scripts', 'Communication', 'Consultation', 'Negotiation', 'Optimization', 'Problem Solving',
+    'Test Scripts', 'Communication', 'Consultation', 'Negotiation', 'Optimization', 'Problem Solving'
 ];
 exports.applyStatus = ['PENDING', 'REVIEWING', 'PASS', 'FAIL'];
 exports.questionType = ['Technical', 'SoftSkill', 'English'];

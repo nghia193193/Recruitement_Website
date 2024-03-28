@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as recruiterController from '../controllers/recruiter.controller';
+import { recruiterController } from '../controllers/recruiter.controller';
 import { body, param, query } from 'express-validator';
 import sanitizeHtml from "sanitize-html";
 import { isAuth } from '../middleware';
@@ -12,8 +12,7 @@ router.get('/jobs', isAuth, [
     query('name').trim()
         .customSanitizer((value: string) => {
             if (value) {
-                const sanitizedValue = sanitizeHtml(value);
-                return sanitizedValue;
+                return sanitizeHtml(value);
             }
         }),
     query('position').trim()
@@ -79,8 +78,7 @@ router.post('/job', isAuth, [
     body('name').trim()
         .isLength({ min: 5, max: 200 }).withMessage('Tên công việc trong khoảng 5-200 ký tự')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
@@ -96,20 +94,17 @@ router.post('/job', isAuth, [
     body('benefit').trim()
         .isLength({ min: 5, max: 500 }).withMessage('Benefit trong khoảng 5-500 ký tự')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('requirement').trim()
         .notEmpty().withMessage('Vui lòng nhập requirement')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
@@ -122,8 +117,7 @@ router.post('/job', isAuth, [
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -154,15 +148,14 @@ router.post('/job', isAuth, [
 
 router.get('/jobs/:jobId', isAuth,
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ')
-, recruiterController.getSingleJob);
+    , recruiterController.getSingleJob);
 
 router.put('/jobs/:jobId', isAuth, [
     param('jobId').trim().isMongoId().withMessage('Id không hợp lệ'),
     body('name').trim()
         .isLength({ min: 5, max: 200 }).withMessage('Tên công việc trong khoảng 5-200 ký tự')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('jobType').trim()
         .notEmpty().withMessage('Vui lòng nhập jobType')
@@ -178,20 +171,17 @@ router.put('/jobs/:jobId', isAuth, [
     body('benefit').trim()
         .isLength({ min: 5, max: 500 }).withMessage('Benefit trong khoảng 5-500 ký tự')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('salaryRange').trim()
         .notEmpty().withMessage('Vui lòng điền mức lương')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('requirement').trim()
         .notEmpty().withMessage('Vui lòng nhập requirement')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('location').trim()
         .notEmpty().withMessage('Vui lòng chọn địa điểm')
@@ -204,8 +194,7 @@ router.put('/jobs/:jobId', isAuth, [
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('deadline').trim()
         .notEmpty().withMessage('Vui lòng nhập deadline')
@@ -284,20 +273,17 @@ router.post('/events', isAuth, [
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')
@@ -328,20 +314,17 @@ router.put('/events/:eventId', isAuth, [
     body('title').trim()
         .notEmpty().withMessage('Vui lòng nhập title')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('name').trim()
         .notEmpty().withMessage('Vui lòng nhập tên')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('description').trim()
         .notEmpty().withMessage('Vui lòng nhập description')
         .customSanitizer((value: string) => {
-            const sanitizedValue = sanitizeHtml(value);
-            return sanitizedValue;
+            return sanitizeHtml(value);
         }),
     body('time').trim()
         .notEmpty().withMessage('Vui lòng nhập thời gian')

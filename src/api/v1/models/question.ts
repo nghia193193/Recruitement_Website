@@ -16,9 +16,8 @@ const questionSchema = new Schema({
         type: String,
         required: true
     },
-    skillId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Skill',
+    skill: {
+        type: String,
         required: true
     }
 }, {
